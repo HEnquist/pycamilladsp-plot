@@ -4,19 +4,19 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="camilladsp",
-    version="0.2.2",
+    name="camilladsp_plot",
+    version="0.3.0",
     author="Henrik Enquist",
     author_email="henrik.enquist@gmail.com",
-    description="A library for comminucating with CamillaDSP",
+    description="A library for plotting configs and filters for CamillaDSP",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/HEnquist/pycamilladsp",
+    url="https://github.com/HEnquist/pycamilladsp-plot",
     packages=setuptools.find_packages(),
     python_requires=">=3",
-    install_requires=["PyYAML", "websocket_client", "numpy", "matplotlib"],
+    install_requires=["PyYAML", "numpy", "matplotlib"],
     entry_points = {
-        'console_scripts': ['plotcamillaconf=camilladsp.plotcamillaconf:main'],
+        'console_scripts': ['plotcamillaconf=camilladsp_plot.plotcamillaconf:main'],
     }
 
 )

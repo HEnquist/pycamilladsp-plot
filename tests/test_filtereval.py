@@ -1,5 +1,5 @@
 import pytest
-from camilladsp import filter_eval
+from camilladsp_plot import filter_eval
 import numpy as np
 
 def test_24bit():

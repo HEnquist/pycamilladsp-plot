@@ -1,5 +1,5 @@
 
-from camilladsp.filter_eval import Biquad, BiquadCombo, Conv, DiffEq, Gain
+from camilladsp_plot.filter_eval import Biquad, BiquadCombo, Conv, DiffEq, Gain
 import numpy as np
 import matplotlib
 from matplotlib import pyplot as plt

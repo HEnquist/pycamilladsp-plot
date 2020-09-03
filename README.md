@@ -1,10 +1,34 @@
 # pyCamillaDSP_plot
 Companion Python library for plotting configurations and filters for CamillaDSP. It is also used by the web interface.
 
-Install with 
+Download the library, either by `git clone` or by downloading a zip file of the code. Then unpack the files, go to the folder containing the `setup.py` file and run: 
 ```sh
 pip install .
 ```
+Note that on some systems the command is `pip3` instead of `pip`.
+
+## Requirements
+This library requires Python 3.6 or newer, and both `numpy` and `matplotlib`.
+
+These are the names of the packages needed:
+| Distribution | python | numpy | matplotlib |
+|--------------|--------|-------|------------|
+| Fedora | python3 | python3-numpy | python3-matplotlib |
+| Debian/Raspbian | python3 | python3-numpy | python3-matplotlib |
+| Arch | python | python-numpy | python-matplotlib |
+| pip | - | numpy | matplotlib | 
+| Anaconda | - | numpy | matplotlib |
+
+### Linux
+Most linux distributions have Python 3.6 or newer installed by default. Use the normal package manager to install the packages.
+
+### Windows
+Use Anaconda: https://www.anaconda.com/products/individual. Then use Anaconda Navigator to install the dependencies.
+
+### macOS
+On macOS use either Anaconda or Homebrew. The Anaconda procedure is the same as for Windows. 
+
+For Homebrew, install Python with `brew install python`, after which you can install the needed packages with pip, `pip3 install numpy` etc.
 
 ## Plotting a configuration
 This library provides the console command `plotcamillaconf`. Once the library is installed, the command should be available in your terminal.

@@ -1,5 +1,7 @@
 import numpy as np
 import numpy.fft as fft
+import cmath
+import math
 import csv
 import yaml
 import sys
@@ -260,7 +262,7 @@ class Biquad(object):
         if ftype == "Highpass":
             freq = conf["freq"]
             q = conf["q"]
-            omega = 2.0 * np.pi * freq / fs
+            omega = 2.0 * math.pi * freq / fs
             sn = np.sin(omega)
             cs = np.cos(omega)
             alpha = sn / (2.0 * q)
@@ -273,7 +275,7 @@ class Biquad(object):
         elif ftype == "Lowpass":
             freq = conf["freq"]
             q = conf["q"]
-            omega = 2.0 * np.pi * freq / fs
+            omega = 2.0 * math.pi * freq / fs
             sn = np.sin(omega)
             cs = np.cos(omega)
             alpha = sn / (2.0 * q)
@@ -287,9 +289,9 @@ class Biquad(object):
             freq = conf["freq"]
             q = conf["q"]
             gain = conf["gain"]
-            omega = 2.0 * np.pi * freq / fs
-            sn = np.sin(omega)
-            cs = np.cos(omega)
+            omega = 2.0 * math.pi * freq / fs
+            sn = math.sin(omega)
+            cs = math.cos(omega)
             ampl = 10.0 ** (gain / 40.0)
             alpha = sn / (2.0 * q)
             b0 = 1.0 + (alpha * ampl)
@@ -301,9 +303,9 @@ class Biquad(object):
         elif ftype == "HighshelfFO":
             freq = conf["freq"]
             gain = conf["gain"]
-            omega = 2.0 * np.pi * freq / fs
+            omega = 2.0 * math.pi * freq / fs
             ampl = 10.0 ** (gain / 40.0)
-            tn = np.tan(omega / 2)
+            tn = math.tan(omega / 2)
             b0 = ampl * tn + ampl ** 2
             b1 = ampl * tn - ampl ** 2
             b2 = 0.0
@@ -314,16 +316,16 @@ class Biquad(object):
             freq = conf["freq"]
             slope = conf["slope"]
             gain = conf["gain"]
-            omega = 2.0 * np.pi * freq / fs
+            omega = 2.0 * math.pi * freq / fs
             ampl = 10.0 ** (gain / 40.0)
-            sn = np.sin(omega)
-            cs = np.cos(omega)
+            sn = math.sin(omega)
+            cs = math.cos(omega)
             alpha = (
                 sn
                 / 2.0
-                * np.sqrt((ampl + 1.0 / ampl) * (1.0 / (slope / 12.0) - 1.0) + 2.0)
+                * math.sqrt((ampl + 1.0 / ampl) * (1.0 / (slope / 12.0) - 1.0) + 2.0)
             )
-            beta = 2.0 * np.sqrt(ampl) * alpha
+            beta = 2.0 * math.sqrt(ampl) * alpha
             b0 = ampl * ((ampl + 1.0) + (ampl - 1.0) * cs + beta)
             b1 = -2.0 * ampl * ((ampl - 1.0) + (ampl + 1.0) * cs)
             b2 = ampl * ((ampl + 1.0) + (ampl - 1.0) * cs - beta)
@@ -333,9 +335,9 @@ class Biquad(object):
         elif ftype == "LowshelfFO":
             freq = conf["freq"]
             gain = conf["gain"]
-            omega = 2.0 * np.pi * freq / fs
+            omega = 2.0 * math.pi * freq / fs
             ampl = 10.0 ** (gain / 40.0)
-            tn = np.tan(omega / 2)
+            tn = math.tan(omega / 2)
             b0 = ampl ** 2 * tn + ampl
             b1 = ampl ** 2 * tn - ampl
             b2 = 0.0
@@ -346,16 +348,16 @@ class Biquad(object):
             freq = conf["freq"]
             slope = conf["slope"]
             gain = conf["gain"]
-            omega = 2.0 * np.pi * freq / fs
+            omega = 2.0 * math.pi * freq / fs
             ampl = 10.0 ** (gain / 40.0)
-            sn = np.sin(omega)
-            cs = np.cos(omega)
+            sn = math.sin(omega)
+            cs = math.cos(omega)
             alpha = (
                 sn
                 / 2.0
-                * np.sqrt((ampl + 1.0 / ampl) * (1.0 / (slope / 12.0) - 1.0) + 2.0)
+                * math.sqrt((ampl + 1.0 / ampl) * (1.0 / (slope / 12.0) - 1.0) + 2.0)
             )
-            beta = 2.0 * np.sqrt(ampl) * alpha
+            beta = 2.0 * math.sqrt(ampl) * alpha
             b0 = ampl * ((ampl + 1.0) - (ampl - 1.0) * cs + beta)
             b1 = 2.0 * ampl * ((ampl - 1.0) - (ampl + 1.0) * cs)
             b2 = ampl * ((ampl + 1.0) - (ampl - 1.0) * cs - beta)
@@ -365,7 +367,7 @@ class Biquad(object):
         elif ftype == "LowpassFO":
             freq = conf["freq"]
             omega = 2.0 * np.pi * freq / fs
-            k = np.tan(omega / 2.0)
+            k = math.tan(omega / 2.0)
             alpha = 1 + k
             a0 = 1.0
             a1 = -((1 - k) / alpha)
@@ -375,8 +377,8 @@ class Biquad(object):
             b2 = 0
         elif ftype == "HighpassFO":
             freq = conf["freq"]
-            omega = 2.0 * np.pi * freq / fs
-            k = np.tan(omega / 2.0)
+            omega = 2.0 * math.pi * freq / fs
+            k = math.tan(omega / 2.0)
             alpha = 1 + k
             a0 = 1.0
             a1 = -((1 - k) / alpha)
@@ -387,9 +389,9 @@ class Biquad(object):
         elif ftype == "Notch":
             freq = conf["freq"]
             q = conf["q"]
-            omega = 2.0 * np.pi * freq / fs
-            sn = np.sin(omega)
-            cs = np.cos(omega)
+            omega = 2.0 * math.pi * freq / fs
+            sn = math.sin(omega)
+            cs = math.cos(omega)
             alpha = sn / (2.0 * q)
             b0 = 1.0
             b1 = -2.0 * cs
@@ -400,9 +402,9 @@ class Biquad(object):
         elif ftype == "Bandpass":
             freq = conf["freq"]
             q = conf["q"]
-            omega = 2.0 * np.pi * freq / fs
-            sn = np.sin(omega)
-            cs = np.cos(omega)
+            omega = 2.0 * math.pi * freq / fs
+            sn = math.sin(omega)
+            cs = math.cos(omega)
             alpha = sn / (2.0 * q)
             b0 = alpha
             b1 = 0.0
@@ -413,9 +415,9 @@ class Biquad(object):
         elif ftype == "Allpass":
             freq = conf["freq"]
             q = conf["q"]
-            omega = 2.0 * np.pi * freq / fs
-            sn = np.sin(omega)
-            cs = np.cos(omega)
+            omega = 2.0 * math.pi * freq / fs
+            sn = math.sin(omega)
+            cs = math.cos(omega)
             alpha = sn / (2.0 * q)
             b0 = 1.0 - alpha
             b1 = -2.0 * cs
@@ -425,8 +427,8 @@ class Biquad(object):
             a2 = 1.0 - alpha
         elif ftype == "AllpassFO":
             freq = conf["freq"]
-            omega = 2.0 * np.pi * freq / fs
-            tn = np.tan(omega / 2.0)
+            omega = 2.0 * math.pi * freq / fs
+            tn = math.tan(omega / 2.0)
             alpha = (tn + 1.0) / (tn - 1.0)
             b0 = 1.0
             b1 = alpha
@@ -440,13 +442,13 @@ class Biquad(object):
             qt = conf["q_target"]
             ft = conf["freq_target"]
 
-            d0i = (2.0 * np.pi * f0) ** 2
-            d1i = (2.0 * np.pi * f0) / q0
-            c0i = (2.0 * np.pi * ft) ** 2
-            c1i = (2.0 * np.pi * ft) / qt
+            d0i = (2.0 * math.pi * f0) ** 2
+            d1i = (2.0 * math.pi * f0) / q0
+            c0i = (2.0 * math.pi * ft) ** 2
+            c1i = (2.0 * math.pi * ft) / qt
             fc = (ft + f0) / 2.0
 
-            gn = 2 * np.pi * fc / math.tan(np.pi * fc / fs)
+            gn = 2 * math.pi * fc / math.tan(math.pi * fc / fs)
             cci = c0i + gn * c1i + gn ** 2
 
             b0 = (d0i + gn * d1i + gn ** 2) / cci
@@ -463,17 +465,16 @@ class Biquad(object):
         self.b1 = b1 / a0
         self.b2 = b2 / a0
 
-    def complex_gain(self, f):
-        z = np.exp(1j * 2 * np.pi * f / self.fs)
-        A = (self.b0 + self.b1 * z ** (-1) + self.b2 * z ** (-2)) / (
-            1.0 + self.a1 * z ** (-1) + self.a2 * z ** (-2)
-        )
-        return f, A
+    def complex_gain(self, freq):
+        zvec = [cmath.exp(1j * 2 * math.pi * f / self.fs) for f in freq]
+        A = [((self.b0 + self.b1 * z ** (-1) + self.b2 * z ** (-2)) / (
+            1.0 + self.a1 * z ** (-1) + self.a2 * z ** (-2))) for z in zvec]
+        return freq, A
 
     def gain_and_phase(self, f):
-        _f, A = self.complex_gain(f)
-        gain = 20 * np.log10(np.abs(A))
-        phase = 180 / np.pi * np.angle(A)
+        _f, Avec = self.complex_gain(f)
+        gain = [20 * math.log10(abs(A)) for A in Avec]
+        phase = [180 / math.pi * cmath.phase(A) for A in Avec]
         return f, gain, phase
 
     def is_stable(self):

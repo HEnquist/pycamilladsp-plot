@@ -13,7 +13,7 @@ def main():
 
     plot_pipeline(conf)
     plot_filters(conf)
-    plot_all_filtersteps(conf)
+    #plot_all_filtersteps(conf)
 
     plt.show()
 

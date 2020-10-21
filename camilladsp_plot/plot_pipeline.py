@@ -1,7 +1,3 @@
-# show_config.py
-
-import numpy as np
-import numpy.fft as fft
 import csv
 import yaml
 import sys

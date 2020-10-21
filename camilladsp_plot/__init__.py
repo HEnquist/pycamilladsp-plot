@@ -1,2 +1,3 @@
 from camilladsp_plot.plot_filters import plot_filters, plot_filter, plot_filterstep, plot_all_filtersteps
 from camilladsp_plot.plot_pipeline import plot_pipeline
+from camilladsp_plot.eval_filterconfig import eval_filter, eval_filterstep

@@ -3,7 +3,6 @@ import math
 import csv
 import yaml
 import sys
-from matplotlib import pyplot as plt
 import math
 import itertools
 import struct
@@ -12,13 +11,22 @@ from .cooley_tukey import fft
 
 class Conv(object):
 
-    DATATYPE = {
+    TYPES_DIRECT = {
         "FLOAT64LE": "<d",
         "FLOAT32LE": "<f",
         "S16LE": "<h",
-        "S24LE": "<i",
-        "S24LE3": "<i",
         "S32LE": "<i",
+    }
+
+    TYPES_INDIRECT = {
+        "S24LE": {
+            "pattern": "sssx",
+            "endian": "little"
+        },
+        "S24LE3": {
+            "pattern": "sss",
+            "endian": "little"
+        },
     }
 
     SCALEFACTOR = {
@@ -64,7 +72,12 @@ class Conv(object):
         if conf["format"] == "TEXT":
             values = self._read_text_coeffs(fname, skip_nbr, read_nbr)
         else:
-            values = self._read_binary_coeffs(fname, conf["format"], skip_nbr, read_nbr)
+            if conf["format"] in self.TYPES_DIRECT:
+                values = self._read_binary_direct_coeffs(fname, conf["format"], skip_nbr, read_nbr)
+            elif conf["format"] in self.TYPES_INDIRECT:
+                values = self._read_binary_indirect_coeffs(fname, conf["format"], skip_nbr, read_nbr)
+            else:
+                raise ValueError(f"Unsupported format {conf['format']}")
         return values
 
     def _read_text_coeffs(self, fname, skip_lines, read_lines):
@@ -73,25 +86,36 @@ class Conv(object):
             values = [float(row[0]) for row in rawvalues]
         return values
 
-    def _read_binary_coeffs(self, fname, sampleformat, skip_bytes, read_bytes):
+    def _read_binary_direct_coeffs(self, fname, sampleformat, skip_bytes, read_bytes):
 
         if read_bytes is None:
             count = -1
         else:
             count = read_bytes
 
-        datatype = self.DATATYPE[sampleformat]
+        datatype = self.TYPES_DIRECT[sampleformat]
         factor = self.SCALEFACTOR[sampleformat]
         with open(fname, 'rb') as f:
             f.seek(skip_bytes)
             data = f.read(count)
-            print(data)
-            values = [float(val[0])/factor for val in struct.iter_unpack(datatype, data)]
+        values = [float(val[0])/factor for val in struct.iter_unpack(datatype, data)]
         return values
 
-    def _repack_24bit(self, values):
-        new_values = values[0::3].astype(np.int8)*2**16 + values[1::3]*2**8 + values[2::3]
-        return new_values
+    def _read_binary_indirect_coeffs(self, fname, sampleformat, skip_bytes, read_bytes):
+
+        if read_bytes is None:
+            count = -1
+        else:
+            count = read_bytes
+
+        pattern = self.TYPES_INDIRECT[sampleformat]["pattern"]
+        factor = self.SCALEFACTOR[sampleformat]
+        endian = self.TYPES_INDIRECT[sampleformat]["endian"]
+        with open(fname, 'rb') as f:
+            f.seek(skip_bytes)
+            data = f.read(count)
+        values = [int.from_bytes(b"".join(val), endian, signed=True)/factor for val in struct.iter_unpack(pattern, data)]
+        return values
 
     def complex_gain(self, f):
         impulselen = len(self.impulse)
@@ -104,8 +128,9 @@ class Conv(object):
         impfft = fft(impulse)
         f_fft = [self.fs*n/(2.0*npoints) for n in range(npoints)]
         cut = impfft[0:npoints]
-        #cut = self.interpolate(cut, f_fft, f)
-        return f, cut
+        if f is not None:
+            interpolated = self.interpolate(cut, f_fft, f)
+            return f, interpolated
         return f_fft, cut
 
     def interpolate(self, y, xold, xnew):
@@ -121,19 +146,12 @@ class Conv(object):
             if i2>=(len(y)):
                 i2 = i1
             fract = idx - i1
-            
             newval = (1-fract)*y[i1] + fract*y[i2]
-            #newval = y[i1]
             ynew.append(newval)
-            #print(i1, i2, fract, newval)
-        #print(y[0:20], ynew[0:20])
         return ynew
 
-
-            
-
     def gain_and_phase(self, f):
-        f_fft, Avec = self.complex_gain(f)
+        f_fft, Avec = self.complex_gain(None)
         gain = [20 * math.log10(abs(A)) for A in Avec]
         gain = self.interpolate(gain, f_fft, f)
         phase = [180 / math.pi * cmath.phase(A) for A in Avec]

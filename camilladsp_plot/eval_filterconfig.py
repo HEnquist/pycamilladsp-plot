@@ -12,9 +12,9 @@ def logspace(minval, maxval, npoints):
 
 def eval_filter(filterconf, name=None, samplerate=44100, npoints=1000):
     fvect = logspace(1.0, samplerate*0.95/2.0, npoints)
-    result = {"name": name, "samplerate": samplerate, "f": fvect }
     if name is None:
         name = "unnamed {}".format(filterconf['type'])
+    result = {"name": name, "samplerate": samplerate, "f": fvect }
     if filterconf['type'] in ('Biquad', 'DiffEq', 'BiquadCombo'):
         if filterconf['type'] == 'DiffEq':
             currfilt = DiffEq(filterconf['parameters'], samplerate)

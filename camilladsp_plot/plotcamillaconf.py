@@ -2,9 +2,15 @@ import yaml
 import sys
 from camilladsp_plot.plot_pipeline import plot_pipeline
 from camilladsp_plot.plot_filters import plot_filters, plot_all_filtersteps
-from matplotlib import pyplot as plt
+try:
+    from matplotlib import pyplot as plt
+except ImportError:
+    plt = None
 
 def main():
+    if plt is None:
+        print("Matplotlib is not available! Can't display plots.")
+        return
     fname = sys.argv[1]
 
     conffile = open(fname)

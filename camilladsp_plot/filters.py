@@ -1,22 +1,32 @@
-import numpy as np
-import numpy.fft as fft
+import cmath
+import math
 import csv
 import yaml
 import sys
-from matplotlib import pyplot as plt
 import math
 import itertools
+import struct
+from .cooley_tukey import fft
 
 
 class Conv(object):
 
-    DATATYPE = {
-        "FLOAT64LE": float,
-        "FLOAT32LE": np.float32,
-        "S16LE": np.int16,
-        "S24LE": np.int32,
-        "S24LE3": np.uint8,
-        "S32LE": np.int32,
+    TYPES_DIRECT = {
+        "FLOAT64LE": "<d",
+        "FLOAT32LE": "<f",
+        "S16LE": "<h",
+        "S32LE": "<i",
+    }
+
+    TYPES_INDIRECT = {
+        "S24LE": {
+            "pattern": "sssx",
+            "endian": "little"
+        },
+        "S24LE3": {
+            "pattern": "sss",
+            "endian": "little"
+        },
     }
 
     SCALEFACTOR = {
@@ -33,7 +43,7 @@ class Conv(object):
         "FLOAT32LE": 4,
         "S16LE": 2,
         "S24LE": 4,
-        "S24LE3": 1,
+        "S24LE3": 3,
         "S32LE": 4,
     }
 
@@ -62,7 +72,12 @@ class Conv(object):
         if conf["format"] == "TEXT":
             values = self._read_text_coeffs(fname, skip_nbr, read_nbr)
         else:
-            values = self._read_binary_coeffs(fname, conf["format"], skip_nbr, read_nbr)
+            if conf["format"] in self.TYPES_DIRECT:
+                values = self._read_binary_direct_coeffs(fname, conf["format"], skip_nbr, read_nbr)
+            elif conf["format"] in self.TYPES_INDIRECT:
+                values = self._read_binary_indirect_coeffs(fname, conf["format"], skip_nbr, read_nbr)
+            else:
+                raise ValueError(f"Unsupported format {conf['format']}")
         return values
 
     def _read_text_coeffs(self, fname, skip_lines, read_lines):
@@ -71,52 +86,80 @@ class Conv(object):
             values = [float(row[0]) for row in rawvalues]
         return values
 
-    def _read_binary_coeffs(self, fname, sampleformat, skip_bytes, read_bytes):
+    def _read_binary_direct_coeffs(self, fname, sampleformat, skip_bytes, read_bytes):
 
         if read_bytes is None:
             count = -1
         else:
-            count = read_bytes/self.BYTESPERSAMPLE[sampleformat]
+            count = read_bytes
 
-        datatype = self.DATATYPE[sampleformat]
+        datatype = self.TYPES_DIRECT[sampleformat]
         factor = self.SCALEFACTOR[sampleformat]
-        values = (
-            np.fromfile(fname, offset=skip_bytes, count=count, dtype=datatype)
-        )
-        if sampleformat == "S24LE3":
-            values = self._repack_24bit(values)
-        values = values / factor
+        with open(fname, 'rb') as f:
+            f.seek(skip_bytes)
+            data = f.read(count)
+        values = [float(val[0])/factor for val in struct.iter_unpack(datatype, data)]
         return values
 
-    def _repack_24bit(self, values):
-        new_values = values[0::3].astype(np.int8)*2**16 + values[1::3]*2**8 + values[2::3]
-        return new_values
+    def _read_binary_indirect_coeffs(self, fname, sampleformat, skip_bytes, read_bytes):
+
+        if read_bytes is None:
+            count = -1
+        else:
+            count = read_bytes
+
+        pattern = self.TYPES_INDIRECT[sampleformat]["pattern"]
+        factor = self.SCALEFACTOR[sampleformat]
+        endian = self.TYPES_INDIRECT[sampleformat]["endian"]
+        with open(fname, 'rb') as f:
+            f.seek(skip_bytes)
+            data = f.read(count)
+        values = [int.from_bytes(b"".join(val), endian, signed=True)/factor for val in struct.iter_unpack(pattern, data)]
+        return values
 
     def complex_gain(self, f):
         impulselen = len(self.impulse)
         npoints = impulselen
         if npoints < 1024:
             npoints = 1024
-        impulse = np.zeros(npoints * 2)
-        impulse[0:impulselen] = self.impulse
-        impfft = fft.fft(impulse)
-        f_fft = np.linspace(0, self.fs / 2.0, npoints)
+        impulse = list(self.impulse)
+        while len(impulse) < 2*npoints:
+            impulse.append(0.0)
+        impfft = fft(impulse)
+        f_fft = [self.fs*n/(2.0*npoints) for n in range(npoints)]
         cut = impfft[0:npoints]
-        cut = np.interp(f, f_fft, cut)
-        return f, cut
+        if f is not None:
+            interpolated = self.interpolate(cut, f_fft, f)
+            return f, interpolated
+        return f_fft, cut
+
+    def interpolate(self, y, xold, xnew):
+        idx = 0
+        ynew = []
+        
+        for x in xnew:
+            idx = len(y)*x/xold[-1]
+            i1 = int(math.floor(idx))
+            i2 = i1+1
+            if i1>=(len(y)):
+                i1 = len(y)-1
+            if i2>=(len(y)):
+                i2 = i1
+            fract = idx - i1
+            newval = (1-fract)*y[i1] + fract*y[i2]
+            ynew.append(newval)
+        return ynew
 
     def gain_and_phase(self, f):
-        _f, A = self.complex_gain(f)
-        gain = 20 * np.log10(np.abs(A) + 1e-15)
-        phase = 180 / np.pi * np.angle(A)
+        f_fft, Avec = self.complex_gain(None)
+        gain = [20 * math.log10(abs(A)) for A in Avec]
+        gain = self.interpolate(gain, f_fft, f)
+        phase = [180 / math.pi * cmath.phase(A) for A in Avec]
+        phase = self.interpolate(phase, f_fft, f)
         return f, gain, phase
 
-    
-
     def get_impulse(self):
-        t = np.linspace(
-            0, len(self.impulse) / self.fs, len(self.impulse), endpoint=False
-        )
+        t = [n/self.fs for n in range(len(self.impulse))]
         return t, self.impulse
 
 
@@ -130,22 +173,27 @@ class DiffEq(object):
         if len(self.b) == 0:
             self.b = [1.0]
 
-    def complex_gain(self, f):
-        z = np.exp(1j * 2 * np.pi * f / self.fs)
-        print(self.a, self.b)
-        A1 = np.zeros(z.shape)
+    def complex_gain(self, freq):
+        
+        A = [((self.b0 + self.b1 * z ** (-1) + self.b2 * z ** (-2)) / (
+            1.0 + self.a1 * z ** (-1) + self.a2 * z ** (-2))) for z in zvec]
+        return freq, A
+
+    def complex_gain(self, freq):
+        zvec = [cmath.exp(1j * 2 * math.pi * f / self.fs) for f in freq]
+        A1 = [0.0 for n in range(len(freq))]  
         for n, bn in enumerate(self.b):
-            A1 = A1 + bn * z ** (-n)
-        A2 = np.zeros(z.shape)
+            A1 = [a1 + bn * z ** (-n) for a1 in A1]
+        A2 = [0.0 for n in range(len(freq))]  
         for n, an in enumerate(self.a):
-            A2 = A2 + an * z ** (-n)
-        A = A1 / A2
+            A2 = [a2 + an * z ** (-n) for a2 in A2]
+        A = [a1 / a2 for (a1, a2) in zip(A1, A2)]
         return f, A
 
     def gain_and_phase(self, f):
-        _f, A = self.complex_gain(f)
-        gain = 20 * np.log10(np.abs(A))
-        phase = 180 / np.pi * np.angle(A)
+        _f, Avec = self.complex_gain(f)
+        gain = [20 * math.log10(abs(A)) for A in Avec]
+        phase = [180 / math.pi * cmath.phase(A) for A in Avec]
         return f, gain, phase
 
     def is_stable(self):
@@ -159,16 +207,16 @@ class Gain(object):
         self.inverted = conf["inverted"]
 
     def complex_gain(self, f):
-        ones = np.ones(f.shape)        
         sign = -1.0 if self.inverted else 1.0
-        gain = ones * 10.0**(self.gain/20.0) * sign
-        return f, gain
+        gain = 10.0**(self.gain/20.0) * sign
+        A = [gain for n in range(len(freq))] 
+        return f, A
 
     def gain_and_phase(self, f):
-        ones = np.ones(f.shape)        
-        phaseval = 180 / np.pi if self.inverted else 0
-        gain = ones * self.gain
-        phase = ones * phaseval
+        Aval = 10.0**(self.gain/20.0)
+        gain = [Aval for n in range(len(freq))]       
+        phaseval = 180 / math.pi if self.inverted else 0
+        phase = [phaseval for n in range(len(freq))]  
         return f, gain, phase
 
     def is_stable(self):
@@ -233,17 +281,17 @@ class BiquadCombo(object):
         # TODO
         return None
 
-    def complex_gain(self, f):
-        A = np.ones(f.shape)
+    def complex_gain(self, freq):
+        A = [1.0 for n in range(len(freq))]
         for bq in self.biquads:
-            _f, Atemp = bq.complex_gain(f)
-            A = A * Atemp
-        return f, A
+            _f, Atemp = bq.complex_gain(freq)
+            A = [a*atemp for (a, atemp) in zip(A, Atemp)]
+        return freq, A
 
     def gain_and_phase(self, f):
-        _f, A = self.complex_gain(f)
-        gain = 20 * np.log10(np.abs(A))
-        phase = 180 / np.pi * np.angle(A)
+        _f, Avec = self.complex_gain(f)
+        gain = [20 * math.log10(abs(A)) for A in Avec]
+        phase = [180 / math.pi * cmath.phase(A) for A in Avec]
         return f, gain, phase
 
 
@@ -260,9 +308,9 @@ class Biquad(object):
         if ftype == "Highpass":
             freq = conf["freq"]
             q = conf["q"]
-            omega = 2.0 * np.pi * freq / fs
-            sn = np.sin(omega)
-            cs = np.cos(omega)
+            omega = 2.0 * math.pi * freq / fs
+            sn = math.sin(omega)
+            cs = math.cos(omega)
             alpha = sn / (2.0 * q)
             b0 = (1.0 + cs) / 2.0
             b1 = -(1.0 + cs)
@@ -273,9 +321,9 @@ class Biquad(object):
         elif ftype == "Lowpass":
             freq = conf["freq"]
             q = conf["q"]
-            omega = 2.0 * np.pi * freq / fs
-            sn = np.sin(omega)
-            cs = np.cos(omega)
+            omega = 2.0 * math.pi * freq / fs
+            sn = math.sin(omega)
+            cs = math.cos(omega)
             alpha = sn / (2.0 * q)
             b0 = (1.0 - cs) / 2.0
             b1 = 1.0 - cs
@@ -287,9 +335,9 @@ class Biquad(object):
             freq = conf["freq"]
             q = conf["q"]
             gain = conf["gain"]
-            omega = 2.0 * np.pi * freq / fs
-            sn = np.sin(omega)
-            cs = np.cos(omega)
+            omega = 2.0 * math.pi * freq / fs
+            sn = math.sin(omega)
+            cs = math.cos(omega)
             ampl = 10.0 ** (gain / 40.0)
             alpha = sn / (2.0 * q)
             b0 = 1.0 + (alpha * ampl)
@@ -301,9 +349,9 @@ class Biquad(object):
         elif ftype == "HighshelfFO":
             freq = conf["freq"]
             gain = conf["gain"]
-            omega = 2.0 * np.pi * freq / fs
+            omega = 2.0 * math.pi * freq / fs
             ampl = 10.0 ** (gain / 40.0)
-            tn = np.tan(omega / 2)
+            tn = math.tan(omega / 2)
             b0 = ampl * tn + ampl ** 2
             b1 = ampl * tn - ampl ** 2
             b2 = 0.0
@@ -314,16 +362,16 @@ class Biquad(object):
             freq = conf["freq"]
             slope = conf["slope"]
             gain = conf["gain"]
-            omega = 2.0 * np.pi * freq / fs
+            omega = 2.0 * math.pi * freq / fs
             ampl = 10.0 ** (gain / 40.0)
-            sn = np.sin(omega)
-            cs = np.cos(omega)
+            sn = math.sin(omega)
+            cs = math.cos(omega)
             alpha = (
                 sn
                 / 2.0
-                * np.sqrt((ampl + 1.0 / ampl) * (1.0 / (slope / 12.0) - 1.0) + 2.0)
+                * math.sqrt((ampl + 1.0 / ampl) * (1.0 / (slope / 12.0) - 1.0) + 2.0)
             )
-            beta = 2.0 * np.sqrt(ampl) * alpha
+            beta = 2.0 * math.sqrt(ampl) * alpha
             b0 = ampl * ((ampl + 1.0) + (ampl - 1.0) * cs + beta)
             b1 = -2.0 * ampl * ((ampl - 1.0) + (ampl + 1.0) * cs)
             b2 = ampl * ((ampl + 1.0) + (ampl - 1.0) * cs - beta)
@@ -333,9 +381,9 @@ class Biquad(object):
         elif ftype == "LowshelfFO":
             freq = conf["freq"]
             gain = conf["gain"]
-            omega = 2.0 * np.pi * freq / fs
+            omega = 2.0 * math.pi * freq / fs
             ampl = 10.0 ** (gain / 40.0)
-            tn = np.tan(omega / 2)
+            tn = math.tan(omega / 2)
             b0 = ampl ** 2 * tn + ampl
             b1 = ampl ** 2 * tn - ampl
             b2 = 0.0
@@ -346,16 +394,16 @@ class Biquad(object):
             freq = conf["freq"]
             slope = conf["slope"]
             gain = conf["gain"]
-            omega = 2.0 * np.pi * freq / fs
+            omega = 2.0 * math.pi * freq / fs
             ampl = 10.0 ** (gain / 40.0)
-            sn = np.sin(omega)
-            cs = np.cos(omega)
+            sn = math.sin(omega)
+            cs = math.cos(omega)
             alpha = (
                 sn
                 / 2.0
-                * np.sqrt((ampl + 1.0 / ampl) * (1.0 / (slope / 12.0) - 1.0) + 2.0)
+                * math.sqrt((ampl + 1.0 / ampl) * (1.0 / (slope / 12.0) - 1.0) + 2.0)
             )
-            beta = 2.0 * np.sqrt(ampl) * alpha
+            beta = 2.0 * math.sqrt(ampl) * alpha
             b0 = ampl * ((ampl + 1.0) - (ampl - 1.0) * cs + beta)
             b1 = 2.0 * ampl * ((ampl - 1.0) - (ampl + 1.0) * cs)
             b2 = ampl * ((ampl + 1.0) - (ampl - 1.0) * cs - beta)
@@ -365,7 +413,7 @@ class Biquad(object):
         elif ftype == "LowpassFO":
             freq = conf["freq"]
             omega = 2.0 * np.pi * freq / fs
-            k = np.tan(omega / 2.0)
+            k = math.tan(omega / 2.0)
             alpha = 1 + k
             a0 = 1.0
             a1 = -((1 - k) / alpha)
@@ -375,8 +423,8 @@ class Biquad(object):
             b2 = 0
         elif ftype == "HighpassFO":
             freq = conf["freq"]
-            omega = 2.0 * np.pi * freq / fs
-            k = np.tan(omega / 2.0)
+            omega = 2.0 * math.pi * freq / fs
+            k = math.tan(omega / 2.0)
             alpha = 1 + k
             a0 = 1.0
             a1 = -((1 - k) / alpha)
@@ -387,9 +435,9 @@ class Biquad(object):
         elif ftype == "Notch":
             freq = conf["freq"]
             q = conf["q"]
-            omega = 2.0 * np.pi * freq / fs
-            sn = np.sin(omega)
-            cs = np.cos(omega)
+            omega = 2.0 * math.pi * freq / fs
+            sn = math.sin(omega)
+            cs = math.cos(omega)
             alpha = sn / (2.0 * q)
             b0 = 1.0
             b1 = -2.0 * cs
@@ -400,9 +448,9 @@ class Biquad(object):
         elif ftype == "Bandpass":
             freq = conf["freq"]
             q = conf["q"]
-            omega = 2.0 * np.pi * freq / fs
-            sn = np.sin(omega)
-            cs = np.cos(omega)
+            omega = 2.0 * math.pi * freq / fs
+            sn = math.sin(omega)
+            cs = math.cos(omega)
             alpha = sn / (2.0 * q)
             b0 = alpha
             b1 = 0.0
@@ -413,9 +461,9 @@ class Biquad(object):
         elif ftype == "Allpass":
             freq = conf["freq"]
             q = conf["q"]
-            omega = 2.0 * np.pi * freq / fs
-            sn = np.sin(omega)
-            cs = np.cos(omega)
+            omega = 2.0 * math.pi * freq / fs
+            sn = math.sin(omega)
+            cs = math.cos(omega)
             alpha = sn / (2.0 * q)
             b0 = 1.0 - alpha
             b1 = -2.0 * cs
@@ -425,8 +473,8 @@ class Biquad(object):
             a2 = 1.0 - alpha
         elif ftype == "AllpassFO":
             freq = conf["freq"]
-            omega = 2.0 * np.pi * freq / fs
-            tn = np.tan(omega / 2.0)
+            omega = 2.0 * math.pi * freq / fs
+            tn = math.tan(omega / 2.0)
             alpha = (tn + 1.0) / (tn - 1.0)
             b0 = 1.0
             b1 = alpha
@@ -440,13 +488,13 @@ class Biquad(object):
             qt = conf["q_target"]
             ft = conf["freq_target"]
 
-            d0i = (2.0 * np.pi * f0) ** 2
-            d1i = (2.0 * np.pi * f0) / q0
-            c0i = (2.0 * np.pi * ft) ** 2
-            c1i = (2.0 * np.pi * ft) / qt
+            d0i = (2.0 * math.pi * f0) ** 2
+            d1i = (2.0 * math.pi * f0) / q0
+            c0i = (2.0 * math.pi * ft) ** 2
+            c1i = (2.0 * math.pi * ft) / qt
             fc = (ft + f0) / 2.0
 
-            gn = 2 * np.pi * fc / math.tan(np.pi * fc / fs)
+            gn = 2 * math.pi * fc / math.tan(math.pi * fc / fs)
             cci = c0i + gn * c1i + gn ** 2
 
             b0 = (d0i + gn * d1i + gn ** 2) / cci
@@ -463,17 +511,16 @@ class Biquad(object):
         self.b1 = b1 / a0
         self.b2 = b2 / a0
 
-    def complex_gain(self, f):
-        z = np.exp(1j * 2 * np.pi * f / self.fs)
-        A = (self.b0 + self.b1 * z ** (-1) + self.b2 * z ** (-2)) / (
-            1.0 + self.a1 * z ** (-1) + self.a2 * z ** (-2)
-        )
-        return f, A
+    def complex_gain(self, freq):
+        zvec = [cmath.exp(1j * 2 * math.pi * f / self.fs) for f in freq]
+        A = [((self.b0 + self.b1 * z ** (-1) + self.b2 * z ** (-2)) / (
+            1.0 + self.a1 * z ** (-1) + self.a2 * z ** (-2))) for z in zvec]
+        return freq, A
 
     def gain_and_phase(self, f):
-        _f, A = self.complex_gain(f)
-        gain = 20 * np.log10(np.abs(A))
-        phase = 180 / np.pi * np.angle(A)
+        _f, Avec = self.complex_gain(f)
+        gain = [20 * math.log10(abs(A)) for A in Avec]
+        phase = [180 / math.pi * cmath.phase(A) for A in Avec]
         return f, gain, phase
 
     def is_stable(self):

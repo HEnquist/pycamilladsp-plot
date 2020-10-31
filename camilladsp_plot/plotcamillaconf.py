@@ -1,9 +1,9 @@
 import yaml
 import sys
-from camilladsp_plot.plot_pipeline import plot_pipeline
-from camilladsp_plot.plot_filters import plot_filters, plot_all_filtersteps
 try:
     from matplotlib import pyplot as plt
+    from camilladsp_plot.plot_pipeline import plot_pipeline
+    from camilladsp_plot.plot_filters import plot_filters, plot_all_filtersteps
 except ImportError:
     plt = None
 

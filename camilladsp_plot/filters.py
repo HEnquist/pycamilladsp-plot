@@ -129,7 +129,7 @@ class Conv(object):
         f_fft = [self.fs*n/(2.0*npoints) for n in range(npoints)]
         cut = impfft[0:npoints]
         if f is not None:
-            interpolated = self.interpolate(cut, f_fft, f)
+            interpolated = self.interpolate_polar(cut, f_fft, f)
             return f, interpolated
         return f_fft, cut
 
@@ -149,6 +149,13 @@ class Conv(object):
             newval = (1-fract)*y[i1] + fract*y[i2]
             ynew.append(newval)
         return ynew
+
+    def interpolate_polar(self, y, xold, xnew):
+        y_magn = [abs(yval) for yval in y]
+        y_ang = [cmath.phase(yval) for yval in y]
+        y_magn_interp = self.interpolate(y_magn, xold, xnew)
+        y_ang_interp = self.interpolate(y_ang, xold, xnew)
+        return [cmath.rect(r, phi) for (r, phi) in zip(y_magn_interp, y_ang_interp)]
 
     def gain_and_phase(self, f):
         f_fft, Avec = self.complex_gain(None)

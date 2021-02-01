@@ -181,21 +181,15 @@ class DiffEq(object):
             self.b = [1.0]
 
     def complex_gain(self, freq):
-        
-        A = [((self.b0 + self.b1 * z ** (-1) + self.b2 * z ** (-2)) / (
-            1.0 + self.a1 * z ** (-1) + self.a2 * z ** (-2))) for z in zvec]
-        return freq, A
-
-    def complex_gain(self, freq):
         zvec = [cmath.exp(1j * 2 * math.pi * f / self.fs) for f in freq]
         A1 = [0.0 for n in range(len(freq))]  
         for n, bn in enumerate(self.b):
-            A1 = [a1 + bn * z ** (-n) for a1 in A1]
+            A1 = [a1 + bn * z ** (-n) for a1, z in zip(A1, zvec)]
         A2 = [0.0 for n in range(len(freq))]  
         for n, an in enumerate(self.a):
-            A2 = [a2 + an * z ** (-n) for a2 in A2]
+            A2 = [a2 + an * z ** (-n) for a2, z in zip(A2, zvec)]
         A = [a1 / a2 for (a1, a2) in zip(A1, A2)]
-        return f, A
+        return freq, A
 
     def gain_and_phase(self, f):
         _f, Avec = self.complex_gain(f)
@@ -419,7 +413,7 @@ class Biquad(object):
             a2 = (ampl + 1.0) + (ampl - 1.0) * cs - beta
         elif ftype == "LowpassFO":
             freq = conf["freq"]
-            omega = 2.0 * np.pi * freq / fs
+            omega = 2.0 * math.pi * freq / fs
             k = math.tan(omega / 2.0)
             alpha = 1 + k
             a0 = 1.0

@@ -216,14 +216,14 @@ class Gain(object):
     def complex_gain(self, f):
         sign = -1.0 if self.inverted else 1.0
         gain = 10.0**(self.gain/20.0) * sign
-        A = [gain for n in range(len(freq))] 
+        A = [gain for n in range(len(f))] 
         return f, A
 
     def gain_and_phase(self, f):
         Aval = 10.0**(self.gain/20.0)
-        gain = [Aval for n in range(len(freq))]       
+        gain = [Aval for n in range(len(f))]       
         phaseval = 180 / math.pi if self.inverted else 0
-        phase = [phaseval for n in range(len(freq))]  
+        phase = [phaseval for n in range(len(f))]  
         return f, gain, phase
 
     def is_stable(self):

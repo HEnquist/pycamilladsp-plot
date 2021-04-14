@@ -1,0 +1,19 @@
+{
+  "properties": {
+    "channel": {
+      "type": "number"
+    },
+    "gain": {
+      "type": "number"
+    },
+    "inverted": {
+      "type": "boolean",
+      "default": false
+    },
+    "mute": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": ["gain", "channel"]
+}

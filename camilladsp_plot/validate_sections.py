@@ -26,6 +26,13 @@ with open("schemas/conv.json") as f:
 with open("schemas/basicfilters.json") as f:
     basics_schemas = json.load(f)
 
+with open("schemas/mixer.json") as f:
+    mixer_schema = json.load(f)
+with open("schemas/mixermapping.json") as f:
+    mixermapping_schema = json.load(f)
+with open("schemas/mixersource.json") as f:
+    mixersource_schema = json.load(f)
+
 #with open("schemas/devices.json") as f:
 #    deviceschema = json.load(f)
 
@@ -69,6 +76,17 @@ if "filters" in conf:
         elif filt_type in basics_schemas.keys():
             schema = basics_schemas[filt_type]
             validate(instance=filt["parameters"], schema=schema)
+
+# Mixers
+if "mixers" in conf: 
+    for name, mix in conf["mixers"].items():
+        print(f"Validating mixer {name}")
+        validate(instance=mix, schema=mixer_schema)
+        for mapping in mix["mapping"]:
+            validate(instance=mapping, schema=mixermapping_schema)
+            for source in mapping["sources"]:
+                validate(instance=source, schema=mixersource_schema)
+
 
 
 

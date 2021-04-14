@@ -51,9 +51,9 @@
       "values": {
         "type": "array",
         "items": {
-          "type": "number",
-          "default": [1]
-        }
+          "type": "number"
+        },
+        "default": [1]
       },
       "length": {
         "type": "number",

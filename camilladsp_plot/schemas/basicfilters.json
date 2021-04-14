@@ -9,11 +9,11 @@
         "example": "-6.0"
       },
       "inverted": {
-        "type": "bool",
+        "type": "boolean",
         "default": false
       },
       "mute": {
-        "type": "bool",
+        "type": "boolean",
         "default": false
       }
     },

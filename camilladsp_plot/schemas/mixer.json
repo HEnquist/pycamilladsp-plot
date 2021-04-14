@@ -1,0 +1,20 @@
+{
+  "properties": {
+    "channels": {
+      "type": "object",
+      "parameters": {
+        "in": {
+          "type": "number"
+        },
+        "out": {
+          "type": "number"
+        }
+      },
+      "required": ["in", "out"]
+    },
+    "mapping:": {
+      "type": "object"
+    }
+  },
+  "required": ["channels", "mapping"]
+}

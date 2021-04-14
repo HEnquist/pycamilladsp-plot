@@ -1,0 +1,73 @@
+{
+  "Gain": {
+    "properties": {
+      "type": {
+        "enum": ["Gain"]
+      },
+      "gain": {
+        "type": "number",
+        "example": "-6.0"
+      },
+      "inverted": {
+        "type": "bool",
+        "default": false
+      },
+      "mute": {
+        "type": "bool",
+        "default": false
+      }
+    },
+    "required": ["type", "gain"]
+  },
+  "Delay": {
+    "properties": {
+      "type": {
+        "enum": ["Delay"]
+      },
+      "delay": {
+        "type": "number",
+        "example": "12.3"
+      },
+      "unit": {
+        "enum": ["ms", "samples"],
+        "default": "ms"
+      }
+    },
+    "required": ["type", "delay"]
+  },
+  "Volume": {
+    "properties": {
+      "type": {
+        "enum": ["Volume"]
+      },
+      "ramp_time": {
+        "type": "number",
+        "default": "200"
+      }
+    },
+    "required": ["type"]
+  },
+  "Loudness": {
+    "properties": {
+      "type": {
+        "enum": ["Loudness"]
+      },
+      "ramp_time": {
+        "type": "number",
+        "default": "200.0"
+      },
+      "reference_level": {
+        "type": "number"
+      },
+      "high_boost": {
+        "type": "number",
+        "default": "10.0"
+      },
+      "low_boost": {
+        "type": "number",
+        "default": "10.0"
+      }
+    },
+    "required": ["type", "reference_level"]
+  }
+}

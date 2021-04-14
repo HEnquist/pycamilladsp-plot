@@ -1,0 +1,118 @@
+{
+  "Alsa": {
+    "properties": {
+      "type": {
+        "enum": ["Alsa"]
+      },
+      "device": {
+        "type": "string",
+        "default": "hw:0"
+      },
+      "channels": {
+        "type": "integer",
+        "default": 2
+      },
+      "format": {
+        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"],
+        "default": "S32LE"
+      }
+    },
+    "required": ["type", "device", "channels", "format"]
+  },
+  "Pulse": {
+    "properties": {
+      "type": {
+        "enum": ["Pulse"]
+      },
+      "device": {
+        "type": "string",
+        "default": "somename"
+      },
+      "channels": {
+        "type": "integer",
+        "default": 2
+      },
+      "format": {
+        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"],
+        "default": "S32LE"
+      }
+    },
+    "required": ["type", "device", "channels", "format"]
+  },
+  "Wasapi": {
+    "properties": {
+      "type": {
+        "enum": ["Wasapi"]
+      },
+      "device": {
+        "type": "string",
+        "default": "somename"
+      },
+      "channels": {
+        "type": "integer",
+        "default": 2
+      },
+      "format": {
+        "enum": ["S16LE", "FLOAT32LE"],
+        "default": "FLOAT32LE"
+      }
+    },
+    "required": ["type", "device", "channels", "format"]
+  },
+  "CoreAudio": {
+    "properties": {
+      "type": {
+        "enum": ["CoreAudio"]
+      },
+      "device": {
+        "type": "string",
+        "default": "somename"
+      },
+      "channels": {
+        "type": "integer",
+        "default": 2
+      },
+      "format": {
+        "enum": ["S16LE", "FLOAT32LE"],
+        "default": "FLOAT32LE"
+      }
+    },
+    "required": ["type", "device", "channels", "format"]
+  },
+  "Stdin": {
+    "properties": {
+      "type": {
+        "enum": ["Stdin"]
+      },
+      "channels": {
+        "type": "integer",
+        "default": 2
+      },
+      "format": {
+        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"],
+        "default": "S32LE"
+      }
+    },
+    "required": ["type", "channels", "format"]
+  },
+  "File": {
+    "properties": {
+      "type": {
+        "enum": ["File"]
+      },
+      "filename": {
+        "type": "string",
+        "default": "some/path"
+      },
+      "channels": {
+        "type": "integer",
+        "default": 2
+      },
+      "format": {
+        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"],
+        "default": "S32LE"
+      }
+    },
+    "required": ["type", "filename", "channels", "format"]
+  }
+}

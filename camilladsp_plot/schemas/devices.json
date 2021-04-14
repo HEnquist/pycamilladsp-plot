@@ -1,0 +1,41 @@
+{
+  "title": "Devices",
+  "type": "object",
+  "properties": {
+    "chunksize": {
+      "type": "integer",
+      "default": 1024
+    },
+    "samplerate": {
+      "type": "integer",
+      "default": 44100
+    },
+    "target_level": {
+      "type": "integer",
+      "default": 1024
+    },
+    "adjust_period": {
+      "type": "integer",
+      "default": 10
+    },
+    "enable_resampling": {
+      "type": "boolean",
+      "default": false
+    },
+    "resampler_type": {
+      "type": "string",
+      "enum": ["FastAsync", "BalancedAsync", "AccurateAsync", "Synchronous"],
+      "default": "Synchronous"
+    },
+    "capture_samplerate": {
+      "type": "integer",
+      "default": 44100
+    },
+    "capture": {
+      "type": "object"
+    },
+    "playback": {
+      "type": "object"
+    }
+  }
+}

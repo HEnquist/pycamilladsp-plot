@@ -1,0 +1,67 @@
+{
+  "Conv": {
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": [
+          "File",
+          "Values"
+        ]
+      }
+    },
+    "required": ["type"]
+  },
+  "File": {
+    "properties": {
+      "type": {
+        "enum": ["File"]
+      },
+      "filename": {
+        "type": "string",
+        "example": "path/to/file"
+      },
+      "format": {
+        "type": "string",
+        "enum": [
+          "S16LE",
+          "S24LE",
+          "S24LE3",
+          "S32LE",
+          "FLOAT32LE",
+          "FLOAT64LE",
+          "TEXT"
+        ]
+      },
+      "skip_bytes_lines": {
+        "type": "number",
+        "default": 0
+      },
+      "read_bytes_lines": {
+        "type": "number",
+        "default": 0
+      }
+    },
+    "required": ["type", "filename", "format"]
+  },
+  "Values": {
+    "properties": {
+      "type": {
+        "enum": ["Values"]
+      },
+      "values": {
+        "type": "array",
+        "items": {
+          "type": "number",
+          "default": [1]
+        }
+      },
+      "length": {
+        "type": "number",
+        "default": 0
+      }
+    },
+    "required": ["type", "values"]
+  }
+}
+
+  

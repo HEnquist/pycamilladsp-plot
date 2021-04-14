@@ -1,0 +1,24 @@
+{
+  "title": "Config",
+  "type": "object",
+  "properties": {
+    "devices": {
+      "type": "object"
+    },
+    "filters": {
+      "type": "object"
+    },
+    "mixers": {
+      "type": "object"
+    },
+    "pipeline": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": [
+    "devices"
+  ]
+}

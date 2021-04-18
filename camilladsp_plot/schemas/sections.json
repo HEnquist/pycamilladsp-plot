@@ -6,16 +6,19 @@
       "type": "object"
     },
     "filters": {
-      "type": "object"
+      "type": "object",
+      "default": {}
     },
     "mixers": {
-      "type": "object"
+      "type": "object",
+      "default": {}
     },
     "pipeline": {
       "type": "array",
       "items": {
         "type": "object"
-      }
+      },
+      "default": []
     }
   },
   "required": [

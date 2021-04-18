@@ -5,7 +5,8 @@
         "enum": ["Alsa"]
       },
       "device": {
-        "type": "string"
+        "type": "string",
+        "minLength": 1
       },
       "channels": {
         "type": "integer",
@@ -23,7 +24,8 @@
         "enum": ["Pulse"]
       },
       "device": {
-        "type": "string"
+        "type": "string",
+        "minLength": 1
       },
       "channels": {
         "type": "integer",
@@ -41,7 +43,8 @@
         "enum": ["Wasapi"]
       },
       "device": {
-        "type": "string"
+        "type": "string",
+        "minLength": 1
       },
       "channels": {
         "type": "integer",
@@ -59,7 +62,8 @@
         "enum": ["CoreAudio"]
       },
       "device": {
-        "type": "string"
+        "type": "string",
+        "minLength": 1
       },
       "channels": {
         "type": "integer",
@@ -102,7 +106,8 @@
         "enum": ["File"]
       },
       "filename": {
-        "type": "string"
+        "type": "string",
+        "minLength": 1
       },
       "channels": {
         "type": "integer",

@@ -18,7 +18,7 @@
       },
       "filename": {
         "type": "string",
-        "example": "path/to/file"
+        "minLength": 1
       },
       "format": {
         "type": "string",
@@ -33,12 +33,14 @@
         ]
       },
       "skip_bytes_lines": {
-        "type": "number",
-        "default": 0
+        "type": "integer",
+        "default": 0,
+        "minimum": 0
       },
       "read_bytes_lines": {
-        "type": "number",
-        "default": 0
+        "type": "integer",
+        "default": 0,
+        "minimum": 0
       }
     },
     "required": ["type", "filename", "format"]
@@ -57,7 +59,8 @@
       },
       "length": {
         "type": "number",
-        "default": 0
+        "default": 0,
+        "minimum": 0
       }
     },
     "required": ["type", "values"]

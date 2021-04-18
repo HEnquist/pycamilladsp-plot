@@ -5,8 +5,7 @@
         "enum": ["Gain"]
       },
       "gain": {
-        "type": "number",
-        "example": "-6.0"
+        "type": "number"
       },
       "inverted": {
         "type": "boolean",
@@ -26,7 +25,7 @@
       },
       "delay": {
         "type": "number",
-        "example": "12.3"
+        "minimum": 0.0
       },
       "unit": {
         "enum": ["ms", "samples"],
@@ -42,7 +41,8 @@
       },
       "ramp_time": {
         "type": "number",
-        "default": "200"
+        "default": "200",
+        "minimum": 0.0
       }
     },
     "required": ["type"]
@@ -54,18 +54,21 @@
       },
       "ramp_time": {
         "type": "number",
-        "default": "200.0"
+        "default": "200.0",
+        "minimum": 0.0
       },
       "reference_level": {
         "type": "number"
       },
       "high_boost": {
         "type": "number",
-        "default": "10.0"
+        "default": "10.0",
+        "minimum": 0.0
       },
       "low_boost": {
         "type": "number",
-        "default": "10.0"
+        "default": "10.0",
+        "minimum": 0.0
       }
     },
     "required": ["type", "reference_level"]

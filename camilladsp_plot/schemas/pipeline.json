@@ -1,0 +1,39 @@
+{
+  "PipelineStep": {
+    "properties": {
+      "type": {
+        "enum": ["Mixer", "Filter"]
+      }
+    },
+    "required": ["type"]
+  },
+  "Mixer": {
+    "properties": {
+      "type": {
+        "enum": ["Mixer"]
+      },
+      "name": {
+        "type": "string",
+        "example": "1000"
+      }
+    },
+    "required": ["type", "name"]
+  },
+  "Filter": {
+    "properties": {
+      "type": {
+        "enum": ["Filter"]
+      },
+      "channel": {
+        "type": "integer"
+      },
+      "names": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "required": ["type", "channel", "names"]
+  }
+}

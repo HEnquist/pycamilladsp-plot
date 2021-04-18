@@ -4,11 +4,12 @@
   "properties": {
     "chunksize": {
       "type": "integer",
-      "default": 1024
+      "default": 1024,
+      "exclusiveMinimum": 0
     },
     "samplerate": {
       "type": "integer",
-      "default": 44100
+      "exclusiveMinimum": 0
     },
     "target_level": {
       "type": "integer",
@@ -16,7 +17,8 @@
     },
     "adjust_period": {
       "type": "integer",
-      "default": 10
+      "default": 10,
+      "minimum": 0
     },
     "enable_resampling": {
       "type": "boolean",
@@ -29,7 +31,8 @@
     },
     "capture_samplerate": {
       "type": "integer",
-      "default": 44100
+      "default": 0,
+      "minimum": 0
     },
     "capture": {
       "type": "object"

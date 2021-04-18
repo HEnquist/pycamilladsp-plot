@@ -26,6 +26,9 @@ with open("schemas/conv.json") as f:
 with open("schemas/basicfilters.json") as f:
     basics_schemas = json.load(f)
 
+with open("schemas/pipeline.json") as f:
+    pipeline_schemas = json.load(f)
+
 with open("schemas/mixer.json") as f:
     mixer_schema = json.load(f)
 with open("schemas/mixermapping.json") as f:
@@ -86,6 +89,16 @@ if "mixers" in conf:
             validate(instance=mapping, schema=mixermapping_schema)
             for source in mapping["sources"]:
                 validate(instance=source, schema=mixersource_schema)
+
+# Pipeline
+if "pipeline" in conf: 
+    for step in conf["pipeline"]:
+        print(f"Validating pipeline step")
+        validate(instance=step, schema=pipeline_schemas["PipelineStep"])
+        step_type = step["type"]
+        schema = pipeline_schemas[step_type]
+        validate(instance=step, schema=schema)
+
 
 
 

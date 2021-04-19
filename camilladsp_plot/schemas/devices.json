@@ -11,16 +11,34 @@
       "type": "integer",
       "exclusiveMinimum": 0
     },
+    "queuelimit": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "default": 4
+    },
     "target_level": {
       "type": "integer",
       "default": 1024
     },
     "adjust_period": {
-      "type": "integer",
-      "default": 10,
+      "type": "number",
+      "default": 10.0,
       "minimum": 0
     },
     "enable_resampling": {
+      "type": "boolean",
+      "default": false
+    },
+    "silence_threshold": {
+      "type": "number",
+      "default": -60.0
+    },
+    "silence_timeout": {
+      "type": "number",
+      "default": 3.0,
+      "minimum": 0
+    },
+    "enable_rate_adjust": {
       "type": "boolean",
       "default": false
     },

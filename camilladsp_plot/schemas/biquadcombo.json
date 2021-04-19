@@ -1,0 +1,82 @@
+{
+  "BiquadCombo": {
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": [
+          "ButterworthHighpass",
+          "ButterworthLowpass",
+          "LinkwitzRileyHighpass",
+          "LinkwitzRileyLowpass"
+        ]
+      }
+    },
+    "required": ["type"]
+  },
+  "ButterworthHighpass": {
+    "properties": {
+      "type": {
+        "enum": ["ButterworthHighpass"]
+      },
+      "freq": {
+        "type": "number",
+        "exclusiveMinimum": 0.0
+      },
+      "order": {
+        "type": "integer",
+        "exclusiveMinimum": 0
+      }
+    },
+    "required": ["type", "freq", "order"]
+  },
+  "ButterworthLowpass": {
+    "properties": {
+      "type": {
+        "enum": ["ButterworthLowpass"]
+      },
+      "freq": {
+        "type": "number",
+        "exclusiveMinimum": 0.0
+      },
+      "order": {
+        "type": "integer",
+        "exclusiveMinimum": 0
+      }
+    },
+    "required": ["type", "freq", "order"]
+  },
+  "LinkwitzRileyHighpass": {
+    "properties": {
+      "type": {
+        "enum": ["LinkwitzRileyHighpass"]
+      },
+      "freq": {
+        "type": "number",
+        "exclusiveMinimum": 0.0
+      },
+      "order": {
+        "type": "integer",
+        "exclusiveMinimum": 0,
+        "multipleOf": 2
+      }
+    },
+    "required": ["type", "freq", "order"]
+  },
+  "LinkwitzRileyLowpass": {
+    "properties": {
+      "type": {
+        "enum": ["LinkwitzRileyLowpass"]
+      },
+      "freq": {
+        "type": "number",
+        "exclusiveMinimum": 0.0
+      },
+      "order": {
+        "type": "integer",
+        "exclusiveMinimum": 0,
+        "multipleOf": 2
+      }
+    },
+    "required": ["type", "freq", "order"]
+  }
+}

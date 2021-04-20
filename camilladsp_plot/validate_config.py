@@ -97,8 +97,8 @@ class CamillaValidator():
                     name = name.replace("$samplerate$", str(srate))
                     name = name.replace("$channels$", str(channels))
 
-    def make_paths_absolute(self, configfile_name):
-        config_dir = os.path.dirname(os.path.abspath(configfile_name))
+    def make_paths_absolute(self):
+        config_dir = os.path.dirname(os.path.abspath(self.filename))
         for _name, filt in self.config["filters"].items():
             if filt["type"] == "Conv" and filt["parameters"]["type"] == "File":
                 filt["parameters"]["filename"] = self.check_and_replace_relative_path(filt["parameters"]["filename"], config_dir)
@@ -115,19 +115,45 @@ class CamillaValidator():
 
     def validate_file(self, file):
         self.errorlist = []
+        self.filename = file
         with open(file) as f:
-            self.config = yaml.safe_load(f)
+            try:
+                self.config = yaml.safe_load(f)
+            except Exception as e:
+                self.errorlist.append(([], str(e)))
+        self._validate_config()
+
+    def validate_yamlstring(self, config):
+        self.errorlist = []
+        self.filename = None
+        try:
+            self.config = yaml.safe_load(config)
+        except Exception as e:
+            self.errorlist.append(([], str(e)))
+        self._validate_config()
+
+    def validate_config(self, config):
+        self.errorlist = []
+        self.config = config
+        self._validate_config()
+
+    def _validate_config(self):
         self.validate_with_schemas()
-        self.make_paths_absolute(file)
+        if self.filename is not None:
+            self.make_paths_absolute()
         self.replace_tokens()
 
         self.validate_devices()
         self.validate_mixers()
         self.validate_filters()
         self.validate_pipeline()
-        print("\nErrors:")
-        for err in self.errorlist:
-            print("/".join([str(p) for p in err[0]]), " : ",  err[1])
+
+
+    def get_config(self):
+        return self.config
+
+    def get_errors(self):
+        return self.errorlist
 
     def validate_with_schemas(self):
         # Overall structure
@@ -281,6 +307,10 @@ class CamillaValidator():
 if __name__ == "__main__":
     file_validator = CamillaValidator()
     file_validator.validate_file(sys.argv[1])
+    errors = file_validator.get_errors()
+    print("\nErrors:")
+    for err in errors:
+        print("/".join([str(p) for p in err[0]]), " : ",  err[1])
 
 
 

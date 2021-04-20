@@ -4,6 +4,7 @@ import yaml
 
 from jsonschema import Draft7Validator, validators
 import os
+import sys
 
 # https://python-jsonschema.readthedocs.io/en/latest/faq/#why-doesn-t-my-schema-that-has-a-default-property-actually-set-the-default-on-my-instance
 def extend_with_default(validator_class):
@@ -112,7 +113,6 @@ class CamillaValidator():
 
 
     def validate_file(self, file):
-        file = "../validateme.yml"
         self.errorlist = []
         with open(file) as f:
             conf = yaml.safe_load(f)
@@ -124,20 +124,17 @@ class CamillaValidator():
         self.validate_mixers(conf)
         self.validate_filters(conf)
         self.validate_pipeline(conf)
+        print("\nErrors:")
         for err in self.errorlist:
-            print(err)
+            print("/".join([str(p) for p in err[0]]), " : ",  err[1])
 
     def validate_with_schemas(self, conf):
         # Overall structure
-        print(yaml.dump(conf, sort_keys=True))
-        #validate(instance=conf, schema=section_schema)
         self.validate(conf, self.section_schema)
-        print(yaml.dump(conf, sort_keys=True))
+        #print(yaml.dump(conf, sort_keys=True))
 
         # Devices section
-        #validate(instance=conf["devices"], schema=devices_schema)
         self.validate(conf["devices"], self.devices_schema)
-        print(yaml.dump(conf, sort_keys=True))
 
         # Playback device
         playback_type = conf["devices"]["playback"]["type"]
@@ -220,7 +217,7 @@ class CamillaValidator():
                 for subidx, filtname in enumerate(step["names"]):
                     if filtname not in conf["filters"].keys():
                         msg = f"Use of missing filter '{filtname}'"
-                        path = ["pipeline", idx, subidx]
+                        path = ["pipeline", idx, "names", subidx]
                         self.errorlist.append((path, msg))
 
         num_channels_out = conf["devices"]["playback"]["channels"]
@@ -282,34 +279,9 @@ class CamillaValidator():
 
 if __name__ == "__main__":
     file_validator = CamillaValidator()
-    file_validator.validate_file("asdad")
-
-"""
+    file_validator.validate_file(sys.argv[1])
 
 
-
-
-/// Validate a FFT convolution config.
-pub fn validate_config(conf: &config::ConvParameters) -> Res<()> {
-    match conf {
-        config::ConvParameters::Values { .. } => Ok(()),
-        config::ConvParameters::File {
-            filename,
-            format,
-            read_bytes_lines,
-            skip_bytes_lines,
-        } => {
-            let coeffs =
-                filters::read_coeff_file(&filename, &format, *read_bytes_lines, *skip_bytes_lines)?;
-            if coeffs.is_empty() {
-                return Err(config::ConfigError::new("Conv coefficients are empty").into());
-            }
-            Ok(())
-        }
-    }
-}
-
-"""
 
 
 

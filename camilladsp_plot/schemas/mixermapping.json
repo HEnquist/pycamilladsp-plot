@@ -1,7 +1,8 @@
 {
   "properties": {
     "dest": {
-      "type": "number"
+      "type": "integer",
+      "minimum": 0
     },
     "mute": {
       "type": "boolean",

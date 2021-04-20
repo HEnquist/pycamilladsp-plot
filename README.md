@@ -11,13 +11,13 @@ Note that on some systems the command is `pip3` instead of `pip`.
 This library requires Python 3.6 or newer. For plotting configurations with the commandline tool `plotcamillaconf`, it also requires `numpy` and `matplotlib`. These are not required for using only with the web interface.
 
 These are the names of the packages needed:
-| Distribution | python | numpy (optional) | matplotlib (optional) |
-|--------------|--------|-------|------------|
-| Fedora | python3 | python3-numpy | python3-matplotlib |
-| Debian/Raspbian | python3 | python3-numpy | python3-matplotlib |
-| Arch | python | python-numpy | python-matplotlib |
-| pip | - | numpy | matplotlib | 
-| Anaconda | - | numpy | matplotlib |
+| Distribution    | python    | jsonschema         | numpy (optional) | matplotlib (optional) |
+|-----------------|-----------|--------------------|------------------|-----------------------|
+| Fedora          | python3   | python3-jsonschema | python3-numpy    | python3-matplotlib    |
+| Debian/Raspbian | python3   | python3-jsonschema | python3-numpy    | python3-matplotlib    |
+| Arch            | python    | python-jsonschema  | python-numpy     | python-matplotlib     |
+| pip             | -         | jsonschema         | numpy            | matplotlib            | 
+| Anaconda        | -         | jsonschema         | numpy            | matplotlib            |
 
 ### Linux
 Most linux distributions have Python 3.6 or newer installed by default. Use the normal package manager to install the packages.

@@ -1,7 +1,8 @@
 {
   "properties": {
     "channel": {
-      "type": "number"
+      "type": "integer",
+      "minimum": 0
     },
     "gain": {
       "type": "number"

@@ -74,15 +74,58 @@ class CamillaValidator():
     def get_full_path(self, file):
         return os.path.join(os.path.dirname(__file__), file)
 
+    # Replace the $samplerate$ and $channels$ tokens with the corresponding values
+    def replace_tokens(self, conf):
+        srate = conf['devices']['samplerate']
+        channels = conf['devices']['capture']['channels']
+
+        for _filt, fconf in conf['filters'].items():
+            if fconf['type'] == 'Conv':
+                if 'parameters' in fconf:
+                    if "filename" in fconf['parameters']:
+                        fconf['parameters']["filename"] = fconf['parameters']["filename"].replace("$samplerate$", str(srate))
+                        fconf['parameters']["filename"] = fconf['parameters']["filename"].replace("$channels$", str(channels))
+
+        for step in conf['pipeline']:
+            if step['type'] == 'Mixer':
+                step['name'] = step['name'].replace("$samplerate$", str(srate))
+                step['name'] = step['name'].replace("$channels$", str(channels))
+            elif step['type'] == 'Filter':
+                for _i, name in enumerate(step['names']):
+                    name = name.replace("$samplerate$", str(srate))
+                    name = name.replace("$channels$", str(channels))
+
+    def make_paths_absolute(self, conf, configfile_name):
+        config_dir = os.path.dirname(os.path.abspath(configfile_name))
+        for _name, filt in conf["filters"].items():
+            if filt["type"] == "Conv" and filt["parameters"]["type"] == "File":
+                filt["parameters"]["filename"] = self.check_and_replace_relative_path(filt["parameters"]["filename"], config_dir)
+
+    def check_and_replace_relative_path(self, path_str, config_dir):
+        if not os.path.isabs(path_str):
+            in_config_dir = os.path.join(config_dir, path_str)
+            if os.path.exists(in_config_dir):
+                # File found relative to config file
+                return in_config_dir
+        # No change, just return it again
+        return path_str
+
+
     def validate_file(self, file):
+        file = "../validateme.yml"
         self.errorlist = []
-        with open("../validateme.yml") as f:
+        with open(file) as f:
             conf = yaml.safe_load(f)
         self.validate_with_schemas(conf)
+        self.make_paths_absolute(conf, file)
+        self.replace_tokens(conf)
+
         self.validate_devices(conf)
         self.validate_mixers(conf)
         self.validate_filters(conf)
         self.validate_pipeline(conf)
+        for err in self.errorlist:
+            print(err)
 
     def validate_with_schemas(self, conf):
         # Overall structure
@@ -151,26 +194,122 @@ class CamillaValidator():
                 schema = self.pipeline_schemas[step_type]
                 self.validate(step, schema)
 
+    # Validate the pipeline
     def validate_pipeline(self, conf):
-        pass
+        num_channels = conf["devices"]["capture"]["channels"]
+        for idx, step in enumerate(conf["pipeline"]):
+            if step["type"] == "Mixer":
+                mixname = step["name"]
+                if mixname not in conf["mixers"].keys():
+                    msg = f"Use of missing mixer '{mixname}'"
+                    path = ["pipeline", idx]
+                    self.errorlist.append((path, msg))
+                else:
+                    chan_in = conf["mixers"][mixname]["channels"]["in"]
+                    if chan_in != num_channels:
+                        msg = f"Mixer '{mixname}' has wrong number of input channels. Expected {num_channels}, found {chan_in}."
+                        path = ["pipeline", idx]
+                        self.errorlist.append((path, msg))
+                    num_channels = conf["mixers"][mixname]["channels"]["out"]
+
+            if step["type"] == "Filter":
+                if step["channel"] >= num_channels:
+                    msg = f"Use of non existing channel {step['channel']}"
+                    path = ["pipeline", idx]
+                    self.errorlist.append((path, msg))
+                for subidx, filtname in enumerate(step["names"]):
+                    if filtname not in conf["filters"].keys():
+                        msg = f"Use of missing filter '{filtname}'"
+                        path = ["pipeline", idx, subidx]
+                        self.errorlist.append((path, msg))
+
+        num_channels_out = conf["devices"]["playback"]["channels"]
+        if num_channels != num_channels_out:
+            msg = f"Pipeline outputs {num_channels} channels, playback device has {num_channels_out}."
+            path = ["pipeline"]
+            self.errorlist.append((path, msg))
+
 
     def validate_mixers(self, conf):
-        pass
+        for mixname, mixer_config in conf["mixers"].items():
+            chan_in = mixer_config["channels"]["in"]
+            chan_out = mixer_config["channels"]["out"]
+            for idx, mapping in enumerate(mixer_config["mapping"]):
+                if mapping["dest"] >= chan_out:
+                    msg = f"Invalid destination channel {mapping['dest']}, max is {chan_out-1}."
+                    path = ["mixers", mixname, "mapping", idx, "dest"]
+                    self.errorlist.append((path, msg))
+                for subidx, source in enumerate(mapping["sources"]):
+                    if source["channel"] >= chan_in:
+                        msg = f"Invalid source channel {source['channel']}, max is {chan_in-1}."
+                        path = ["mixers", mixname, "mapping", idx, "sources", subidx]
+                        self.errorlist.append((path, msg))
 
     def validate_filters(self, conf):
-        pass
+        maxfreq = conf["devices"]["samplerate"] / 2.0
+        for filter_name, filter_conf in conf["filters"].items():
+            # Check that frequencies are below Nyquist
+            if filter_conf["type"] in ["Biquad", "BiquadCombo"]:
+                for freq_prop in ["freq", "freq_act", "freq_target"]:
+                    if freq_prop in filter_conf["parameters"].keys():
+                        if filter_conf["parameters"][freq_prop] >= maxfreq:
+                            msg = "Frequency must be < samplerate/2"
+                            path = ["filters", filter_name, "parameters", freq_prop]
+                            self.errorlist.append((path, msg))
+            # Check that free biquads are stable
+            if filter_conf["type"] == "Biquad" and  filter_conf["parameters"]["type"] == "Free":
+                a1 = filter_conf["parameters"]["a1"]
+                a2 = filter_conf["parameters"]["a2"]
+                stable = abs(a2) < 1.0 and abs(a1) < (a2 + 1.0)
+                if not stable:
+                    msg = "Filter is unstable"
+                    path = ["filters", filter_name, "parameters"]
+                    self.errorlist.append((path, msg))
+            # Check that coefficients files are available
+            if filter_conf["type"] == "Conv":
+                if filter_conf["parameters"]["type"] == "File":
+                    fname = filter_conf["parameters"]["filename"]
+                    if not os.path.exists(fname):
+                        msg = f"Unable to find coefficent file '{fname}'"
+                        path = ["filters", filter_name, "parameters", "filename"]
+                        self.errorlist.append((path, msg))
 
     def validate_devices(self, conf):
-        pass
+        if conf["devices"]["target_level"] >= 2 * conf["devices"]["chunksize"]:
+            self.errorlist.append((["devices","target_level"], f"target_level can't be larger than {2 * conf['devices']['chunksize']}"))
+
 
 
 if __name__ == "__main__":
     file_validator = CamillaValidator()
     file_validator.validate_file("asdad")
 
+"""
 
 
 
+
+/// Validate a FFT convolution config.
+pub fn validate_config(conf: &config::ConvParameters) -> Res<()> {
+    match conf {
+        config::ConvParameters::Values { .. } => Ok(()),
+        config::ConvParameters::File {
+            filename,
+            format,
+            read_bytes_lines,
+            skip_bytes_lines,
+        } => {
+            let coeffs =
+                filters::read_coeff_file(&filename, &format, *read_bytes_lines, *skip_bytes_lines)?;
+            if coeffs.is_empty() {
+                return Err(config::ConfigError::new("Conv coefficients are empty").into());
+            }
+            Ok(())
+        }
+    }
+}
+
+"""
 
 
 

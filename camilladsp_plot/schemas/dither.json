@@ -17,7 +17,7 @@
       },
       "bits": {
         "type": "integer",
-        "exclusiveMinimum": 0
+        "minimum": 2
       }
     },
     "required": ["type", "bits"]

@@ -23,7 +23,7 @@
     "adjust_period": {
       "type": "number",
       "default": 10.0,
-      "minimum": 0
+      "exclusiveMinimum": 0
     },
     "enable_resampling": {
       "type": "boolean",
@@ -31,12 +31,13 @@
     },
     "silence_threshold": {
       "type": "number",
-      "default": -60.0
+      "default": -60.0,
+      "maximum": 0.0
     },
     "silence_timeout": {
       "type": "number",
       "default": 3.0,
-      "minimum": 0
+      "minimum": 0.0
     },
     "enable_rate_adjust": {
       "type": "boolean",

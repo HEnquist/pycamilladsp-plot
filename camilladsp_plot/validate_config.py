@@ -1,4 +1,3 @@
-#from jsonschema import validate                                         
 import json                                                             
 import yaml                                                             
 

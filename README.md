@@ -34,13 +34,26 @@ For Homebrew, install Python with `brew install python`, after which you can ins
 
 
 ## Plotting a configuration from the command line
-This library provides the console command `plotcamillaconf`. Once the library is installed, togehter with the optional dependencies numpy and matplotlib, the command should be available in your terminal.
+This library provides the console command `plotcamillaconf`. Once the library is installed, together with the optional dependencies numpy and matplotlib, the command should be available in your terminal.
 To use it type:
 ```sh
 plotcamillaconf /path/to/some/config.yml
 ```
 
-This will plot the frequency response of all the defined filters, and show a block diagram of the pipeline.
+This will plot the frequency response of all the defined filters, and show a block diagram of the pipeline. 
+As a first step, the configuration is validated to ensure it is valid. 
+If errors are found, these will be listed and no plots generated.
+
+Example:
+```
+Unable to plot, config has errors:
+mixers/mono/mapping/sources/channel  :  -1 is less than the minimum of 0
+filters/lowpass_2k/parameters/filename  :  Unable to find coefficent file 'sometext.txt'
+pipeline/1/names/1  :  Use of missing filter 'notch_120'
+pipeline/2/names/1  :  Use of missing filter 'notch_120'
+pipeline  :  Pipeline outputs 4 channels, playback device has 2
+```
+The first part, before the ":" is the path in the config to where the error was found. The second part is a description of the error.
 
 
 ## Plotting filters

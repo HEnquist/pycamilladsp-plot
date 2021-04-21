@@ -44,8 +44,53 @@
       "default": false
     },
     "resampler_type": {
-      "type": "string",
-      "enum": ["FastAsync", "BalancedAsync", "AccurateAsync", "Synchronous"],
+      "oneOf": [
+        { "type": "string", "enum": ["FastAsync", "BalancedAsync", "AccurateAsync", "Synchronous"] },
+        { 
+          "type": "object",
+          "properties": {
+            "FreeAsync": {
+              "type": "object",
+              "properties": {
+                "window": {
+                  "type": "string",
+                  "enum": [
+                    "Blackman",
+                    "Blackman2",
+                    "BlackmanHarris",
+                    "BlackmanHarris2",
+                    "Hann",
+                    "Hann2"
+                  ]
+                },
+                "interpolation": {
+                  "type": "string",
+                  "enum": [
+                    "Cubic",
+                    "Linear",
+                    "Nearest"
+                  ]
+                },
+                "f_cutoff": {
+                  "type": "number",
+                  "exclusiveMinimum": 0.0
+                },
+                "sinc_len": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "multipleOf": 8
+                },
+                "oversampling_ratio": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": ["window", "interpolation", "f_cutoff", "sinc_len", "oversampling_ratio"]
+            }
+          },
+          "required": ["FreeAsync"]
+        }
+      ],
       "default": "Synchronous"
     },
     "capture_samplerate": {

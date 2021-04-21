@@ -302,7 +302,7 @@ class Biquad(object):
         if ftype == "Free":
             a0 = 1.0
             a1 = conf["a1"]
-            a2 = conf["a1"]
+            a2 = conf["a2"]
             b0 = conf["b0"]
             b1 = conf["b1"]
             b2 = conf["b2"]

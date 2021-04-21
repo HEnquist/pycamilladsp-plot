@@ -121,6 +121,7 @@ class CamillaValidator():
                 self.config = yaml.safe_load(f)
             except Exception as e:
                 self.errorlist.append(([], str(e)))
+                return
         self._validate_config()
 
     def validate_yamlstring(self, config):
@@ -130,6 +131,7 @@ class CamillaValidator():
             self.config = yaml.safe_load(config)
         except Exception as e:
             self.errorlist.append(([], str(e)))
+            return
         self._validate_config()
 
     def validate_config(self, config):

@@ -15,5 +15,6 @@
       }
     }
   },
-  "required": ["dest", "sources"]
+  "required": ["dest", "sources"],
+  "additionalProperties": false
 }

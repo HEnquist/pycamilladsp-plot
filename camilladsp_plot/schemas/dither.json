@@ -20,7 +20,8 @@
         "minimum": 2
       }
     },
-    "required": ["type", "bits"]
+    "required": ["type", "bits"],
+    "additionalProperties": false
   },
   "Uniform": {
     "properties": {
@@ -30,6 +31,7 @@
         "maximum": 100.0
       }
     },
-    "required": ["amplitude"]
+    "required": ["amplitude"],
+    "additionalProperties": false
   }
 }

@@ -27,7 +27,8 @@
         "exclusiveMinimum": 0
       }
     },
-    "required": ["type", "freq", "order"]
+    "required": ["type", "freq", "order"],
+    "additionalProperties": false
   },
   "ButterworthLowpass": {
     "properties": {
@@ -43,7 +44,8 @@
         "exclusiveMinimum": 0
       }
     },
-    "required": ["type", "freq", "order"]
+    "required": ["type", "freq", "order"],
+    "additionalProperties": false
   },
   "LinkwitzRileyHighpass": {
     "properties": {
@@ -60,7 +62,8 @@
         "multipleOf": 2
       }
     },
-    "required": ["type", "freq", "order"]
+    "required": ["type", "freq", "order"],
+    "additionalProperties": false
   },
   "LinkwitzRileyLowpass": {
     "properties": {
@@ -77,6 +80,7 @@
         "multipleOf": 2
       }
     },
-    "required": ["type", "freq", "order"]
+    "required": ["type", "freq", "order"],
+    "additionalProperties": false
   }
 }

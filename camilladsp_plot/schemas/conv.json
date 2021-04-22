@@ -43,7 +43,8 @@
         "minimum": 0
       }
     },
-    "required": ["type", "filename", "format"]
+    "required": ["type", "filename", "format"],
+    "additionalProperties": false
   },
   "Values": {
     "properties": {
@@ -63,7 +64,8 @@
         "minimum": 0
       }
     },
-    "required": ["type", "values"]
+    "required": ["type", "values"],
+    "additionalProperties": false
   }
 }
 

@@ -24,7 +24,8 @@
         "default": false
       }
     },
-    "required": ["type", "device", "channels", "format"]
+    "required": ["type", "device", "channels", "format"],
+    "additionalProperties": false
   },
   "Pulse": {
     "properties": {
@@ -43,7 +44,8 @@
         "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"]
       }
     },
-    "required": ["type", "device", "channels", "format"]
+    "required": ["type", "device", "channels", "format"],
+    "additionalProperties": false
   },
   "Wasapi": {
     "properties": {
@@ -62,7 +64,8 @@
         "enum": ["S16LE", "FLOAT32LE"]
       }
     },
-    "required": ["type", "device", "channels", "format"]
+    "required": ["type", "device", "channels", "format"],
+    "additionalProperties": false
   },
   "CoreAudio": {
     "properties": {
@@ -81,7 +84,8 @@
         "enum": ["S16LE", "FLOAT32LE"]
       }
     },
-    "required": ["type", "device", "channels", "format"]
+    "required": ["type", "device", "channels", "format"],
+    "additionalProperties": false
   },
   "Stdin": {
     "properties": {
@@ -106,7 +110,8 @@
         "minimum": 0
       }
     },
-    "required": ["type", "channels", "format"]
+    "required": ["type", "channels", "format"],
+    "additionalProperties": false
   },
   "File": {
     "properties": {
@@ -135,6 +140,7 @@
         "minimum": 0
       }
     },
-    "required": ["type", "filename", "channels", "format"]
+    "required": ["type", "filename", "channels", "format"],
+    "additionalProperties": false
   }
 }

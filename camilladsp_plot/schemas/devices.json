@@ -85,10 +85,12 @@
                   "minimum": 1
                 }
               },
-              "required": ["window", "interpolation", "f_cutoff", "sinc_len", "oversampling_ratio"]
+              "required": ["window", "interpolation", "f_cutoff", "sinc_len", "oversampling_ratio"],
+              "additionalProperties": false
             }
           },
-          "required": ["FreeAsync"]
+          "required": ["FreeAsync"],
+          "additionalProperties": false
         }
       ],
       "default": "Synchronous"
@@ -104,5 +106,7 @@
     "playback": {
       "type": "object"
     }
-  }
+  },
+  "required": ["capture", "playback", "samplerate"],
+  "additionalProperties": false
 }

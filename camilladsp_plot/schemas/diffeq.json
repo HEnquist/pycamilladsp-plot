@@ -1,7 +1,8 @@
 {
   "properties": {
     "type": {
-      "type": "number"
+      "type": "string",
+      "enum": ["DiffEq"]
     },
     "parameters": {
       "type": "object",
@@ -21,9 +22,11 @@
             },
             "default": [1.0]
           }
-        }
+        },
+        "additionalProperties": false
       }
     }
   },
-  "required": ["type", "properties"]
+  "required": ["type", "properties"],
+  "additionalProperties": false
 }

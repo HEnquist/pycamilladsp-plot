@@ -59,10 +59,6 @@ class CamillaValidator():
         # Mixer
         with open(self.get_full_path("schemas/mixer.json")) as f:
             self.mixer_schema = json.load(f)
-        with open(self.get_full_path("schemas/mixermapping.json")) as f:
-            self.mixermapping_schema = json.load(f)
-        with open(self.get_full_path("schemas/mixersource.json")) as f:
-            self.mixersource_schema = json.load(f)
 
 
     def validate(self, config, schema, path=[]):
@@ -205,10 +201,6 @@ class CamillaValidator():
             for name, mix in self.config["mixers"].items():
                 print(f"Validating mixer {name}")
                 self.validate(mix, self.mixer_schema, path=["mixers", name])
-                for mapping in mix["mapping"]:
-                    self.validate(mapping, self.mixermapping_schema, path=["mixers", name, "mapping"])
-                    for source in mapping["sources"]:
-                        self.validate(source, self.mixersource_schema, path=["mixers", name, "mapping", "sources"])
 
         # Pipeline
         if "pipeline" in self.config: 

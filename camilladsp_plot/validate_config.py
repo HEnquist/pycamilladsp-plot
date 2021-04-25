@@ -284,12 +284,13 @@ class CamillaValidator():
                     self.errorlist.append((path, msg))
             # Check that coefficients files are available
             if filter_conf["type"] == "Conv":
-                if filter_conf["parameters"]["type"] == "File":
+                if filter_conf["parameters"]["type"] in ["Raw", "Wav"]:
                     fname = filter_conf["parameters"]["filename"]
                     if not os.path.exists(fname):
                         msg = f"Unable to find coefficent file '{fname}'"
                         path = ["filters", filter_name, "parameters", "filename"]
                         self.errorlist.append((path, msg))
+                    # TODO check that "channel" of Wav is valid
 
     def validate_devices(self):
         if self.config["devices"]["target_level"] >= 2 * self.config["devices"]["chunksize"]:

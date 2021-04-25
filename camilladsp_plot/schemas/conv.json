@@ -4,17 +4,18 @@
       "type": {
         "type": "string",
         "enum": [
-          "File",
+          "Raw",
+          "Wav",
           "Values"
         ]
       }
     },
     "required": ["type"]
   },
-  "File": {
+  "Raw": {
     "properties": {
       "type": {
-        "enum": ["File"]
+        "enum": ["Raw"]
       },
       "filename": {
         "type": "string",
@@ -44,6 +45,24 @@
       }
     },
     "required": ["type", "filename", "format"],
+    "additionalProperties": false
+  },
+  "Wav": {
+    "properties": {
+      "type": {
+        "enum": ["Wav"]
+      },
+      "filename": {
+        "type": "string",
+        "minLength": 1
+      },
+      "channel": {
+        "type": "integer",
+        "default": 0,
+        "minimum": 0
+      }
+    },
+    "required": ["type", "filename"],
     "additionalProperties": false
   },
   "Values": {

@@ -7,115 +7,20 @@ import math
 import itertools
 import struct
 from .cooley_tukey import fft
+from .audiofileread import read_coeffs
 
 
 class Conv(object):
-
-    TYPES_DIRECT = {
-        "FLOAT64LE": "<d",
-        "FLOAT32LE": "<f",
-        "S16LE": "<h",
-        "S32LE": "<i",
-    }
-
-    TYPES_INDIRECT = {
-        "S24LE": {
-            "pattern": "sssx",
-            "endian": "little"
-        },
-        "S24LE3": {
-            "pattern": "sss",
-            "endian": "little"
-        },
-    }
-
-    SCALEFACTOR = {
-        "FLOAT64LE": 1.0,
-        "FLOAT32LE": 1.0,
-        "S16LE": (2 ** 15),
-        "S24LE": (2 ** 23),
-        "S24LE3": (2 ** 23),
-        "S32LE": (2 ** 31),
-    }
-
-    BYTESPERSAMPLE = {
-        "FLOAT64LE": 8,
-        "FLOAT32LE": 4,
-        "S16LE": 2,
-        "S24LE": 4,
-        "S24LE3": 3,
-        "S32LE": 4,
-    }
 
     def __init__(self, conf, fs):
         if not conf:
             conf = {"values": [1.0]}
         if "filename" in conf:
-            values = self._read_coeffs(conf)
+            values = read_coeffs(conf)
         else:
             values = conf["values"]
         self.impulse = values
         self.fs = fs
-
-    def _read_coeffs(self, conf):
-        fname = conf["filename"]
-        if "format" not in conf:
-            conf["format"] = "TEXT"
-        if "read_bytes_lines" not in conf or conf["read_bytes_lines"] == 0:
-            read_nbr = None
-        else:
-            read_nbr = conf["read_bytes_lines"]
-        if "skip_bytes_lines" not in conf:
-            skip_nbr = 0
-        else:
-            skip_nbr = conf["skip_bytes_lines"]
-        if conf["format"] == "TEXT":
-            values = self._read_text_coeffs(fname, skip_nbr, read_nbr)
-        else:
-            if conf["format"] in self.TYPES_DIRECT:
-                values = self._read_binary_direct_coeffs(fname, conf["format"], skip_nbr, read_nbr)
-            elif conf["format"] in self.TYPES_INDIRECT:
-                values = self._read_binary_indirect_coeffs(fname, conf["format"], skip_nbr, read_nbr)
-            else:
-                raise ValueError(f"Unsupported format {conf['format']}")
-        return values
-
-    def _read_text_coeffs(self, fname, skip_lines, read_lines):
-        with open(fname) as f:
-            rawvalues = itertools.islice(csv.reader(f), skip_lines, read_lines)
-            values = [float(row[0]) for row in rawvalues]
-        return values
-
-    def _read_binary_direct_coeffs(self, fname, sampleformat, skip_bytes, read_bytes):
-
-        if read_bytes is None:
-            count = -1
-        else:
-            count = read_bytes
-
-        datatype = self.TYPES_DIRECT[sampleformat]
-        factor = self.SCALEFACTOR[sampleformat]
-        with open(fname, 'rb') as f:
-            f.seek(skip_bytes)
-            data = f.read(count)
-        values = [float(val[0])/factor for val in struct.iter_unpack(datatype, data)]
-        return values
-
-    def _read_binary_indirect_coeffs(self, fname, sampleformat, skip_bytes, read_bytes):
-
-        if read_bytes is None:
-            count = -1
-        else:
-            count = read_bytes
-
-        pattern = self.TYPES_INDIRECT[sampleformat]["pattern"]
-        factor = self.SCALEFACTOR[sampleformat]
-        endian = self.TYPES_INDIRECT[sampleformat]["endian"]
-        with open(fname, 'rb') as f:
-            f.seek(skip_bytes)
-            data = f.read(count)
-        values = [int.from_bytes(b"".join(val), endian, signed=True)/factor for val in struct.iter_unpack(pattern, data)]
-        return values
 
     def complex_gain(self, f):
         impulselen = len(self.impulse)

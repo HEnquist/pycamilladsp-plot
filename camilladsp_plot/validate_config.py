@@ -4,6 +4,7 @@ import yaml
 from jsonschema import Draft7Validator, validators, ValidationError
 import os
 import sys
+from .audiofileread import read_wav_header, read_text_coeffs
 
 # https://python-jsonschema.readthedocs.io/en/latest/faq/#why-doesn-t-my-schema-that-has-a-default-property-actually-set-the-default-on-my-instance
 def extend_with_default(validator_class):
@@ -60,6 +61,9 @@ class CamillaValidator():
         with open(self.get_full_path("schemas/mixer.json")) as f:
             self.mixer_schema = json.load(f)
 
+        self.errorlist = []
+        self.warninglist = []
+
 
     def validate(self, config, schema, path=[]):
         try:
@@ -107,9 +111,10 @@ class CamillaValidator():
         # No change, just return it again
         return path_str
 
-
+    # Validate a file read from disk
     def validate_file(self, file):
         self.errorlist = []
+        self.warninglist = []
         self.filename = file
         with open(file) as f:
             try:
@@ -119,8 +124,10 @@ class CamillaValidator():
                 return
         self._validate_config()
 
+    # Validate a config supplied as a yaml string
     def validate_yamlstring(self, config):
         self.errorlist = []
+        self.warninglist = []
         self.filename = None
         try:
             self.config = yaml.safe_load(config)
@@ -129,8 +136,10 @@ class CamillaValidator():
             return
         self._validate_config()
 
+    # Validate a config already parsed into a python object
     def validate_config(self, config):
         self.errorlist = []
+        self.warninglist = []
         self.config = config
         self._validate_config()
 
@@ -145,12 +154,17 @@ class CamillaValidator():
         self.validate_filters()
         self.validate_pipeline()
 
-
+    # Return the processed config. All missing values have been filled by defaults 
     def get_config(self):
         return self.config
 
+    # Get the list of errors
     def get_errors(self):
         return self.errorlist
+    
+    # Get the list of warnings
+    def get_warnings(self):
+        return self.warninglist
 
     def validate_with_schemas(self):
         # Overall structure
@@ -290,7 +304,40 @@ class CamillaValidator():
                         msg = f"Unable to find coefficent file '{fname}'"
                         path = ["filters", filter_name, "parameters", "filename"]
                         self.errorlist.append((path, msg))
-                    # TODO check that "channel" of Wav is valid
+                    if filter_conf["parameters"]["type"] == "Wav":
+                        wavparams = read_wav_header(fname)
+                        if wavparams is None:
+                            msg = f"Invalid or unsupported wav file '{fname}'"
+                            path = ["filters", filter_name, "parameters", "filename"]
+                            self.errorlist.append((path, msg))
+                        elif filter_conf["parameters"]["channel"] >= wavparams["channels"]:
+                            msg = f"Can't read channel {filter_conf['parameters']['channel']} of file '{fname}' which has channels 0..{wavparams['channels']-1}"
+                            path = ["filters", filter_name, "parameters", "filename"]
+                            self.errorlist.append((path, msg))
+                        elif wavparams["samplerate"] != self.config["devices"]["samplerate"]:
+                            msg = f"Sample rate mismatch, file '{fname}': {wavparams['samplerate']}, dsp: {self.config['devices']['samplerate']}"
+                            path = ["filters", filter_name, "parameters", "filename"]
+                            self.warninglist.append((path, msg))
+                    elif filter_conf["parameters"]["type"] == "Raw":
+                        if filter_conf["parameters"]["format"] == "TEXT":
+                            try:
+                                values = read_text_coeffs(fname, filter_conf["parameters"]["skip_bytes_lines"], filter_conf["parameters"]["read_bytes_lines"])
+                            except ValueError as e:
+                                msg = f"File '{fname}' contains invalid numbers, {str(e)}"
+                                path = ["filters", filter_name, "parameters", "filename"]
+                                self.errorlist.append((path, msg))
+                            if len(values)<1:
+                                msg = f"File '{fname}' contains no values"
+                                path = ["filters", filter_name, "parameters", "filename"]
+                                self.errorlist.append((path, msg))
+                        else:
+                            with open(fname, 'rb') as f:
+                                coeff_len = f.tell()
+                            if coeff_len <= filter_conf["parameters"]["skip_bytes_lines"]:
+                                msg = f"File '{fname}' contains no values"
+                                path = ["filters", filter_name, "parameters", "filename"]
+                                self.errorlist.append((path, msg))
+
 
     def validate_devices(self):
         if self.config["devices"]["target_level"] >= 2 * self.config["devices"]["chunksize"]:
@@ -302,9 +349,13 @@ if __name__ == "__main__":
     file_validator = CamillaValidator()
     file_validator.validate_file(sys.argv[1])
     errors = file_validator.get_errors()
+    warnings = file_validator.get_warnings()
     print("\nErrors:")
-    for err in errors:
-        print("/".join([str(p) for p in err[0]]), " : ",  err[1])
+    for e in errors:
+        print("/".join([str(p) for p in e[0]]), " : ",  e[1])
+    print("\nWarnings:")
+    for w in warnings:
+        print("/".join([str(p) for p in w[0]]), " : ", w[1])
 
 
 

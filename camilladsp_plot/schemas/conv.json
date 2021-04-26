@@ -31,7 +31,8 @@
           "FLOAT32LE",
           "FLOAT64LE",
           "TEXT"
-        ]
+        ],
+        "default": "TEXT"
       },
       "skip_bytes_lines": {
         "type": "integer",
@@ -44,7 +45,7 @@
         "minimum": 0
       }
     },
-    "required": ["type", "filename", "format"],
+    "required": ["type", "filename"],
     "additionalProperties": false
   },
   "Wav": {

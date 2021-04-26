@@ -10,17 +10,19 @@ except ImportError:
 
 
 def main():
-
+    if len(sys.argv) < 2:
+        print("Please give a config filename!")
+        return
     fname = sys.argv[1]
-
-    #conffile = open(fname)
-
-    #conf = yaml.safe_load(conffile)
-    #prepare_config(conf)
     validator = CamillaValidator()
     validator.validate_file(fname)
     errors = validator.get_errors()
+    warnings = validator.get_warnings()
     if len(errors) == 0:
+        if len(warnings) > 0:
+            print("Warnings:")
+            for w in warnings:
+                print("/".join([str(p) for p in w[0]]), " : ",  w[1])
         if plt is None:
             print("Matplotlib is not available! Can't display plots.")
             return
@@ -33,6 +35,8 @@ def main():
         print("Unable to plot, config has errors:")
         for err in errors:
             print("/".join([str(p) for p in err[0]]), " : ",  err[1])
+
+        
 
 if __name__ == "__main__":
     main()

@@ -42,7 +42,8 @@ plotcamillaconf /path/to/some/config.yml
 
 This will plot the frequency response of all the defined filters, and show a block diagram of the pipeline. 
 As a first step, the configuration is validated to ensure it is valid. 
-If errors are found, these will be listed and no plots generated.
+If errors are found, these will be listed and no plots generated. It also shows a list of warnings. 
+The warnings show possible problems that don't prevent the config from being used. 
 
 Example:
 ```
@@ -88,4 +89,20 @@ It's also possible to evaluate the combined frequency response of a Filter step 
 eval_filterstep(conf, pipelineindex, name="filterstep", npoints=1000)
 ```
 This command takes a full configuration as `conf`. It will evaluate the step with index `pipelineindex` in the pipeline where 0 is the first step. As for eval_filter, the result is returned as a dictionary with the same fields as for a Biquad.
+
+## Validating a config
+A config file can be validated against a set of rules that match the ones in camilladsp. 
+
+This example loads and validates a config from a path supplied on the command line. It then gets the error and warning lists, and the processed config. 
+```python
+import sys
+from camilladsp_plot.validate_config import CamillaValidator
+file_validator = CamillaValidator()
+file_validator.validate_file(sys.argv[1])
+errors = file_validator.get_errors()
+warnings = file_validator.get_warnings()
+config_with_defaults = file_validator.get_config()
+```
+
+CamillaValidator also has `validate_yamlstring` which is used for a config supplied as a yaml string. There is also `validate_config` for configs that have already been parsed into a python object. 
 

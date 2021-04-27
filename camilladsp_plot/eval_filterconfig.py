@@ -42,7 +42,7 @@ def eval_filter(filterconf, name=None, samplerate=44100, npoints=1000):
 def eval_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, toimage=False):
 
     samplerate = conf['devices']['samplerate']
-    fvect = logspace(1.0, samplerate*0.95/2.0, npoints)
+    fvect = logspace(10.0, samplerate*0.95/2.0, npoints)
     pipelinestep = conf['pipeline'][pipelineindex]
     totcgain=[1.0 for n in range(npoints)]
     for filt in pipelinestep['names']:

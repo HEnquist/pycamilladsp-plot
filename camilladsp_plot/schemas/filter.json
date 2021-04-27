@@ -1,0 +1,23 @@
+{
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "Biquad",
+        "BiquadCombo",
+        "Conv",
+        "Delay",
+        "Volume",
+        "Loudness",
+        "Gain",
+        "Dither",
+        "DiffEq"
+      ]
+    },
+    "parameters": {
+      "type": "object"
+    }
+  },
+  "required": ["type", "parameters"],
+  "additionalProperties": false
+}

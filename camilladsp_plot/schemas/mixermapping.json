@@ -1,0 +1,20 @@
+{
+  "properties": {
+    "dest": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "mute": {
+      "type": "boolean",
+      "default": false
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "required": ["dest", "sources"],
+  "additionalProperties": false
+}

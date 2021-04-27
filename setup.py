@@ -5,16 +5,16 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="camilladsp_plot",
-    version="0.4.5",
+    version="0.5.0",
     author="Henrik Enquist",
     author_email="henrik.enquist@gmail.com",
-    description="A library for plotting configs and filters for CamillaDSP",
+    description="A library for validating, evaluating and plotting configs and filters for CamillaDSP",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/HEnquist/pycamilladsp-plot",
     packages=setuptools.find_packages(),
     python_requires=">=3",
-    install_requires=["PyYAML"],
+    install_requires=["PyYAML", "jsonschema"],
     entry_points = {
         'console_scripts': ['plotcamillaconf=camilladsp_plot.plotcamillaconf:main'],
     }

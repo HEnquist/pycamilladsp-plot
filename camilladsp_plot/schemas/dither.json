@@ -1,0 +1,37 @@
+{
+  "Dither": {
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": [
+          "Simple",
+          "Uniform",
+          "Lipshitz441",
+          "Fweighted441",
+          "Shibata441",
+          "Shibata48",
+          "ShibataLow441",
+          "ShibataLow48",
+          "None"
+        ]
+      },
+      "bits": {
+        "type": "integer",
+        "minimum": 2
+      }
+    },
+    "required": ["type", "bits"],
+    "additionalProperties": false
+  },
+  "Uniform": {
+    "properties": {
+      "amplitude": {
+        "type": "number",
+        "minimum": 0.0,
+        "maximum": 100.0
+      }
+    },
+    "required": ["amplitude"],
+    "additionalProperties": false
+  }
+}

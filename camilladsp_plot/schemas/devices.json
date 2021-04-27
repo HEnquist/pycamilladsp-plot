@@ -1,0 +1,112 @@
+{
+  "title": "Devices",
+  "type": "object",
+  "properties": {
+    "chunksize": {
+      "type": "integer",
+      "default": 1024,
+      "exclusiveMinimum": 0
+    },
+    "samplerate": {
+      "type": "integer",
+      "exclusiveMinimum": 0
+    },
+    "queuelimit": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "default": 4
+    },
+    "target_level": {
+      "type": "integer",
+      "default": 1024
+    },
+    "adjust_period": {
+      "type": "number",
+      "default": 10.0,
+      "exclusiveMinimum": 0
+    },
+    "enable_resampling": {
+      "type": "boolean",
+      "default": false
+    },
+    "silence_threshold": {
+      "type": "number",
+      "default": -60.0,
+      "maximum": 0.0
+    },
+    "silence_timeout": {
+      "type": "number",
+      "default": 3.0,
+      "minimum": 0.0
+    },
+    "enable_rate_adjust": {
+      "type": "boolean",
+      "default": false
+    },
+    "resampler_type": {
+      "oneOf": [
+        { "type": "string", "enum": ["FastAsync", "BalancedAsync", "AccurateAsync", "Synchronous"] },
+        { 
+          "type": "object",
+          "properties": {
+            "FreeAsync": {
+              "type": "object",
+              "properties": {
+                "window": {
+                  "type": "string",
+                  "enum": [
+                    "Blackman",
+                    "Blackman2",
+                    "BlackmanHarris",
+                    "BlackmanHarris2",
+                    "Hann",
+                    "Hann2"
+                  ]
+                },
+                "interpolation": {
+                  "type": "string",
+                  "enum": [
+                    "Cubic",
+                    "Linear",
+                    "Nearest"
+                  ]
+                },
+                "f_cutoff": {
+                  "type": "number",
+                  "exclusiveMinimum": 0.0
+                },
+                "sinc_len": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "multipleOf": 8
+                },
+                "oversampling_ratio": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": ["window", "interpolation", "f_cutoff", "sinc_len", "oversampling_ratio"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["FreeAsync"],
+          "additionalProperties": false
+        }
+      ],
+      "default": "Synchronous"
+    },
+    "capture_samplerate": {
+      "type": "integer",
+      "default": 0,
+      "minimum": 0
+    },
+    "capture": {
+      "type": "object"
+    },
+    "playback": {
+      "type": "object"
+    }
+  },
+  "required": ["capture", "playback", "samplerate"],
+  "additionalProperties": false
+}

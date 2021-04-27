@@ -1,0 +1,32 @@
+{
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": ["DiffEq"]
+    },
+    "parameters": {
+      "type": "object",
+      "items": {
+        "properties": {
+          "a": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "default": [1.0]
+          },
+          "b": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "default": [1.0]
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["type", "properties"],
+  "additionalProperties": false
+}

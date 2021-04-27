@@ -1,0 +1,146 @@
+{
+  "Alsa": {
+    "properties": {
+      "type": {
+        "enum": ["Alsa"]
+      },
+      "device": {
+        "type": "string",
+        "minLength": 1
+      },
+      "channels": {
+        "type": "integer",
+        "exclusiveMinimum": 0
+      },
+      "format": {
+        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+      },
+      "retry_on_error": {
+        "type": "boolean",
+        "default": false
+      },
+      "avoid_blocking_read": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "required": ["type", "device", "channels", "format"],
+    "additionalProperties": false
+  },
+  "Pulse": {
+    "properties": {
+      "type": {
+        "enum": ["Pulse"]
+      },
+      "device": {
+        "type": "string",
+        "minLength": 1
+      },
+      "channels": {
+        "type": "integer",
+        "exclusiveMinimum": 0
+      },
+      "format": {
+        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"]
+      }
+    },
+    "required": ["type", "device", "channels", "format"],
+    "additionalProperties": false
+  },
+  "Wasapi": {
+    "properties": {
+      "type": {
+        "enum": ["Wasapi"]
+      },
+      "device": {
+        "type": "string",
+        "minLength": 1
+      },
+      "channels": {
+        "type": "integer",
+        "exclusiveMinimum": 0
+      },
+      "format": {
+        "enum": ["S16LE", "FLOAT32LE"]
+      }
+    },
+    "required": ["type", "device", "channels", "format"],
+    "additionalProperties": false
+  },
+  "CoreAudio": {
+    "properties": {
+      "type": {
+        "enum": ["CoreAudio"]
+      },
+      "device": {
+        "type": "string",
+        "minLength": 1
+      },
+      "channels": {
+        "type": "integer",
+        "exclusiveMinimum": 0
+      },
+      "format": {
+        "enum": ["S16LE", "FLOAT32LE"]
+      }
+    },
+    "required": ["type", "device", "channels", "format"],
+    "additionalProperties": false
+  },
+  "Stdin": {
+    "properties": {
+      "type": {
+        "enum": ["Stdin"]
+      },
+      "channels": {
+        "type": "integer",
+        "exclusiveMinimum": 0
+      },
+      "format": {
+        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+      },
+      "skip_bytes": {
+        "type": "integer",
+        "default": 0,
+        "minimum": 0
+      },
+      "read_bytes": {
+        "type": "integer",
+        "default": 0,
+        "minimum": 0
+      }
+    },
+    "required": ["type", "channels", "format"],
+    "additionalProperties": false
+  },
+  "File": {
+    "properties": {
+      "type": {
+        "enum": ["File"]
+      },
+      "filename": {
+        "type": "string",
+        "minLength": 1
+      },
+      "channels": {
+        "type": "integer",
+        "exclusiveMinimum": 0
+      },
+      "format": {
+        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+      },
+      "skip_bytes": {
+        "type": "integer",
+        "default": 0,
+        "minimum": 0
+      },
+      "read_bytes": {
+        "type": "integer",
+        "default": 0,
+        "minimum": 0
+      }
+    },
+    "required": ["type", "filename", "channels", "format"],
+    "additionalProperties": false
+  }
+}

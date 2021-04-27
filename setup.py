@@ -14,6 +14,7 @@ setuptools.setup(
     url="https://github.com/HEnquist/pycamilladsp-plot",
     packages=setuptools.find_packages(),
     python_requires=">=3",
+    package_data={'camilladsp_plot': ['schemas/*.json']},
     install_requires=["PyYAML", "jsonschema"],
     entry_points = {
         'console_scripts': ['plotcamillaconf=camilladsp_plot.plotcamillaconf:main'],

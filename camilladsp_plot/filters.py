@@ -64,10 +64,9 @@ class Conv(object):
 
     def gain_and_phase(self, f):
         f_fft, Avec = self.complex_gain(None)
-        gain = [20 * math.log10(abs(A)) for A in Avec]
-        gain = self.interpolate(gain, f_fft, f)
-        phase = [180 / math.pi * cmath.phase(A) for A in Avec]
-        phase = self.interpolate(phase, f_fft, f)
+        interpolated = self.interpolate_polar(Avec, f_fft, f)
+        gain = [20 * math.log10(abs(A)+1.0e-15) for A in interpolated]
+        phase = [180 / math.pi * cmath.phase(A) for A in interpolated]
         return f, gain, phase
 
     def get_impulse(self):
@@ -98,7 +97,7 @@ class DiffEq(object):
 
     def gain_and_phase(self, f):
         _f, Avec = self.complex_gain(f)
-        gain = [20 * math.log10(abs(A)) for A in Avec]
+        gain = [20 * math.log10(abs(A)+1.0e-15) for A in Avec]
         phase = [180 / math.pi * cmath.phase(A) for A in Avec]
         return f, gain, phase
 
@@ -196,7 +195,7 @@ class BiquadCombo(object):
 
     def gain_and_phase(self, f):
         _f, Avec = self.complex_gain(f)
-        gain = [20 * math.log10(abs(A)) for A in Avec]
+        gain = [20 * math.log10(abs(A)+1.0e-15) for A in Avec]
         phase = [180 / math.pi * cmath.phase(A) for A in Avec]
         return f, gain, phase
 
@@ -425,7 +424,7 @@ class Biquad(object):
 
     def gain_and_phase(self, f):
         _f, Avec = self.complex_gain(f)
-        gain = [20 * math.log10(abs(A)) for A in Avec]
+        gain = [20 * math.log10(abs(A)+1.0e-15) for A in Avec]
         phase = [180 / math.pi * cmath.phase(A) for A in Avec]
         return f, gain, phase
 

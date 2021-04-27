@@ -71,7 +71,6 @@ class CamillaValidator():
         except ValidationError as e:
             self.errorlist.append((path + list(e.path), e.message))
 
-    # DefaultValidatingDraft7Validator(schema).validate(obj)
     def get_full_path(self, file):
         return os.path.join(os.path.dirname(__file__), file)
 
@@ -99,7 +98,7 @@ class CamillaValidator():
     def make_paths_absolute(self):
         config_dir = os.path.dirname(os.path.abspath(self.filename))
         for _name, filt in self.config["filters"].items():
-            if filt["type"] == "Conv" and filt["parameters"]["type"] == "File":
+            if filt["type"] == "Conv" and filt["parameters"]["type"] in ["Raw", "Wav"]:
                 filt["parameters"]["filename"] = self.check_and_replace_relative_path(filt["parameters"]["filename"], config_dir)
 
     def check_and_replace_relative_path(self, path_str, config_dir):

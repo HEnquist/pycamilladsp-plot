@@ -33,6 +33,10 @@
       "unit": {
         "enum": ["ms", "samples"],
         "default": "ms"
+      },
+      "subsample": {
+        "type": "boolean",
+        "default": false
       }
     },
     "required": ["type", "delay"],

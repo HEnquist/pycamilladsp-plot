@@ -61,7 +61,7 @@ def eval_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, toimag
             continue
         _, cgainstep = currfilt.complex_gain(fvect)
         totcgain = [cg * cgstep for (cg, cgstep) in zip(totcgain, cgainstep)]
-    gain = [20.0 * math.log10(abs(cg) + 1e-15) for cg in totcgain]
+    gain = [20.0 * math.log10(abs(cg) + 1.0e-15) for cg in totcgain]
     phase = [180 / math.pi * cmath.phase(cg) for cg in totcgain]
     result = {"name": name, "samplerate": samplerate, "f": fvect, "magnitude": gain, "phase": phase}
     return result

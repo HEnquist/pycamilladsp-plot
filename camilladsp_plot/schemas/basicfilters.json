@@ -1,9 +1,6 @@
 {
   "Gain": {
     "properties": {
-      "type": {
-        "enum": ["Gain"]
-      },
       "gain": {
         "type": "number",
         "minimum": -150.0,
@@ -18,14 +15,11 @@
         "default": false
       }
     },
-    "required": ["type", "gain"],
+    "required": ["gain"],
     "additionalProperties": false
   },
   "Delay": {
     "properties": {
-      "type": {
-        "enum": ["Delay"]
-      },
       "delay": {
         "type": "number",
         "minimum": 0.0
@@ -39,28 +33,22 @@
         "default": false
       }
     },
-    "required": ["type", "delay"],
+    "required": ["delay"],
     "additionalProperties": false
   },
   "Volume": {
     "properties": {
-      "type": {
-        "enum": ["Volume"]
-      },
       "ramp_time": {
         "type": "number",
         "default": "200",
         "minimum": 0.0
       }
     },
-    "required": ["type"],
+    "required": [],
     "additionalProperties": false
   },
   "Loudness": {
     "properties": {
-      "type": {
-        "enum": ["Loudness"]
-      },
       "ramp_time": {
         "type": "number",
         "default": "200.0",
@@ -84,7 +72,7 @@
         "maximum": 20.0
       }
     },
-    "required": ["type", "reference_level"],
+    "required": ["reference_level"],
     "additionalProperties": false
   }
 }

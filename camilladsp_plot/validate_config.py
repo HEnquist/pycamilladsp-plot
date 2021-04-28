@@ -68,8 +68,10 @@ class CamillaValidator():
     def validate(self, config, schema, path=[]):
         try:
             self.validator(schema).validate(config)
+            return True
         except ValidationError as e:
             self.errorlist.append((path + list(e.path), e.message))
+            return False
 
     def get_full_path(self, file):
         return os.path.join(os.path.dirname(__file__), file)
@@ -139,19 +141,21 @@ class CamillaValidator():
     def validate_config(self, config):
         self.errorlist = []
         self.warninglist = []
+        self.filename = None
         self.config = config
         self._validate_config()
 
     def _validate_config(self):
         self.validate_with_schemas()
-        if self.filename is not None:
-            self.make_paths_absolute()
-        self.replace_tokens()
+        if len(self.errorlist) == 0:
+            if self.filename is not None:
+                self.make_paths_absolute()
+            self.replace_tokens()
 
-        self.validate_devices()
-        self.validate_mixers()
-        self.validate_filters()
-        self.validate_pipeline()
+            self.validate_devices()
+            self.validate_mixers()
+            self.validate_filters()
+            self.validate_pipeline()
 
     # Return the processed config. All missing values have been filled by defaults 
     def get_config(self):
@@ -183,43 +187,45 @@ class CamillaValidator():
         capture_schema = self.capture_schemas[capture_type]
         self.validate(self.config["devices"]["capture"], capture_schema, path=["devices", "capture"])
 
-        # Filters
-        if "filters" in self.config: 
-            for name, filt in self.config["filters"].items():
-                print(f"Validating filter {name}")
-                self.validate(filt, self.filter_schema, path=["filters", name])
+
+        # Filters        
+        for name, filt in self.config["filters"].items():
+            ok = self.validate(filt, self.filter_schema, path=["filters", name])
+            if ok:
                 filt_type = filt["type"]
-                filt_subtype = filt["parameters"]["type"]
                 if filt_type == "Biquad":
+                    filt_subtype = filt["parameters"]["type"]
                     schema = self.biquad_schemas["Biquad"]
-                    self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
-                    schema = self.biquad_schemas[filt_subtype]
-                    self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
+                    ok = self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
+                    if ok:
+                        schema = self.biquad_schemas[filt_subtype]
+                        self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
                 elif filt_type == "BiquadCombo":
+                    filt_subtype = filt["parameters"]["type"]
                     schema = self.biquadcombo_schemas["BiquadCombo"]
-                    self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
-                    schema = self.biquadcombo_schemas[filt_subtype]
-                    self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
+                    ok = self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
+                    if ok:
+                        schema = self.biquadcombo_schemas[filt_subtype]
+                        self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
                 elif filt_type == "Conv":
+                    filt_subtype = filt["parameters"]["type"]
                     schema = self.conv_schemas["Conv"]
-                    self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
-                    schema = self.conv_schemas[filt_subtype]
-                    self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
+                    ok = self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
+                    if ok:
+                        schema = self.conv_schemas[filt_subtype]
+                        self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
                 elif filt_type in self.basics_schemas.keys():
                     schema = self.basics_schemas[filt_type]
                     self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
 
         # Mixers
-        if "mixers" in self.config: 
-            for name, mix in self.config["mixers"].items():
-                print(f"Validating mixer {name}")
-                self.validate(mix, self.mixer_schema, path=["mixers", name])
+        for name, mix in self.config["mixers"].items():
+            self.validate(mix, self.mixer_schema, path=["mixers", name])
 
         # Pipeline
-        if "pipeline" in self.config: 
-            for idx, step in enumerate(self.config["pipeline"]):
-                print(f"Validating pipeline step")
-                self.validate(step, self.pipeline_schemas["PipelineStep"], path=["pipeline", idx])
+        for idx, step in enumerate(self.config["pipeline"]):
+            ok = self.validate(step, self.pipeline_schemas["PipelineStep"], path=["pipeline", idx])
+            if ok:
                 step_type = step["type"]
                 schema = self.pipeline_schemas[step_type]
                 self.validate(step, schema, path=["pipeline", idx])
@@ -321,19 +327,31 @@ class CamillaValidator():
                         if filter_conf["parameters"]["format"] == "TEXT":
                             try:
                                 values = read_text_coeffs(fname, filter_conf["parameters"]["skip_bytes_lines"], filter_conf["parameters"]["read_bytes_lines"])
+                                if len(values) == 0:
+                                    msg = f"File '{fname}' contains no values"
+                                    path = ["filters", filter_name, "parameters", "filename"]
+                                    self.errorlist.append((path, msg))
                             except ValueError as e:
                                 msg = f"File '{fname}' contains invalid numbers, {str(e)}"
                                 path = ["filters", filter_name, "parameters", "filename"]
                                 self.errorlist.append((path, msg))
-                            if len(values)<1:
-                                msg = f"File '{fname}' contains no values"
+                            except Exception as e:
+                                msg = f"Cant open file '{fname}', {str(e)}"
                                 path = ["filters", filter_name, "parameters", "filename"]
                                 self.errorlist.append((path, msg))
+
+                            
                         else:
-                            with open(fname, 'rb') as f:
-                                coeff_len = f.tell()
-                            if coeff_len <= filter_conf["parameters"]["skip_bytes_lines"]:
-                                msg = f"File '{fname}' contains no values"
+                            try:
+                                with open(fname, 'rb') as f:
+                                    f.seek(0, 2)
+                                    coeff_len = f.tell()
+                                if coeff_len <= filter_conf["parameters"]["skip_bytes_lines"]:
+                                    msg = f"File '{fname}' contains no values"
+                                    path = ["filters", filter_name, "parameters", "filename"]
+                                    self.errorlist.append((path, msg))
+                            except Exception as e:
+                                msg = f"Cant open file '{fname}', {str(e)}"
                                 path = ["filters", filter_name, "parameters", "filename"]
                                 self.errorlist.append((path, msg))
 

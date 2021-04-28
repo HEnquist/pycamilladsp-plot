@@ -7,11 +7,11 @@
         "BiquadCombo",
         "Conv",
         "Delay",
-        "Volume",
-        "Loudness",
-        "Gain",
+        "DiffEq",
         "Dither",
-        "DiffEq"
+        "Gain",
+        "Loudness",
+        "Volume"
       ]
     },
     "parameters": {

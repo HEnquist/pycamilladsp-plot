@@ -1,7 +1,6 @@
 import math
 import cmath
-from camilladsp_plot.filters import Biquad, BiquadCombo, Conv, DiffEq, Gain
-
+from .filters import Biquad, BiquadCombo, Conv, DiffEq, Gain, unwrap_phase, calc_groupdelay
 
 def logspace(minval, maxval, npoints):
     logmin = math.log10(minval)
@@ -26,6 +25,7 @@ def eval_filter(filterconf, name=None, samplerate=44100, npoints=1000):
         _fplot, magn, phase = currfilt.gain_and_phase(fvect)
         result["magnitude"] = magn
         result["phase"] = phase
+
     elif filterconf['type'] == 'Conv':
         if 'parameters' in filterconf:
             currfilt = Conv(filterconf['parameters'], samplerate)
@@ -37,6 +37,11 @@ def eval_filter(filterconf, name=None, samplerate=44100, npoints=1000):
         result["phase"] = phase
         result["time"] = t
         result["impulse"] = impulse
+    
+    f_grp, groupdelay = calc_groupdelay(result["f"], result["phase"])
+    result["f_groupdelay"] = f_grp
+    result["groupdelay"] = groupdelay
+    result["phase"] = unwrap_phase(result["phase"])
     return result
 
 def eval_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, toimage=False):
@@ -63,7 +68,8 @@ def eval_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, toimag
         totcgain = [cg * cgstep for (cg, cgstep) in zip(totcgain, cgainstep)]
     gain = [20.0 * math.log10(abs(cg) + 1.0e-15) for cg in totcgain]
     phase = [180 / math.pi * cmath.phase(cg) for cg in totcgain]
-    result = {"name": name, "samplerate": samplerate, "f": fvect, "magnitude": gain, "phase": phase}
+    f_grp, groupdelay = calc_groupdelay(fvect, phase)
+    result = {"name": name, "samplerate": samplerate, "f": fvect, "magnitude": gain, "phase": phase, "f_groupdelay": f_grp, "groupdelay": groupdelay}
     return result
 
 

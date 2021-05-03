@@ -10,6 +10,44 @@ from .cooley_tukey import fft
 from .audiofileread import read_coeffs
 
 
+def unwrap_phase(values, threshold=150.0):
+    offset = 0
+    prevdiff = 0.0
+    unwrapped = [0.0]*len(values)
+    if len(values) > 0: 
+        unwrapped[0] = values[0]
+        for n in range(1, len(values)):
+            guess = values[n-1] + prevdiff
+            diff = values[n] - guess
+            if diff > threshold:
+                offset -= 1
+                jumped = True
+            elif diff < -threshold:
+                offset += 1
+                jumped = True
+            else:
+                jumped = False
+            unwrapped[n] = values[n] + 2*180.0*offset
+            if not jumped:
+                prevdiff = unwrapped[n] - unwrapped[n-1]
+    return unwrapped
+
+
+def calc_groupdelay(freq, phase):
+    if len(freq)<2:
+        return [], []
+    phase = unwrap_phase(phase)
+    freq_new = []
+    groupdelay = []
+    for n in range(1, len(freq)):
+        dw = (freq[n] - freq[n-1])*2*math.pi
+        f = (freq[n-1] + freq[n])/2.0
+        freq_new.append(f)
+        dp = (phase[n]-phase[n-1])/180.0*math.pi
+        delay = -1000.0*dp/dw
+        groupdelay.append(delay)
+    return freq_new, groupdelay
+
 class Conv(object):
 
     def __init__(self, conf, fs):
@@ -57,7 +95,8 @@ class Conv(object):
 
     def interpolate_polar(self, y, xold, xnew):
         y_magn = [abs(yval) for yval in y]
-        y_ang = [cmath.phase(yval) for yval in y]
+        y_ang = [180.0/math.pi*cmath.phase(yval) for yval in y]
+        y_ang = [math.pi*yval/180.0 for yval in unwrap_phase(y_ang, threshold=270.0)]
         y_magn_interp = self.interpolate(y_magn, xold, xnew)
         y_ang_interp = self.interpolate(y_ang, xold, xnew)
         return [cmath.rect(r, phi) for (r, phi) in zip(y_magn_interp, y_ang_interp)]
@@ -65,8 +104,8 @@ class Conv(object):
     def gain_and_phase(self, f):
         f_fft, Avec = self.complex_gain(None)
         interpolated = self.interpolate_polar(Avec, f_fft, f)
-        gain = [20 * math.log10(abs(A)+1.0e-15) for A in interpolated]
-        phase = [180 / math.pi * cmath.phase(A) for A in interpolated]
+        gain = [20.0 * math.log10(abs(A)+1.0e-15) for A in interpolated]
+        phase = [180.0 / math.pi * cmath.phase(A) for A in interpolated]
         return f, gain, phase
 
     def get_impulse(self):

@@ -75,6 +75,28 @@ class CamillaValidator():
     def get_full_path(self, file):
         return os.path.join(os.path.dirname(__file__), file)
 
+    def migrate_old_config(self):
+        # Migrate old configs to the current format.
+        # This is done before any other validation so we assume the file might be completely invalid
+
+        # Change filter: Conv, type: File -> Raw
+        try:
+            for name, conf in self.config["filters"].items():
+                try:
+                    if conf["type"] == "Conv":
+                        pars = conf["parameters"]
+                        if pars["type"] == "File":
+                            pars["type"] = "Raw"
+                            msg = f"Migrated old config format of '{name}'"
+                            path = ["filters", name, "parameters", "type"]
+                            self.warninglist.append((path, msg))
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
+
+
     # Replace the $samplerate$ and $channels$ tokens with the corresponding values
     def replace_tokens(self):
         srate = self.config['devices']['samplerate']
@@ -122,6 +144,7 @@ class CamillaValidator():
             except Exception as e:
                 self.errorlist.append(([], str(e)))
                 return
+        self.migrate_old_config()
         self._validate_config()
 
     # Validate a config supplied as a yaml string
@@ -134,6 +157,7 @@ class CamillaValidator():
         except Exception as e:
             self.errorlist.append(([], str(e)))
             return
+        self.migrate_old_config()
         self._validate_config()
 
     # Validate a config already parsed into a python object
@@ -142,6 +166,7 @@ class CamillaValidator():
         self.warninglist = []
         self.filename = None
         self.config = config
+        self.migrate_old_config()
         self._validate_config()
 
     def _validate_config(self):

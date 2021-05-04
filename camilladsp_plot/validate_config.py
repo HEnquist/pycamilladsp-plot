@@ -141,8 +141,10 @@ class CamillaValidator():
         with open(file) as f:
             try:
                 self.config = yaml.safe_load(f)
-            except Exception as e:
-                self.errorlist.append(([], str(e)))
+            except yaml.YAMLError as e:
+                msg = f"YAML syntax error on line {e.problem_mark.line+1}"
+                self.errorlist.append(([], msg))
+                self.config = None
                 return
         self.migrate_old_config()
         self._validate_config()
@@ -154,8 +156,10 @@ class CamillaValidator():
         self.filename = None
         try:
             self.config = yaml.safe_load(config)
-        except Exception as e:
-            self.errorlist.append(([], str(e)))
+        except yaml.YAMLError as e:
+            msg = f"YAML syntax error on line {e.problem_mark.line+1}"
+            self.errorlist.append(([], msg))
+            self.config = None
             return
         self.migrate_old_config()
         self._validate_config()

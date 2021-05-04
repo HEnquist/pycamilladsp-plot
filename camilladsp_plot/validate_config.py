@@ -4,7 +4,7 @@ import yaml
 from jsonschema import Draft7Validator, validators, ValidationError
 import os
 import sys
-from .audiofileread import read_wav_header, read_text_coeffs
+from camilladsp_plot.audiofileread import read_wav_header, read_text_coeffs
 
 # https://python-jsonschema.readthedocs.io/en/latest/faq/#why-doesn-t-my-schema-that-has-a-default-property-actually-set-the-default-on-my-instance
 def extend_with_default(validator_class):
@@ -66,12 +66,11 @@ class CamillaValidator():
 
 
     def validate(self, config, schema, path=[]):
-        try:
-            self.validator(schema).validate(config)
-            return True
-        except ValidationError as e:
+        ok = True
+        for e in self.validator(schema).iter_errors(config):
             self.errorlist.append((path + list(e.path), e.message))
-            return False
+            ok = False
+        return ok
 
     def get_full_path(self, file):
         return os.path.join(os.path.dirname(__file__), file)
@@ -178,14 +177,20 @@ class CamillaValidator():
         self.validate(self.config["devices"], self.devices_schema, path=["devices"])
 
         # Playback device
-        playback_type = self.config["devices"]["playback"]["type"]
-        playback_schema = self.playback_schemas[playback_type]
-        self.validate(self.config["devices"]["playback"], playback_schema, path=["devices", "playback"])
+        playback_schema = self.playback_schemas["playback"]
+        ok = self.validate(self.config["devices"]["playback"], playback_schema, path=["devices", "playback"])
+        if ok:
+            playback_type = self.config["devices"]["playback"]["type"]
+            playback_schema = self.playback_schemas[playback_type]
+            self.validate(self.config["devices"]["playback"], playback_schema, path=["devices", "playback"])
 
         # Capture device
-        capture_type = self.config["devices"]["capture"]["type"]
-        capture_schema = self.capture_schemas[capture_type]
-        self.validate(self.config["devices"]["capture"], capture_schema, path=["devices", "capture"])
+        capture_schema = self.capture_schemas["capture"]
+        ok = self.validate(self.config["devices"]["capture"], capture_schema, path=["devices", "capture"])
+        if ok:
+            capture_type = self.config["devices"]["capture"]["type"]
+            capture_schema = self.capture_schemas[capture_type]
+            self.validate(self.config["devices"]["capture"], capture_schema, path=["devices", "capture"])
 
 
         # Filters        
@@ -251,7 +256,7 @@ class CamillaValidator():
             if step["type"] == "Filter":
                 if step["channel"] >= num_channels:
                     msg = f"Use of non existing channel {step['channel']}"
-                    path = ["pipeline", idx]
+                    path = ["pipeline", idx, "channel"]
                     self.errorlist.append((path, msg))
                 for subidx, filtname in enumerate(step["names"]):
                     if filtname not in self.config["filters"].keys():

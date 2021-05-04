@@ -1,4 +1,20 @@
 {
+  "capture": {
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": [
+          "Alsa",
+          "Pulse",
+          "Wasapi",
+          "CoreAudio",
+          "File",
+          "Stdin"
+        ]
+      }
+    },
+    "required": ["type"]
+  },
   "Alsa": {
     "properties": {
       "type": {

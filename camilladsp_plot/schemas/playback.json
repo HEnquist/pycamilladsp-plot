@@ -1,4 +1,20 @@
 {
+  "playback": {
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": [
+          "Alsa",
+          "Pulse",
+          "Wasapi",
+          "CoreAudio",
+          "File",
+          "Stdout"
+        ]
+      }
+    },
+    "required": ["type"]
+  },
   "Alsa": {
     "properties": {
       "type": {
@@ -75,7 +91,7 @@
     },
     "required": ["type", "device", "channels", "format"]
   },
-  "Stdin": {
+  "Stdout": {
     "properties": {
       "type": {
         "enum": ["Stdin"]

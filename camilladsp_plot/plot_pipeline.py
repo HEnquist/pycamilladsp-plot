@@ -69,8 +69,10 @@ def plot_pipeline(conf, toimage=False):
         channels.append([b])
     if 'device' in conf['devices']['capture']:
         capturename = conf['devices']['capture']['device']
-    else:
+    elif 'filename' in conf['devices']['capture']:
         capturename = conf['devices']['capture']['filename']
+    else: 
+        capturename = conf['devices']['capture']['type']
     draw_box(ax, 0, active_channels, label=capturename)
     stages.append(channels)
 
@@ -132,8 +134,10 @@ def plot_pipeline(conf, toimage=False):
         channels.append([b])
     if 'device' in conf['devices']['playback']:
         playname = conf['devices']['playback']['device']
-    else:
-        playname = conf['devices']['playback']['filename']
+    elif 'filename' in conf['devices']['playback']:
+        capturename = conf['devices']['playback']['filename']
+    else: 
+        capturename = conf['devices']['playback']['type']
     draw_box(ax, total_length, active_channels, label=playname)
     stages.append(channels)
     

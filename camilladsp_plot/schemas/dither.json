@@ -20,18 +20,27 @@
         "minimum": 2
       }
     },
-    "required": ["type", "bits"],
-    "additionalProperties": false
+    "required": ["type", "bits"]
   },
   "Uniform": {
     "properties": {
+      "type": {
+        "type": "string",
+        "enum": [
+          "Uniform"
+        ]
+      },
       "amplitude": {
         "type": "number",
         "minimum": 0.0,
         "maximum": 100.0
+      },
+      "bits": {
+        "type": "integer",
+        "minimum": 2
       }
     },
-    "required": ["amplitude"],
+    "required": ["type", "amplitude", "bits"],
     "additionalProperties": false
   }
 }

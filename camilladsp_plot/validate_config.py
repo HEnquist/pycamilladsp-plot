@@ -50,6 +50,8 @@ class CamillaValidator():
             self.biquadcombo_schemas = json.load(f)
         with open(self.get_full_path("schemas/conv.json")) as f:
             self.conv_schemas = json.load(f)
+        with open(self.get_full_path("schemas/dither.json")) as f:
+            self.dither_schemas = json.load(f)
         with open(self.get_full_path("schemas/basicfilters.json")) as f:
             self.basics_schemas = json.load(f)
 
@@ -228,26 +230,34 @@ class CamillaValidator():
             if ok:
                 filt_type = filt["type"]
                 if filt_type == "Biquad":
-                    filt_subtype = filt["parameters"]["type"]
                     schema = self.biquad_schemas["Biquad"]
                     ok = self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
                     if ok:
+                        filt_subtype = filt["parameters"]["type"]
                         schema = self.biquad_schemas[filt_subtype]
                         self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
                 elif filt_type == "BiquadCombo":
-                    filt_subtype = filt["parameters"]["type"]
                     schema = self.biquadcombo_schemas["BiquadCombo"]
                     ok = self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
                     if ok:
+                        filt_subtype = filt["parameters"]["type"]
                         schema = self.biquadcombo_schemas[filt_subtype]
                         self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
                 elif filt_type == "Conv":
-                    filt_subtype = filt["parameters"]["type"]
                     schema = self.conv_schemas["Conv"]
                     ok = self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
                     if ok:
+                        filt_subtype = filt["parameters"]["type"]
                         schema = self.conv_schemas[filt_subtype]
                         self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
+                elif filt_type == "Dither":
+                    schema = self.dither_schemas["Dither"]
+                    ok = self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
+                    if ok:
+                        filt_subtype = filt["parameters"]["type"]
+                        if filt_subtype in self.dither_schemas.keys():
+                            schema = self.dither_schemas[filt_subtype]
+                            self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])
                 elif filt_type in self.basics_schemas.keys():
                     schema = self.basics_schemas[filt_type]
                     self.validate(filt["parameters"], schema, path=["filters", name, "parameters"])

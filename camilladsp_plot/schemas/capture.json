@@ -124,6 +124,11 @@
         "type": "integer",
         "default": 0,
         "minimum": 0
+      },
+      "extra_samples": {
+        "type": "integer",
+        "default": 0,
+        "minimum": 0
       }
     },
     "required": ["type", "channels", "format"],
@@ -151,6 +156,11 @@
         "minimum": 0
       },
       "read_bytes": {
+        "type": "integer",
+        "default": 0,
+        "minimum": 0
+      },
+      "extra_samples": {
         "type": "integer",
         "default": 0,
         "minimum": 0

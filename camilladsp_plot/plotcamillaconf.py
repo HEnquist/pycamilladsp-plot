@@ -26,7 +26,8 @@ def main():
         if plt is None:
             print("Matplotlib is not available! Can't display plots.")
             return
-        conf = validator.get_config()
+        #conf = validator.get_config()
+        conf = validator.get_processed_config()
         plot_pipeline(conf)
         plot_filters(conf)
         plot_all_filtersteps(conf)

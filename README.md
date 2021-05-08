@@ -101,7 +101,7 @@ file_validator = CamillaValidator()
 file_validator.validate_file(sys.argv[1])
 errors = file_validator.get_errors()
 warnings = file_validator.get_warnings()
-config_with_defaults = file_validator.get_config()
+config_with_defaults = file_validator.get_processed_config()
 ```
 
 CamillaValidator also has `validate_yamlstring` which is used for a config supplied as a yaml string. There is also `validate_config` for configs that have already been parsed into a python object. 

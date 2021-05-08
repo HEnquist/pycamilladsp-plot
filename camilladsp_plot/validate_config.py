@@ -4,6 +4,7 @@ import yaml
 from jsonschema import Draft7Validator, validators, ValidationError
 import os
 import sys
+from copy import deepcopy
 from camilladsp_plot.audiofileread import read_wav_header, read_text_coeffs
 
 # https://python-jsonschema.readthedocs.io/en/latest/faq/#why-doesn-t-my-schema-that-has-a-default-property-actually-set-the-default-on-my-instance
@@ -97,36 +98,40 @@ class CamillaValidator():
         except Exception:
             pass
 
+    def replace_tokens_in_string(self, string):
+        srate = self.config['devices']['samplerate']
+        channels = self.config['devices']['capture']['channels']
+        string = string.replace("$samplerate$", str(srate))
+        string = string.replace("$channels$", str(channels))
+        return string
 
 
     # Replace the $samplerate$ and $channels$ tokens with the corresponding values
     def replace_tokens(self):
-        srate = self.config['devices']['samplerate']
-        channels = self.config['devices']['capture']['channels']
-
-        for _filt, fconf in self.config['filters'].items():
+        config = deepcopy(self.config)
+        for _filt, fconf in config['filters'].items():
             if fconf['type'] == 'Conv':
                 if 'parameters' in fconf:
                     if "filename" in fconf['parameters']:
-                        fconf['parameters']["filename"] = fconf['parameters']["filename"].replace("$samplerate$", str(srate))
-                        fconf['parameters']["filename"] = fconf['parameters']["filename"].replace("$channels$", str(channels))
+                        fconf['parameters']["filename"] = self.replace_tokens_in_string(fconf['parameters']["filename"])
 
-        for step in self.config['pipeline']:
+        for step in config['pipeline']:
             if step['type'] == 'Mixer':
-                step['name'] = step['name'].replace("$samplerate$", str(srate))
-                step['name'] = step['name'].replace("$channels$", str(channels))
+                step['name'] = self.replace_tokens_in_string(step['name'])
             elif step['type'] == 'Filter':
                 for _i, name in enumerate(step['names']):
-                    name = name.replace("$samplerate$", str(srate))
-                    name = name.replace("$channels$", str(channels))
+                    name = self.replace_tokens_in_string(name)
+        return config
 
-    def make_paths_absolute(self):
-        config_dir = os.path.dirname(os.path.abspath(self.filename))
-        for _name, filt in self.config["filters"].items():
+    def make_paths_absolute(self, config):
+        for _name, filt in config["filters"].items():
             if filt["type"] == "Conv" and filt["parameters"]["type"] in ["Raw", "Wav"]:
-                filt["parameters"]["filename"] = self.check_and_replace_relative_path(filt["parameters"]["filename"], config_dir)
+                filt["parameters"]["filename"] = self.check_and_replace_relative_path(filt["parameters"]["filename"])
 
-    def check_and_replace_relative_path(self, path_str, config_dir):
+    def check_and_replace_relative_path(self, path_str):
+        if self.filename is None:
+            return path_str
+        config_dir = os.path.dirname(os.path.abspath(self.filename))
         if not os.path.isabs(path_str):
             in_config_dir = os.path.join(config_dir, path_str)
             if os.path.exists(in_config_dir):
@@ -178,18 +183,27 @@ class CamillaValidator():
     def _validate_config(self):
         self.validate_with_schemas()
         if len(self.errorlist) == 0:
-            if self.filename is not None:
-                self.make_paths_absolute()
-            self.replace_tokens()
+            #if self.filename is not None:
+            #    self.make_paths_absolute()
+            #self.replace_tokens()
 
             self.validate_devices()
             self.validate_mixers()
             self.validate_filters()
             self.validate_pipeline()
 
-    # Return the processed config. All missing values have been filled by defaults 
+    # Return the validated config. All missing values have been filled by defaults. Tokens are preserved.
     def get_config(self):
         return self.config
+
+    # Return the validated and processed config. All missing values have been filled by defaults. Tokens are replaced by their values.
+    def get_processed_config(self):
+        if self.config:
+            config = self.replace_tokens()
+            if self.filename is not None:
+                self.make_paths_absolute(config)
+            return config
+        return None
 
     # Get the list of errors
     def get_errors(self):
@@ -279,7 +293,8 @@ class CamillaValidator():
         num_channels = self.config["devices"]["capture"]["channels"]
         for idx, step in enumerate(self.config["pipeline"]):
             if step["type"] == "Mixer":
-                mixname = step["name"]
+                mixname_with_tokens = step["name"]
+                mixname = self.replace_tokens_in_string(mixname_with_tokens)
                 if mixname not in self.config["mixers"].keys():
                     msg = f"Use of missing mixer '{mixname}'"
                     path = ["pipeline", idx]
@@ -297,7 +312,8 @@ class CamillaValidator():
                     msg = f"Use of non existing channel {step['channel']}"
                     path = ["pipeline", idx, "channel"]
                     self.errorlist.append((path, msg))
-                for subidx, filtname in enumerate(step["names"]):
+                for subidx, filtname_with_tokens in enumerate(step["names"]):
+                    filtname = self.replace_tokens_in_string(filtname_with_tokens)
                     if filtname not in self.config["filters"].keys():
                         msg = f"Use of missing filter '{filtname}'"
                         path = ["pipeline", idx, "names", subidx]
@@ -348,11 +364,14 @@ class CamillaValidator():
             # Check that coefficients files are available
             if filter_conf["type"] == "Conv":
                 if filter_conf["parameters"]["type"] in ["Raw", "Wav"]:
-                    fname = filter_conf["parameters"]["filename"]
+                    fname_with_tokens = filter_conf["parameters"]["filename"]
+                    fname_rel = self.replace_tokens_in_string(fname_with_tokens)
+                    fname = self.check_and_replace_relative_path(fname_rel)
                     if not os.path.exists(fname):
                         msg = f"Unable to find coefficent file '{fname}'"
                         path = ["filters", filter_name, "parameters", "filename"]
                         self.errorlist.append((path, msg))
+                        continue
                     if filter_conf["parameters"]["type"] == "Wav":
                         wavparams = read_wav_header(fname)
                         if wavparams is None:
@@ -383,8 +402,6 @@ class CamillaValidator():
                                 msg = f"Cant open file '{fname}', {str(e)}"
                                 path = ["filters", filter_name, "parameters", "filename"]
                                 self.errorlist.append((path, msg))
-
-                            
                         else:
                             try:
                                 with open(fname, 'rb') as f:

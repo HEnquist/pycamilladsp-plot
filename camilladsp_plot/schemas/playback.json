@@ -8,6 +8,7 @@
           "Pulse",
           "Wasapi",
           "CoreAudio",
+          "Jack",
           "File",
           "Stdout"
         ]
@@ -90,6 +91,26 @@
       },
       "format": {
         "enum": ["S16LE", "FLOAT32LE"]
+      }
+    },
+    "required": ["type", "device", "channels", "format"],
+    "additionalProperties": false
+  },
+  "Jack": {
+    "properties": {
+      "type": {
+        "enum": ["Jack"]
+      },
+      "device": {
+        "type": "string",
+        "minLength": 1
+      },
+      "channels": {
+        "type": "integer",
+        "exclusiveMinimum": 0
+      },
+      "format": {
+        "enum": ["FLOAT32LE"]
       }
     },
     "required": ["type", "device", "channels", "format"],

@@ -93,11 +93,15 @@ This command takes a full configuration as `conf`. It will evaluate the step wit
 ## Validating a config
 A config file can be validated against a set of rules that match the ones in camilladsp. 
 
-This example loads and validates a config from a path supplied on the command line. It then gets the error and warning lists, and the processed config. 
+This example loads and validates a config from a path supplied on the command line. This example is for a Linux machine that does not have Pulse installed.
+Therefore, the list of supported device types is updated to include only those supported on this system.
+It then gets the error and warning lists, and the processed config. 
 ```python
 import sys
 from camilladsp_plot.validate_config import CamillaValidator
 file_validator = CamillaValidator()
+file_validator.set_supported_playback_types(["Alsa", "File", "Stdout"])
+file_validator.set_supported_capture_types(["Alsa", "File", "Stdin"])
 file_validator.validate_file(sys.argv[1])
 errors = file_validator.get_errors()
 warnings = file_validator.get_warnings()

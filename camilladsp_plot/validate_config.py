@@ -38,9 +38,11 @@ class CamillaValidator():
         with open(self.get_full_path("schemas/devices.json")) as f:
             self.devices_schema = json.load(f)
         with open(self.get_full_path("schemas/playback.json")) as f:
-            self.playback_schemas = json.load(f)
+            self.playback_schemas_backup = json.load(f)
         with open(self.get_full_path("schemas/capture.json")) as f:
-            self.capture_schemas = json.load(f)
+            self.capture_schemas_backup = json.load(f)
+        self.capture_schemas = deepcopy(self.capture_schemas_backup)
+        self.playback_schemas = deepcopy(self.playback_schemas_backup)
 
         # Filters
         with open(self.get_full_path("schemas/filter.json")) as f:
@@ -67,6 +69,19 @@ class CamillaValidator():
         self.errorlist = []
         self.warninglist = []
 
+    def set_supported_capture_types(self, types):
+        backup = self.capture_schemas_backup["capture"]["properties"]["type"]["enum"]
+        common = list(set(backup).intersection(types))
+        if len(common)==0:
+            raise ValueError("List of supported capture device types can't be empty.")
+        self.capture_schemas["capture"]["properties"]["type"]["enum"] = common
+
+    def set_supported_playback_types(self, types):
+        backup = self.playback_schemas_backup["playback"]["properties"]["type"]["enum"]
+        common = list(set(backup).intersection(types))
+        if len(common)==0:
+            raise ValueError("List of supported playback device types can't be empty.")
+        self.playback_schemas["playback"]["properties"]["type"]["enum"] = common
 
     def validate(self, config, schema, path=[]):
         ok = True

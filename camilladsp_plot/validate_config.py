@@ -168,6 +168,11 @@ class CamillaValidator():
                 self.errorlist.append(([], msg))
                 self.config = None
                 return
+            except Exception as e:
+                msg = f"Error reading file, error: {e}"
+                self.errorlist.append(([], msg))
+                self.config = None
+                return
         self.migrate_old_config()
         self._validate_config()
 
@@ -180,6 +185,11 @@ class CamillaValidator():
             self.config = yaml.safe_load(config)
         except yaml.YAMLError as e:
             msg = f"YAML syntax error on line {e.problem_mark.line+1}"
+            self.errorlist.append(([], msg))
+            self.config = None
+            return
+        except Exception as e:
+            msg = f"Error reading config, error: {e}"
             self.errorlist.append(([], msg))
             self.config = None
             return

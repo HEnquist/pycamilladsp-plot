@@ -108,12 +108,9 @@
       "channels": {
         "type": "integer",
         "exclusiveMinimum": 0
-      },
-      "format": {
-        "enum": ["FLOAT32LE"]
       }
     },
-    "required": ["type", "device", "channels", "format"],
+    "required": ["type", "device", "channels"],
     "additionalProperties": false
   },
   "Stdout": {

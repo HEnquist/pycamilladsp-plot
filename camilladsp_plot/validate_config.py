@@ -322,7 +322,7 @@ class CamillaValidator():
                 mixname = self.replace_tokens_in_string(mixname_with_tokens)
                 if mixname not in self.config["mixers"].keys():
                     msg = f"Use of missing mixer '{mixname}'"
-                    path = ["pipeline", idx]
+                    path = ["pipeline", idx, "name"]
                     self.errorlist.append((path, msg))
                 else:
                     chan_in = self.config["mixers"][mixname]["channels"]["in"]

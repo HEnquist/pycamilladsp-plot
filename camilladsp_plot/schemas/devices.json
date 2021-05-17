@@ -18,8 +18,8 @@
     },
     "target_level": {
       "type": "integer",
-      "exclusiveMinimum": 0,
-      "default": 1024
+      "minimum": 0,
+      "default": 0
     },
     "adjust_period": {
       "type": "number",

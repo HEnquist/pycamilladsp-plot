@@ -14,7 +14,7 @@
       },
       "name": {
         "type": "string",
-        "example": "1000"
+        "minLength": 1
       }
     },
     "required": ["type", "name"],
@@ -26,12 +26,14 @@
         "enum": ["Filter"]
       },
       "channel": {
-        "type": "integer"
+        "type": "integer",
+        "minimum": 0
       },
       "names": {
         "type": "array",
         "items": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         }
       }
     },

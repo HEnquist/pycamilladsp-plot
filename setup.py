@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="camilladsp_plot",
-    version="0.5.1",
+    version="0.5.2",
     author="Henrik Enquist",
     author_email="henrik.enquist@gmail.com",
     description="A library for validating, evaluating and plotting configs and filters for CamillaDSP",

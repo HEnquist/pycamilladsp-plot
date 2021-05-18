@@ -378,12 +378,36 @@ class CamillaValidator():
                             path = ["filters", filter_name, "parameters", freq_prop]
                             self.errorlist.append((path, msg))
             # Check that free biquads are stable
-            if filter_conf["type"] == "Biquad" and  filter_conf["parameters"]["type"] == "Free":
+            if filter_conf["type"] == "Biquad" and filter_conf["parameters"]["type"] == "Free":
                 a1 = filter_conf["parameters"]["a1"]
                 a2 = filter_conf["parameters"]["a2"]
                 stable = abs(a2) < 1.0 and abs(a1) < (a2 + 1.0)
                 if not stable:
                     msg = "Filter is unstable"
+                    path = ["filters", filter_name, "parameters"]
+                    self.errorlist.append((path, msg))
+            # Check that Biquads have at only one of q and bandwidth
+            if filter_conf["type"] == "Biquad" and filter_conf["parameters"]["type"] in ["Bandpass", "Notch", "Allpass", "Peaking"]:
+                has_q = "q" in filter_conf["parameters"]
+                has_bw = "bandwidth" in filter_conf["parameters"]
+                if not has_q and not has_bw:
+                    msg = "Missing 'bandwidth' or 'q', one must be given"
+                    path = ["filters", filter_name, "parameters"]
+                    self.errorlist.append((path, msg))
+                if has_q and has_bw:
+                    msg = "Both 'bandwidth' and 'q' given, only one is allowed"
+                    path = ["filters", filter_name, "parameters"]
+                    self.errorlist.append((path, msg))
+            # Check that Biquads have at only one of q and slope
+            if filter_conf["type"] == "Biquad" and filter_conf["parameters"]["type"] in ["Highshelf", "Lowshelf"]:
+                has_q = "q" in filter_conf["parameters"]
+                has_slope = "slope" in filter_conf["parameters"]
+                if not has_q and not has_slope:
+                    msg = "Missing 'slope' or 'q', one must be given"
+                    path = ["filters", filter_name, "parameters"]
+                    self.errorlist.append((path, msg))
+                if has_q and has_slope:
+                    msg = "Both 'slope' and 'q' given, only one is allowed"
                     path = ["filters", filter_name, "parameters"]
                     self.errorlist.append((path, msg))
             # Check that coefficients files are available

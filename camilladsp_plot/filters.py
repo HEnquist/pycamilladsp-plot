@@ -238,13 +238,17 @@ class Biquad(object):
             a2 = 1.0 - alpha
         elif ftype == "Peaking":
             freq = conf["freq"]
-            q = conf["q"]
             gain = conf["gain"]
             omega = 2.0 * math.pi * freq / fs
             sn = math.sin(omega)
             cs = math.cos(omega)
             ampl = 10.0 ** (gain / 40.0)
-            alpha = sn / (2.0 * q)
+            if "q" in conf:
+                q = conf["q"]
+                alpha = sn / (2.0 * q)
+            else:
+                bandwidth = conf["bandwidth"]
+                alpha = sn * math.sinh(math.log(2.0) / 2.0 * bandwidth * omega / sn)
             b0 = 1.0 + (alpha * ampl)
             b1 = -2.0 * cs
             b2 = 1.0 - (alpha * ampl)
@@ -265,18 +269,22 @@ class Biquad(object):
             a2 = 0.0
         elif ftype == "Highshelf":
             freq = conf["freq"]
-            slope = conf["slope"]
             gain = conf["gain"]
             omega = 2.0 * math.pi * freq / fs
             ampl = 10.0 ** (gain / 40.0)
             sn = math.sin(omega)
             cs = math.cos(omega)
-            alpha = (
-                sn
-                / 2.0
-                * math.sqrt((ampl + 1.0 / ampl) * (1.0 / (slope / 12.0) - 1.0) + 2.0)
-            )
-            beta = 2.0 * math.sqrt(ampl) * alpha
+            if "slope" in conf:
+                slope = conf["slope"]
+                alpha = (
+                    sn
+                    / 2.0
+                    * math.sqrt((ampl + 1.0 / ampl) * (1.0 / (slope / 12.0) - 1.0) + 2.0)
+                )
+                beta = 2.0 * math.sqrt(ampl) * alpha
+            else:
+                q = conf["q"]
+                beta = sn * math.sqrt(ampl) / q
             b0 = ampl * ((ampl + 1.0) + (ampl - 1.0) * cs + beta)
             b1 = -2.0 * ampl * ((ampl - 1.0) + (ampl + 1.0) * cs)
             b2 = ampl * ((ampl + 1.0) + (ampl - 1.0) * cs - beta)
@@ -297,18 +305,24 @@ class Biquad(object):
             a2 = 0.0
         elif ftype == "Lowshelf":
             freq = conf["freq"]
-            slope = conf["slope"]
+            
             gain = conf["gain"]
             omega = 2.0 * math.pi * freq / fs
             ampl = 10.0 ** (gain / 40.0)
             sn = math.sin(omega)
             cs = math.cos(omega)
-            alpha = (
-                sn
-                / 2.0
-                * math.sqrt((ampl + 1.0 / ampl) * (1.0 / (slope / 12.0) - 1.0) + 2.0)
-            )
-            beta = 2.0 * math.sqrt(ampl) * alpha
+            if "slope" in conf:
+                slope = conf["slope"]
+                alpha = (
+                    sn
+                    / 2.0
+                    * math.sqrt((ampl + 1.0 / ampl) * (1.0 / (slope / 12.0) - 1.0) + 2.0)
+                )
+                beta = 2.0 * math.sqrt(ampl) * alpha
+            else:
+                q = conf["q"]
+                beta = sn * math.sqrt(ampl) / q
+            
             b0 = ampl * ((ampl + 1.0) - (ampl - 1.0) * cs + beta)
             b1 = 2.0 * ampl * ((ampl - 1.0) - (ampl + 1.0) * cs)
             b2 = ampl * ((ampl + 1.0) - (ampl - 1.0) * cs - beta)

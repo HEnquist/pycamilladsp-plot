@@ -44,6 +44,15 @@
       "type": "boolean",
       "default": false
     },
+    "stop_on_rate_change": {
+      "type": "boolean",
+      "default": false
+    },
+    "rate_measure_interval": {
+      "type": "number",
+      "default": 1.0,
+      "exclusiveMinimum": 0.0
+    },
     "resampler_type": {
       "oneOf": [
         { "type": "string", "enum": ["FastAsync", "BalancedAsync", "AccurateAsync", "Synchronous"] },

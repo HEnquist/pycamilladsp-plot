@@ -470,6 +470,15 @@ class CamillaValidator():
         if self.config["devices"]["target_level"] >= 2 * self.config["devices"]["chunksize"]:
             self.errorlist.append((["devices","target_level"], f"target_level can't be larger than {2 * self.config['devices']['chunksize']}"))
 
+        # Specific checks for Wasapi
+        if self.config["devices"]["capture"]["type"] == "Wasapi":
+            if self.config["devices"]["capture"]["loopback"] and self.config["devices"]["capture"]["exclusive"]:
+                self.errorlist.append((["devices","capture","exclusive"], "exclusive mode can't be combined with loopback capture"))
+            if not self.config["devices"]["capture"]["exclusive"] and self.config["devices"]["capture"]["format"] != "FLOAT32LE":
+                self.errorlist.append((["devices","capture","format"], "in shared mode the format must be FLOAT32LE"))
+        if self.config["devices"]["playback"]["type"] == "Wasapi":
+            if not self.config["devices"]["playback"]["exclusive"] and self.config["devices"]["playback"]["format"] != "FLOAT32LE":
+                self.errorlist.append((["devices","playback","format"], "in shared mode the format must be FLOAT32LE"))
 
 
 if __name__ == "__main__":

@@ -77,8 +77,16 @@
         "type": "integer",
         "exclusiveMinimum": 0
       },
+      "exclusive": {
+        "type": "boolean",
+        "default": false
+      },
+      "loopback": {
+        "type": "boolean",
+        "default": false
+      },
       "format": {
-        "enum": ["S16LE", "FLOAT32LE"]
+        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"]
       }
     },
     "required": ["type", "device", "channels", "format"],

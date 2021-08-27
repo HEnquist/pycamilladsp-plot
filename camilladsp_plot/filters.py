@@ -142,45 +142,53 @@ class BiquadCombo(object):
 
     def __init__(self, conf, fs):
         self.ftype = conf["type"]
-        self.order = conf["order"]
-        self.freq = conf["freq"]
-        self.fs = fs
-        if self.ftype == "LinkwitzRileyHighpass":
-            # qvalues = self.LRtable[self.order]
-            q_temp = self.Butterw_q(self.order / 2)
-            if (self.order / 2) % 2 > 0:
-                q_temp = q_temp[0:-1]
-                qvalues = q_temp + q_temp + [0.5]
-            else:
-                qvalues = q_temp + q_temp
-            type_so = "Highpass"
-            type_fo = "HighpassFO"
+        if self.ftype in ["LinkwitzRileyHighpass", "LinkwitzRileyLowpass", "ButterworthHighpass", "ButterworthHighpass", "ButterworthLowpass"]:
+            self.order = conf["order"]
+            self.freq = conf["freq"]
+            self.fs = fs
+            if self.ftype == "LinkwitzRileyHighpass":
+                # qvalues = self.LRtable[self.order]
+                q_temp = self.Butterw_q(self.order / 2)
+                if (self.order / 2) % 2 > 0:
+                    q_temp = q_temp[0:-1]
+                    qvalues = q_temp + q_temp + [0.5]
+                else:
+                    qvalues = q_temp + q_temp
+                type_so = "Highpass"
+                type_fo = "HighpassFO"
 
-        elif self.ftype == "LinkwitzRileyLowpass":
-            q_temp = self.Butterw_q(self.order / 2)
-            if (self.order / 2) % 2 > 0:
-                q_temp = q_temp[0:-1]
-                qvalues = q_temp + q_temp + [0.5]
-            else:
-                qvalues = q_temp + q_temp
-            type_so = "Lowpass"
-            type_fo = "LowpassFO"
-        elif self.ftype == "ButterworthHighpass":
-            qvalues = self.Butterw_q(self.order)
-            type_so = "Highpass"
-            type_fo = "HighpassFO"
-        elif self.ftype == "ButterworthLowpass":
-            qvalues = self.Butterw_q(self.order)
-            type_so = "Lowpass"
-            type_fo = "LowpassFO"
-        self.biquads = []
-        print(qvalues)
-        for q in qvalues:
-            if q >= 0:
-                bqconf = {"freq": self.freq, "q": q, "type": type_so}
-            else:
-                bqconf = {"freq": self.freq, "type": type_fo}
-            self.biquads.append(Biquad(bqconf, self.fs))
+            elif self.ftype == "LinkwitzRileyLowpass":
+                q_temp = self.Butterw_q(self.order / 2)
+                if (self.order / 2) % 2 > 0:
+                    q_temp = q_temp[0:-1]
+                    qvalues = q_temp + q_temp + [0.5]
+                else:
+                    qvalues = q_temp + q_temp
+                type_so = "Lowpass"
+                type_fo = "LowpassFO"
+            elif self.ftype == "ButterworthHighpass":
+                qvalues = self.Butterw_q(self.order)
+                type_so = "Highpass"
+                type_fo = "HighpassFO"
+            elif self.ftype == "ButterworthLowpass":
+                qvalues = self.Butterw_q(self.order)
+                type_so = "Lowpass"
+                type_fo = "LowpassFO"
+            print(qvalues)
+            self.biquads = []
+            for q in qvalues:
+                if q >= 0:
+                    bqconf = {"freq": self.freq, "q": q, "type": type_so}
+                else:
+                    bqconf = {"freq": self.freq, "type": type_fo}
+                self.biquads.append(Biquad(bqconf, self.fs))
+        elif self.ftype  == "FivePointPeq":
+            lsconf = Biquad({"freq": conf["fls"], "q": conf["qls"], "gain": conf["gls"], "type": "Lowshelf"}, self.fs)
+            hsconf = Biquad({"freq": conf["fhs"], "q": conf["qhs"], "gain": conf["ghs"], "type": "Highshelf"}, self.fs)
+            p1conf = Biquad({"freq": conf["fp1"], "q": conf["qp1"], "gain": conf["gp1"], "type": "Peaking"}, self.fs)
+            p2conf = Biquad({"freq": conf["fp2"], "q": conf["qp2"], "gain": conf["gp2"], "type": "Peaking"}, self.fs)
+            p3conf = Biquad({"freq": conf["fp3"], "q": conf["qp3"], "gain": conf["gp3"], "type": "Peaking"}, self.fs)
+            self.biquads = [lsconf, p1conf, p2conf, p3conf, hsconf]
 
     def is_stable(self):
         # TODO

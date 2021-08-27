@@ -371,7 +371,7 @@ class CamillaValidator():
         for filter_name, filter_conf in self.config["filters"].items():
             # Check that frequencies are below Nyquist
             if filter_conf["type"] in ["Biquad", "BiquadCombo"]:
-                for freq_prop in ["freq", "freq_act", "freq_target"]:
+                for freq_prop in ["freq", "freq_act", "freq_target", "fls", "fhs", "fp1", "fp2", "fp3"]:
                     if freq_prop in filter_conf["parameters"].keys():
                         if filter_conf["parameters"][freq_prop] >= maxfreq:
                             msg = "Frequency must be < samplerate/2"

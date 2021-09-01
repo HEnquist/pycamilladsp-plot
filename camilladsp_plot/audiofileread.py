@@ -6,7 +6,11 @@ import itertools
 NUMBERFORMATS = {
     1: "int",
     3: "float",
+    0xfffe: "extended",
 }
+
+SUBFORMAT_FLOAT = (3, 0, 16, 128, 0, 0, 170, 0, 56, 155, 113) 
+SUBFORMAT_INT = (1, 0, 16, 128, 0, 0, 170, 0, 56, 155, 113) 
 
 TYPES_DIRECT = {
     "FLOAT64LE": "<d",
@@ -135,6 +139,26 @@ def analyze_wav_chunk(type, start, length, file, wav_info):
         wav_info['bytesperframe'] = struct.unpack('<H', data[12:14])[0]
         wav_info['bitspersample'] = struct.unpack('<H', data[14:16])[0]
         bytes_per_sample = wav_info['bytesperframe']/wav_info['channels']
+
+        # Handle extended fmt chunk
+        if wav_info['sampleformat'] == "extended":
+            if length != 40:
+                print("Invalid extended wav header")
+                return
+            cb_size = struct.unpack('<H', data[16:18])[0]
+            valid_bits_per_sample = struct.unpack('<H', data[18:20])[0]
+            if cb_size != 22 or valid_bits_per_sample != wav_info['bitspersample']:
+                print("Invalid extended wav header")
+                return
+            _channel_mask = struct.unpack('<L', data[20:24])[0]
+            subformat = struct.unpack('<LHHBBBBBBBB', data[24:40])
+            if subformat == SUBFORMAT_FLOAT:
+                wav_info['sampleformat'] = "float"
+            elif subformat == SUBFORMAT_INT:
+                wav_info['sampleformat'] = "int"
+            else:
+                wav_info['sampleformat'] = "unknown"
+        
         if wav_info['sampleformat'] == "int":
             if wav_info['bitspersample'] == 16:
                 sfmt = "S16LE"

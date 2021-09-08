@@ -42,8 +42,8 @@ def _fft(signal):
    elif n == 1:
       return signal
    else:
-      Feven = _fft([signal[i] for i in range(0, n, 2)])
-      Fodd = _fft([signal[i] for i in range(1, n, 2)])
+      Feven = _fft(signal[0::2])
+      Fodd = _fft(signal[1::2])
       tw = get_twiddles(n)
       combined = [fe + t * fo for fe, fo, t in zip(Feven, Fodd, tw)] + [
          fe - t * fo for fe, fo, t in zip(Feven, Fodd, tw)

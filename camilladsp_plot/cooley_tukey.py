@@ -1,6 +1,10 @@
 # Adapted from https://jeremykun.com/2012/07/18/the-fast-fourier-transform/
 import cmath
 import math
+try:
+   import numpy.fft as npfft
+except ImportError:
+   npfft = None
 
 def omega(p, q):
    return cmath.exp((2.0 * cmath.pi * 1j * q) / p)
@@ -72,12 +76,23 @@ def _fft(signal):
       return combined
 
 
-def fft(signal):
+def pyfft(signal):
    orig_len = len(signal)
    fft_len = 2 ** (math.ceil(math.log2(orig_len)))
    padding = [0.0 for _n in range(fft_len - orig_len)]
    signal.extend(padding)
    fftsig = _fft(signal)
+   return fftsig
+
+def fft(signal):
+   orig_len = len(signal)
+   fft_len = 2 ** (math.ceil(math.log2(orig_len)))
+   padding = [0.0 for _n in range(fft_len - orig_len)]
+   signal.extend(padding)
+   if npfft is not None:
+      fftsig = npfft.fft(signal)
+   else:
+      fftsig = _fft(signal)
    return fftsig
 
 
@@ -88,7 +103,7 @@ if __name__ == "__main__":
    import time
 
    data_test = [n for n in range(16)]
-   pyf = fft(data_test)
+   pyf = pyfft(data_test)
    npf = npfft.fft(data_test)
 
    for n in range(len(pyf)):
@@ -100,8 +115,11 @@ if __name__ == "__main__":
    nf = npfft.fft(data)
    print(f"numpy took {(time.time()-start)*1000} ms")
    start = time.time()
-   pf = fft(data)
-   print(f"fft took {(time.time()-start)*1000} ms")
+   pf = pyfft(data)
+   print(f"python fft took {(time.time()-start)*1000} ms")
+   start = time.time()
+   af = fft(data)
+   print(f"auto fft took {(time.time()-start)*1000} ms")
 
    for n in range(len(nf)):
       val = abs(pf[n] - nf[n])

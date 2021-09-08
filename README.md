@@ -8,7 +8,7 @@ pip install .
 Note that on some systems the command is `pip3` instead of `pip`.
 
 ## Requirements
-This library requires Python 3.6 or newer. For plotting configurations with the commandline tool `plotcamillaconf`, it also requires `numpy` and `matplotlib`. These are not required for using only with the web interface.
+This library requires Python 3.6 or newer. For plotting configurations with the commandline tool `plotcamillaconf`, it also requires `numpy` and `matplotlib`. These are not required for using only with the web interface, but if `numpy` is available it will be used to speed up evaluation of FIR filters. 
 
 These are the names of the packages needed:
 | Distribution    | python    | jsonschema         | numpy (optional) | matplotlib (optional) |

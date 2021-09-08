@@ -2,13 +2,13 @@
 import cmath
 import math
 
-
 def omega(p, q):
    return cmath.exp((2.0 * cmath.pi * 1j * q) / p)
 
-OMEGA20 = omega(2, 0)
-OMEGA40 = omega(4, 0)
 OMEGA41 = omega(4, -1)
+OMEGA81 = omega(8, -1)
+OMEGA82 = omega(8, -2)
+OMEGA83 = omega(8, -3)
 
 TWIDDLES = {}
 
@@ -20,24 +20,44 @@ def get_twiddles(n):
       TWIDDLES[n] = tw
       return tw
 
-
 def _fft4(signal):
-   Fe0 = signal[0] + OMEGA20 * signal[2]
-   Fe1 = signal[0] - OMEGA20 * signal[2]
-   Fo0 = signal[1] + OMEGA20 * signal[3]
-   Fo1 = signal[1] - OMEGA20 * signal[3]
+   Fe0 = signal[0] + signal[2]
+   Fe1 = signal[0] - signal[2]
+   Fo0 = signal[1] + signal[3]
+   Fo1 = signal[1] - signal[3]
 
-   return [
-      Fe0 + OMEGA40 * Fo0,
-      Fe1 + OMEGA41 * Fo1,
-      Fe0 - OMEGA40 * Fo0,
-      Fe1 - OMEGA41 * Fo1,
-   ]
+   F11 = OMEGA41 * Fo1
+   return (
+      Fe0 + Fo0,
+      Fe1 + F11,
+      Fe0 - Fo0,
+      Fe1 - F11,
+   )
+
+def _fft8(signal):
+   Feven = _fft4(signal[0::2])
+   Fodd = _fft4(signal[1::2])
+   t0 = Fodd[0]
+   t1 = Fodd[1] * OMEGA81
+   t2 = Fodd[2] * OMEGA82
+   t3 = Fodd[3] * OMEGA83
+   return (
+      Feven[0] + t0,
+      Feven[1] + t1,
+      Feven[2] + t2,
+      Feven[3] + t3,
+      Feven[0] - t0,
+      Feven[1] - t1,
+      Feven[2] - t2,
+      Feven[3] - t3,
+   )
 
 
 def _fft(signal):
    n = len(signal)
-   if n == 4:
+   if n == 8:
+      return _fft8(signal)
+   elif n == 4:
       return _fft4(signal)
    elif n == 1:
       return signal
@@ -45,8 +65,9 @@ def _fft(signal):
       Feven = _fft(signal[0::2])
       Fodd = _fft(signal[1::2])
       tw = get_twiddles(n)
-      combined = [fe + t * fo for fe, fo, t in zip(Feven, Fodd, tw)] + [
-         fe - t * fo for fe, fo, t in zip(Feven, Fodd, tw)
+      twiddled = [t * fo for fo, t in zip(Fodd, tw)]
+      combined = [fe + ft for fe, ft in zip(Feven, twiddled)] + [
+         fe - ft for fe, ft in zip(Feven, twiddled)
       ]
       return combined
 
@@ -73,12 +94,17 @@ if __name__ == "__main__":
    for n in range(len(pyf)):
       print(abs(pyf[n] - npf[n]))
 
-   data = [0.0 for n in range(2 ** 16)]
+   data = [float(n) for n in range(2 ** 16)]
 
    start = time.time()
-   _f = npfft.fft(data)
+   nf = npfft.fft(data)
    print(f"numpy took {(time.time()-start)*1000} ms")
    start = time.time()
-   _f = fft(data)
+   pf = fft(data)
    print(f"fft took {(time.time()-start)*1000} ms")
+
+   for n in range(len(nf)):
+      val = abs(pf[n] - nf[n])
+      if val > 0.001:
+         print("bad!", n, val)
 

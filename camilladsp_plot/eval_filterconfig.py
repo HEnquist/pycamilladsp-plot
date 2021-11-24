@@ -1,6 +1,6 @@
 import math
 import cmath
-from .filters import Biquad, BiquadCombo, Conv, DiffEq, Gain, unwrap_phase, calc_groupdelay
+from .filters import Biquad, BiquadCombo, Conv, DiffEq, Gain, calc_groupdelay
 
 def logspace(minval, maxval, npoints):
     logmin = math.log10(minval)
@@ -31,7 +31,7 @@ def eval_filter(filterconf, name=None, samplerate=44100, npoints=1000):
             currfilt = Conv(filterconf['parameters'], samplerate)
         else:
             currfilt = Conv(None, samplerate)
-        _ftemp, magn, phase = currfilt.gain_and_phase(fvect)
+        _ftemp, magn, phase = currfilt.gain_and_phase(fvect, remove_delay=True)
         t, impulse = currfilt.get_impulse()
         result["magnitude"] = magn
         result["phase"] = phase
@@ -41,7 +41,7 @@ def eval_filter(filterconf, name=None, samplerate=44100, npoints=1000):
     f_grp, groupdelay = calc_groupdelay(result["f"], result["phase"])
     result["f_groupdelay"] = f_grp
     result["groupdelay"] = groupdelay
-    result["phase"] = unwrap_phase(result["phase"])
+    #result["phase"] = unwrap_phase(result["phase"])
     return result
 
 def eval_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, toimage=False):

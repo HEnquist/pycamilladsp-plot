@@ -1,11 +1,6 @@
 import cmath
 import math
-import csv
-import yaml
-import sys
 import math
-import itertools
-import struct
 from .cooley_tukey import fft
 from .audiofileread import read_coeffs
 
@@ -60,7 +55,11 @@ class Conv(object):
         self.impulse = values
         self.fs = fs
 
-    def complex_gain(self, f):
+    def find_peak(self):
+        (_, idx) = max((abs(val),idx) for idx,val in enumerate(self.impulse))
+        return idx
+
+    def complex_gain(self, f, remove_delay=False):
         impulselen = len(self.impulse)
         npoints = impulselen
         if npoints < 1024:
@@ -71,6 +70,9 @@ class Conv(object):
         impfft = fft(impulse)
         f_fft = [self.fs*n/(2.0*npoints) for n in range(npoints)]
         cut = impfft[0:npoints]
+        if remove_delay:
+            maxidx = self.find_peak()
+            cut = [val*cmath.exp(1j*1.0/npoints*math.pi*idx*maxidx) for idx, val in enumerate(cut)]
         if f is not None:
             interpolated = self.interpolate_polar(cut, f_fft, f)
             return f, interpolated
@@ -101,8 +103,8 @@ class Conv(object):
         y_ang_interp = self.interpolate(y_ang, xold, xnew)
         return [cmath.rect(r, phi) for (r, phi) in zip(y_magn_interp, y_ang_interp)]
 
-    def gain_and_phase(self, f):
-        f_fft, Avec = self.complex_gain(None)
+    def gain_and_phase(self, f, remove_delay=False):
+        f_fft, Avec = self.complex_gain(None, remove_delay=remove_delay)
         interpolated = self.interpolate_polar(Avec, f_fft, f)
         gain = [20.0 * math.log10(abs(A)+1.0e-15) for A in interpolated]
         phase = [180.0 / math.pi * cmath.phase(A) for A in interpolated]
@@ -123,7 +125,7 @@ class DiffEq(object):
         if len(self.b) == 0:
             self.b = [1.0]
 
-    def complex_gain(self, freq):
+    def complex_gain(self, freq, remove_delay=False):
         zvec = [cmath.exp(1j * 2 * math.pi * f / self.fs) for f in freq]
         A1 = [0.0 for n in range(len(freq))]  
         for n, bn in enumerate(self.b):
@@ -134,8 +136,8 @@ class DiffEq(object):
         A = [a1 / a2 for (a1, a2) in zip(A1, A2)]
         return freq, A
 
-    def gain_and_phase(self, f):
-        _f, Avec = self.complex_gain(f)
+    def gain_and_phase(self, f, remove_delay=False):
+        _f, Avec = self.complex_gain(f, remove_delay=remove_delay)
         gain = [20 * math.log10(abs(A)+1.0e-15) for A in Avec]
         phase = [180 / math.pi * cmath.phase(A) for A in Avec]
         return f, gain, phase
@@ -150,13 +152,13 @@ class Gain(object):
         self.gain = conf["gain"]
         self.inverted = conf["inverted"]
 
-    def complex_gain(self, f):
+    def complex_gain(self, f, remove_delay=False):
         sign = -1.0 if self.inverted else 1.0
         gain = 10.0**(self.gain/20.0) * sign
         A = [gain for n in range(len(f))] 
         return f, A
 
-    def gain_and_phase(self, f):
+    def gain_and_phase(self, f, remove_delay=False):
         Aval = 10.0**(self.gain/20.0)
         gain = [Aval for n in range(len(f))]       
         phaseval = 180 / math.pi if self.inverted else 0
@@ -213,7 +215,6 @@ class BiquadCombo(object):
                 qvalues = self.Butterw_q(self.order)
                 type_so = "Lowpass"
                 type_fo = "LowpassFO"
-            print(qvalues)
             self.biquads = []
             for q in qvalues:
                 if q >= 0:
@@ -233,14 +234,14 @@ class BiquadCombo(object):
         # TODO
         return None
 
-    def complex_gain(self, freq):
+    def complex_gain(self, freq, remove_delay=False):
         A = [1.0 for n in range(len(freq))]
         for bq in self.biquads:
             _f, Atemp = bq.complex_gain(freq)
             A = [a*atemp for (a, atemp) in zip(A, Atemp)]
         return freq, A
 
-    def gain_and_phase(self, f):
+    def gain_and_phase(self, f, remove_delay=False):
         _f, Avec = self.complex_gain(f)
         gain = [20 * math.log10(abs(A)+1.0e-15) for A in Avec]
         phase = [180 / math.pi * cmath.phase(A) for A in Avec]
@@ -477,13 +478,13 @@ class Biquad(object):
         self.b1 = b1 / a0
         self.b2 = b2 / a0
 
-    def complex_gain(self, freq):
+    def complex_gain(self, freq, remove_delay=False):
         zvec = [cmath.exp(1j * 2 * math.pi * f / self.fs) for f in freq]
         A = [((self.b0 + self.b1 * z ** (-1) + self.b2 * z ** (-2)) / (
             1.0 + self.a1 * z ** (-1) + self.a2 * z ** (-2))) for z in zvec]
         return freq, A
 
-    def gain_and_phase(self, f):
+    def gain_and_phase(self, f, remove_delay=False):
         _f, Avec = self.complex_gain(f)
         gain = [20 * math.log10(abs(A)+1.0e-15) for A in Avec]
         phase = [180 / math.pi * cmath.phase(A) for A in Avec]

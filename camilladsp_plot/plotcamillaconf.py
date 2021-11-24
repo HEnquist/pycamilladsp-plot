@@ -1,4 +1,3 @@
-import yaml
 import sys
 from camilladsp_plot.validate_config import CamillaValidator
 try:

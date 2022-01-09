@@ -31,14 +31,6 @@
       },
       "format": {
         "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
-      },
-      "retry_on_error": {
-        "type": "boolean",
-        "default": false
-      },
-      "avoid_blocking_read": {
-        "type": "boolean",
-        "default": false
       }
     },
     "required": ["type", "device", "channels", "format"],

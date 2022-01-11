@@ -223,11 +223,11 @@ class BiquadCombo(object):
                     bqconf = {"freq": self.freq, "type": type_fo}
                 self.biquads.append(Biquad(bqconf, self.fs))
         elif self.ftype  == "FivePointPeq":
-            lsconf = Biquad({"freq": conf["fls"], "q": conf["qls"], "gain": conf["gls"], "type": "Lowshelf"}, self.fs)
-            hsconf = Biquad({"freq": conf["fhs"], "q": conf["qhs"], "gain": conf["ghs"], "type": "Highshelf"}, self.fs)
-            p1conf = Biquad({"freq": conf["fp1"], "q": conf["qp1"], "gain": conf["gp1"], "type": "Peaking"}, self.fs)
-            p2conf = Biquad({"freq": conf["fp2"], "q": conf["qp2"], "gain": conf["gp2"], "type": "Peaking"}, self.fs)
-            p3conf = Biquad({"freq": conf["fp3"], "q": conf["qp3"], "gain": conf["gp3"], "type": "Peaking"}, self.fs)
+            lsconf = Biquad({"freq": conf["fls"], "q": conf["qls"], "gain": conf["gls"], "type": "Lowshelf"}, fs)
+            hsconf = Biquad({"freq": conf["fhs"], "q": conf["qhs"], "gain": conf["ghs"], "type": "Highshelf"}, fs)
+            p1conf = Biquad({"freq": conf["fp1"], "q": conf["qp1"], "gain": conf["gp1"], "type": "Peaking"}, fs)
+            p2conf = Biquad({"freq": conf["fp2"], "q": conf["qp2"], "gain": conf["gp2"], "type": "Peaking"}, fs)
+            p3conf = Biquad({"freq": conf["fp3"], "q": conf["qp3"], "gain": conf["gp3"], "type": "Peaking"}, fs)
             self.biquads = [lsconf, p1conf, p2conf, p3conf, hsconf]
 
     def is_stable(self):
@@ -401,11 +401,15 @@ class Biquad(object):
             b2 = 0
         elif ftype == "Notch":
             freq = conf["freq"]
-            q = conf["q"]
             omega = 2.0 * math.pi * freq / fs
             sn = math.sin(omega)
             cs = math.cos(omega)
-            alpha = sn / (2.0 * q)
+            if "q" in conf:
+                q = conf["q"]
+                alpha = sn / (2.0 * q)
+            else:
+                bandwidth = conf["bandwidth"]
+                alpha = sn * math.sinh(math.log(2.0) / 2.0 * bandwidth * omega / sn)
             b0 = 1.0
             b1 = -2.0 * cs
             b2 = 1.0
@@ -414,11 +418,15 @@ class Biquad(object):
             a2 = 1.0 - alpha
         elif ftype == "Bandpass":
             freq = conf["freq"]
-            q = conf["q"]
             omega = 2.0 * math.pi * freq / fs
             sn = math.sin(omega)
             cs = math.cos(omega)
-            alpha = sn / (2.0 * q)
+            if "q" in conf:
+                q = conf["q"]
+                alpha = sn / (2.0 * q)
+            else:
+                bandwidth = conf["bandwidth"]
+                alpha = sn * math.sinh(math.log(2.0) / 2.0 * bandwidth * omega / sn)
             b0 = alpha
             b1 = 0.0
             b2 = -alpha
@@ -427,11 +435,15 @@ class Biquad(object):
             a2 = 1.0 - alpha
         elif ftype == "Allpass":
             freq = conf["freq"]
-            q = conf["q"]
             omega = 2.0 * math.pi * freq / fs
             sn = math.sin(omega)
             cs = math.cos(omega)
-            alpha = sn / (2.0 * q)
+            if "q" in conf:
+                q = conf["q"]
+                alpha = sn / (2.0 * q)
+            else:
+                bandwidth = conf["bandwidth"]
+                alpha = sn * math.sinh(math.log(2.0) / 2.0 * bandwidth * omega / sn)
             b0 = 1.0 - alpha
             b1 = -2.0 * cs
             b2 = 1.0 + alpha

@@ -1,4 +1,3 @@
-import csv
 import yaml
 import sys
 import matplotlib

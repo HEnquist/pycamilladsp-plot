@@ -1,7 +1,7 @@
 import json                                                             
 import yaml                                                             
 
-from jsonschema import Draft7Validator, validators, ValidationError
+from jsonschema import Draft7Validator, validators
 import os
 import sys
 from copy import deepcopy

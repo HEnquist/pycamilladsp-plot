@@ -1,4 +1,3 @@
-import os
 import struct
 import csv
 import itertools

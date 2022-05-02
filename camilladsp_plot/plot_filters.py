@@ -1,5 +1,3 @@
-
-from camilladsp_plot.filters import Biquad, BiquadCombo, Conv, DiffEq, Gain
 from camilladsp_plot.eval_filterconfig import eval_filter, eval_filterstep
 import matplotlib
 from matplotlib import pyplot as plt
@@ -14,13 +12,19 @@ def plot_filter(filterconf, name=None, samplerate=44100, npoints=1000, toimage=F
         fplot = filterdata["f"]
         magn = filterdata["magnitude"]
         phase  = filterdata["phase"]
-        plt.subplot(2,1,1)
+        f_grp = filterdata["f_groupdelay"]
+        groupdelay = filterdata["groupdelay"]
+        plt.subplot(3,1,1)
         plt.semilogx(fplot, magn)
         plt.title(f"{name}")
-        plt.ylabel("Magnitude")
-        plt.subplot(2,1,2)
+        plt.ylabel("Magnitude, dB")
+        plt.subplot(3,1,2)
         plt.semilogx(fplot, phase)
-        plt.ylabel("Phase")
+        plt.ylabel("Phase, deg")
+        plt.subplot(3,1,3)
+        plt.semilogx(f_grp, groupdelay)
+        plt.ylabel("Group delay, ms")
+
     elif filterconf['type'] == 'Conv':
         plt.figure(num=name)
         fplot = filterdata["f"]
@@ -28,14 +32,24 @@ def plot_filter(filterconf, name=None, samplerate=44100, npoints=1000, toimage=F
         phase  = filterdata["phase"]
         t = filterdata["time"]
         impulse = filterdata["impulse"]
-        plt.subplot(2,1,1)
+        f_grp = filterdata["f_groupdelay"]
+        groupdelay = filterdata["groupdelay"]
+        plt.subplot(4,1,1)
         plt.semilogx(fplot, magn)
         plt.title("{}".format(name))
-        plt.ylabel("Magnitude")
+        plt.ylabel("Magnitude, dB")
         plt.gca().set(xlim=(10, samplerate/2.0))
-        plt.subplot(2,1,2)
+        plt.subplot(4,1,2)
         plt.plot(t, impulse)
         plt.ylabel("Impulse response")
+        plt.subplot(4,1,3)
+        plt.semilogx(fplot, phase)
+        plt.ylabel("Phase, deg")
+        plt.gca().set(xlim=(10, samplerate/2.0))
+        plt.subplot(4,1,4)
+        plt.semilogx(f_grp, groupdelay)
+        plt.ylabel("Group delay, ms")
+        plt.gca().set(xlim=(10, samplerate/2.0))
     if toimage:
         buf = io.BytesIO()
         plt.savefig(buf, format='svg')

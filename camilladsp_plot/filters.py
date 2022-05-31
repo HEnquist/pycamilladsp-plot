@@ -61,18 +61,18 @@ class Conv(object):
 
     def complex_gain(self, f, remove_delay=False):
         impulselen = len(self.impulse)
-        npoints = impulselen
+        npoints = 2 ** (math.ceil(math.log2(impulselen)))
         if npoints < 1024:
             npoints = 1024
         impulse = list(self.impulse)
-        while len(impulse) < 2*npoints:
-            impulse.append(0.0)
+        padding = [0.0 for _n in range(npoints - impulselen)]
+        impulse.extend(padding)
         impfft = fft(impulse)
-        f_fft = [self.fs*n/(2.0*npoints) for n in range(npoints)]
-        cut = impfft[0:npoints]
+        f_fft = [self.fs*n/(npoints) for n in range(int(npoints/2))]
+        cut = impfft[0:int(npoints/2)]
         if remove_delay:
             maxidx = self.find_peak()
-            cut = [val*cmath.exp(1j*1.0/npoints*math.pi*idx*maxidx) for idx, val in enumerate(cut)]
+            cut = [val*cmath.exp(1j*1.0/(npoints/2)*math.pi*idx*maxidx) for idx, val in enumerate(cut)]
         if f is not None:
             interpolated = self.interpolate_polar(cut, f_fft, f)
             return f, interpolated

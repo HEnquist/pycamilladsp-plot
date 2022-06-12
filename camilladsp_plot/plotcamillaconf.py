@@ -31,12 +31,11 @@ def main():
         plot_filters(conf)
         plot_all_filtersteps(conf)
         plt.show()
-    else: 
+    else:
         print("Unable to plot, config has errors:")
         for err in errors:
             print("/".join([str(p) for p in err[0]]), " : ",  err[1])
 
-        
 
 if __name__ == "__main__":
     main()

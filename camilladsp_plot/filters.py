@@ -9,7 +9,7 @@ def unwrap_phase(values, threshold=150.0):
     offset = 0
     prevdiff = 0.0
     unwrapped = [0.0]*len(values)
-    if len(values) > 0: 
+    if len(values) > 0:
         unwrapped[0] = values[0]
         for n in range(1, len(values)):
             guess = values[n-1] + prevdiff
@@ -29,7 +29,7 @@ def unwrap_phase(values, threshold=150.0):
 
 
 def calc_groupdelay(freq, phase):
-    if len(freq)<2:
+    if len(freq) < 2:
         return [], []
     phase = unwrap_phase(phase)
     freq_new = []
@@ -42,6 +42,7 @@ def calc_groupdelay(freq, phase):
         delay = -1000.0*dp/dw
         groupdelay.append(delay)
     return freq_new, groupdelay
+
 
 class Conv(object):
 
@@ -56,7 +57,7 @@ class Conv(object):
         self.fs = fs
 
     def find_peak(self):
-        (_, idx) = max((abs(val),idx) for idx,val in enumerate(self.impulse))
+        (_, idx) = max((abs(val), idx) for idx, val in enumerate(self.impulse))
         return idx
 
     def complex_gain(self, f, remove_delay=False):
@@ -72,7 +73,8 @@ class Conv(object):
         cut = impfft[0:int(npoints/2)]
         if remove_delay:
             maxidx = self.find_peak()
-            cut = [val*cmath.exp(1j*1.0/(npoints/2)*math.pi*idx*maxidx) for idx, val in enumerate(cut)]
+            cut = [val*cmath.exp(1j*1.0/(npoints/2)*math.pi*idx*maxidx)
+                   for idx, val in enumerate(cut)]
         if f is not None:
             interpolated = self.interpolate_polar(cut, f_fft, f)
             return f, interpolated
@@ -81,14 +83,14 @@ class Conv(object):
     def interpolate(self, y, xold, xnew):
         idx = 0
         ynew = []
-        
+
         for x in xnew:
             idx = len(y)*x/xold[-1]
             i1 = int(math.floor(idx))
             i2 = i1+1
-            if i1>=(len(y)):
+            if i1 >= (len(y)):
                 i1 = len(y)-1
-            if i2>=(len(y)):
+            if i2 >= (len(y)):
                 i2 = i1
             fract = idx - i1
             newval = (1-fract)*y[i1] + fract*y[i2]
@@ -98,7 +100,8 @@ class Conv(object):
     def interpolate_polar(self, y, xold, xnew):
         y_magn = [abs(yval) for yval in y]
         y_ang = [180.0/math.pi*cmath.phase(yval) for yval in y]
-        y_ang = [math.pi*yval/180.0 for yval in unwrap_phase(y_ang, threshold=270.0)]
+        y_ang = [math.pi*yval /
+                 180.0 for yval in unwrap_phase(y_ang, threshold=270.0)]
         y_magn_interp = self.interpolate(y_magn, xold, xnew)
         y_ang_interp = self.interpolate(y_ang, xold, xnew)
         return [cmath.rect(r, phi) for (r, phi) in zip(y_magn_interp, y_ang_interp)]
@@ -127,10 +130,10 @@ class DiffEq(object):
 
     def complex_gain(self, freq, remove_delay=False):
         zvec = [cmath.exp(1j * 2 * math.pi * f / self.fs) for f in freq]
-        A1 = [0.0 for n in range(len(freq))]  
+        A1 = [0.0 for n in range(len(freq))]
         for n, bn in enumerate(self.b):
             A1 = [a1 + bn * z ** (-n) for a1, z in zip(A1, zvec)]
-        A2 = [0.0 for n in range(len(freq))]  
+        A2 = [0.0 for n in range(len(freq))]
         for n, an in enumerate(self.a):
             A2 = [a2 + an * z ** (-n) for a2, z in zip(A2, zvec)]
         A = [a1 / a2 for (a1, a2) in zip(A1, A2)]
@@ -155,14 +158,14 @@ class Gain(object):
     def complex_gain(self, f, remove_delay=False):
         sign = -1.0 if self.inverted else 1.0
         gain = 10.0**(self.gain/20.0) * sign
-        A = [gain for n in range(len(f))] 
+        A = [gain for n in range(len(f))]
         return f, A
 
     def gain_and_phase(self, f, remove_delay=False):
         Aval = 10.0**(self.gain/20.0)
-        gain = [Aval for n in range(len(f))]       
+        gain = [Aval for n in range(len(f))]
         phaseval = 180 / math.pi if self.inverted else 0
-        phase = [phaseval for n in range(len(f))]  
+        phase = [phaseval for n in range(len(f))]
         return f, gain, phase
 
     def is_stable(self):
@@ -222,12 +225,17 @@ class BiquadCombo(object):
                 else:
                     bqconf = {"freq": self.freq, "type": type_fo}
                 self.biquads.append(Biquad(bqconf, self.fs))
-        elif self.ftype  == "FivePointPeq":
-            lsconf = Biquad({"freq": conf["fls"], "q": conf["qls"], "gain": conf["gls"], "type": "Lowshelf"}, fs)
-            hsconf = Biquad({"freq": conf["fhs"], "q": conf["qhs"], "gain": conf["ghs"], "type": "Highshelf"}, fs)
-            p1conf = Biquad({"freq": conf["fp1"], "q": conf["qp1"], "gain": conf["gp1"], "type": "Peaking"}, fs)
-            p2conf = Biquad({"freq": conf["fp2"], "q": conf["qp2"], "gain": conf["gp2"], "type": "Peaking"}, fs)
-            p3conf = Biquad({"freq": conf["fp3"], "q": conf["qp3"], "gain": conf["gp3"], "type": "Peaking"}, fs)
+        elif self.ftype == "FivePointPeq":
+            lsconf = Biquad(
+                {"freq": conf["fls"], "q": conf["qls"], "gain": conf["gls"], "type": "Lowshelf"}, fs)
+            hsconf = Biquad(
+                {"freq": conf["fhs"], "q": conf["qhs"], "gain": conf["ghs"], "type": "Highshelf"}, fs)
+            p1conf = Biquad(
+                {"freq": conf["fp1"], "q": conf["qp1"], "gain": conf["gp1"], "type": "Peaking"}, fs)
+            p2conf = Biquad(
+                {"freq": conf["fp2"], "q": conf["qp2"], "gain": conf["gp2"], "type": "Peaking"}, fs)
+            p3conf = Biquad(
+                {"freq": conf["fp3"], "q": conf["qp3"], "gain": conf["gp3"], "type": "Peaking"}, fs)
             self.biquads = [lsconf, p1conf, p2conf, p3conf, hsconf]
 
     def is_stable(self):
@@ -296,7 +304,8 @@ class Biquad(object):
                 alpha = sn / (2.0 * q)
             else:
                 bandwidth = conf["bandwidth"]
-                alpha = sn * math.sinh(math.log(2.0) / 2.0 * bandwidth * omega / sn)
+                alpha = sn * math.sinh(math.log(2.0) /
+                                       2.0 * bandwidth * omega / sn)
             b0 = 1.0 + (alpha * ampl)
             b1 = -2.0 * cs
             b2 = 1.0 - (alpha * ampl)
@@ -353,7 +362,7 @@ class Biquad(object):
             a2 = 0.0
         elif ftype == "Lowshelf":
             freq = conf["freq"]
-            
+
             gain = conf["gain"]
             omega = 2.0 * math.pi * freq / fs
             ampl = 10.0 ** (gain / 40.0)
@@ -370,7 +379,7 @@ class Biquad(object):
             else:
                 q = conf["q"]
                 beta = sn * math.sqrt(ampl) / q
-            
+
             b0 = ampl * ((ampl + 1.0) - (ampl - 1.0) * cs + beta)
             b1 = 2.0 * ampl * ((ampl - 1.0) - (ampl + 1.0) * cs)
             b2 = ampl * ((ampl + 1.0) - (ampl - 1.0) * cs - beta)
@@ -409,7 +418,8 @@ class Biquad(object):
                 alpha = sn / (2.0 * q)
             else:
                 bandwidth = conf["bandwidth"]
-                alpha = sn * math.sinh(math.log(2.0) / 2.0 * bandwidth * omega / sn)
+                alpha = sn * math.sinh(math.log(2.0) /
+                                       2.0 * bandwidth * omega / sn)
             b0 = 1.0
             b1 = -2.0 * cs
             b2 = 1.0
@@ -426,7 +436,8 @@ class Biquad(object):
                 alpha = sn / (2.0 * q)
             else:
                 bandwidth = conf["bandwidth"]
-                alpha = sn * math.sinh(math.log(2.0) / 2.0 * bandwidth * omega / sn)
+                alpha = sn * math.sinh(math.log(2.0) /
+                                       2.0 * bandwidth * omega / sn)
             b0 = alpha
             b1 = 0.0
             b2 = -alpha
@@ -443,7 +454,8 @@ class Biquad(object):
                 alpha = sn / (2.0 * q)
             else:
                 bandwidth = conf["bandwidth"]
-                alpha = sn * math.sinh(math.log(2.0) / 2.0 * bandwidth * omega / sn)
+                alpha = sn * math.sinh(math.log(2.0) /
+                                       2.0 * bandwidth * omega / sn)
             b0 = 1.0 - alpha
             b1 = -2.0 * cs
             b2 = 1.0 + alpha
@@ -504,4 +516,3 @@ class Biquad(object):
 
     def is_stable(self):
         return abs(self.a2) < 1.0 and abs(self.a1) < (self.a2 + 1.0)
-

@@ -3,6 +3,7 @@ import matplotlib
 from matplotlib import pyplot as plt
 import io
 
+
 def plot_filter(filterconf, name=None, samplerate=44100, npoints=1000, toimage=False):
     if toimage:
         matplotlib.use('Agg')
@@ -11,17 +12,17 @@ def plot_filter(filterconf, name=None, samplerate=44100, npoints=1000, toimage=F
         plt.figure(num=name)
         fplot = filterdata["f"]
         magn = filterdata["magnitude"]
-        phase  = filterdata["phase"]
+        phase = filterdata["phase"]
         f_grp = filterdata["f_groupdelay"]
         groupdelay = filterdata["groupdelay"]
-        plt.subplot(3,1,1)
+        plt.subplot(3, 1, 1)
         plt.semilogx(fplot, magn)
         plt.title(f"{name}")
         plt.ylabel("Magnitude, dB")
-        plt.subplot(3,1,2)
+        plt.subplot(3, 1, 2)
         plt.semilogx(fplot, phase)
         plt.ylabel("Phase, deg")
-        plt.subplot(3,1,3)
+        plt.subplot(3, 1, 3)
         plt.semilogx(f_grp, groupdelay)
         plt.ylabel("Group delay, ms")
 
@@ -29,24 +30,24 @@ def plot_filter(filterconf, name=None, samplerate=44100, npoints=1000, toimage=F
         plt.figure(num=name)
         fplot = filterdata["f"]
         magn = filterdata["magnitude"]
-        phase  = filterdata["phase"]
+        phase = filterdata["phase"]
         t = filterdata["time"]
         impulse = filterdata["impulse"]
         f_grp = filterdata["f_groupdelay"]
         groupdelay = filterdata["groupdelay"]
-        plt.subplot(4,1,1)
+        plt.subplot(4, 1, 1)
         plt.semilogx(fplot, magn)
         plt.title("{}".format(name))
         plt.ylabel("Magnitude, dB")
         plt.gca().set(xlim=(10, samplerate/2.0))
-        plt.subplot(4,1,2)
+        plt.subplot(4, 1, 2)
         plt.plot(t, impulse)
         plt.ylabel("Impulse response")
-        plt.subplot(4,1,3)
+        plt.subplot(4, 1, 3)
         plt.semilogx(fplot, phase)
         plt.ylabel("Phase, deg")
         plt.gca().set(xlim=(10, samplerate/2.0))
-        plt.subplot(4,1,4)
+        plt.subplot(4, 1, 4)
         plt.semilogx(f_grp, groupdelay)
         plt.ylabel("Group delay, ms")
         plt.gca().set(xlim=(10, samplerate/2.0))
@@ -56,12 +57,14 @@ def plot_filter(filterconf, name=None, samplerate=44100, npoints=1000, toimage=F
         buf.seek(0)
         plt.close()
         return buf
-            
+
+
 def plot_filters(conf):
     srate = conf['devices']['samplerate']
     if 'filters' in conf:
         for filter, fconf in conf['filters'].items():
             plot_filter(fconf, samplerate=srate, name=filter)
+
 
 def plot_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, toimage=False):
     if toimage:
@@ -69,13 +72,13 @@ def plot_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, toimag
     filterdata = eval_filterstep(conf, pipelineindex, name, npoints)
     fplot = filterdata["f"]
     magn = filterdata["magnitude"]
-    phase  = filterdata["phase"]
+    phase = filterdata["phase"]
     plt.figure(num=name)
-    plt.subplot(2,1,1)
+    plt.subplot(2, 1, 1)
     plt.semilogx(fplot, magn)
     plt.title(name)
     plt.ylabel("Magnitude")
-    plt.subplot(2,1,2)
+    plt.subplot(2, 1, 2)
     plt.semilogx(fplot, phase)
     plt.ylabel("Phase")
     if toimage:
@@ -85,12 +88,10 @@ def plot_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, toimag
         plt.close()
         return buf
 
+
 def plot_all_filtersteps(conf, npoints=1000, toimage=False):
     if 'pipeline' in conf:
         for idx, step in enumerate(conf['pipeline']):
             if step["type"] == "Filter":
-                plot_filterstep(conf, idx, name="Pipeline step {}".format(idx), npoints=npoints, toimage=toimage)
-
-
-
-
+                plot_filterstep(conf, idx, name="Pipeline step {}".format(
+                    idx), npoints=npoints, toimage=toimage)

@@ -6,6 +6,7 @@ from matplotlib.patches import Rectangle
 import math
 import io
 
+
 class Block(object):
     def __init__(self, label):
         self.label = label
@@ -17,10 +18,11 @@ class Block(object):
         self.y = y
 
     def draw(self, ax):
-        rect = Rectangle((self.x-0.5, self.y-0.25), 1.0, 0.5, linewidth=1,edgecolor='r',facecolor='none')
+        rect = Rectangle((self.x-0.5, self.y-0.25), 1.0, 0.5,
+                         linewidth=1, edgecolor='r', facecolor='none')
         ax.add_patch(rect)
-        ax.text(self.x, self.y, self.label, horizontalalignment='center', verticalalignment='center')
-
+        ax.text(self.x, self.y, self.label,
+                horizontalalignment='center', verticalalignment='center')
 
     def input_point(self):
         return self.x-0.5, self.y
@@ -28,10 +30,12 @@ class Block(object):
     def output_point(self):
         return self.x+0.5, self.y
 
+
 def draw_arrow(ax, p0, p1, label=None):
     x0, y0 = p0
     x1, y1 = p1
-    ax.arrow(x0, y0, x1-x0, y1-y0, width=0.01, length_includes_head=True, head_width=0.1)
+    ax.arrow(x0, y0, x1-x0, y1-y0, width=0.01,
+             length_includes_head=True, head_width=0.1)
     if y1 > y0:
         hal = 'right'
         val = 'bottom'
@@ -39,15 +43,19 @@ def draw_arrow(ax, p0, p1, label=None):
         hal = 'right'
         val = 'top'
     if label is not None:
-        ax.text(x0+(x1-x0)*2/3, y0+(y1-y0)*2/3, label, horizontalalignment=hal, verticalalignment=val)
+        ax.text(x0+(x1-x0)*2/3, y0+(y1-y0)*2/3, label,
+                horizontalalignment=hal, verticalalignment=val)
+
 
 def draw_box(ax, level, size, label=None):
     x0 = 2*level-0.75
     y0 = -size/2
-    rect = Rectangle((x0, y0), 1.5, size, linewidth=1,edgecolor='g',facecolor='none', linestyle='--')
+    rect = Rectangle((x0, y0), 1.5, size, linewidth=1,
+                     edgecolor='g', facecolor='none', linestyle='--')
     ax.add_patch(rect)
     if label is not None:
-        ax.text(2*level, size/2, label, horizontalalignment='center', verticalalignment='bottom')
+        ax.text(2*level, size/2, label, horizontalalignment='center',
+                verticalalignment='bottom')
 
 
 def plot_pipeline(conf, toimage=False):
@@ -55,13 +63,13 @@ def plot_pipeline(conf, toimage=False):
         matplotlib.use('Agg')
     stages = []
     fig = plt.figure(num='Pipeline')
-    
+
     ax = fig.add_subplot(111, aspect='equal')
     # add input
     channels = []
     active_channels = int(conf['devices']['capture']['channels'])
     for n in range(active_channels):
-        label = "ch {}".format(n) 
+        label = "ch {}".format(n)
         b = Block(label)
         b.place(0, -active_channels/2 + 0.5 + n)
         b.draw(ax)
@@ -70,7 +78,7 @@ def plot_pipeline(conf, toimage=False):
         capturename = conf['devices']['capture']['device']
     elif 'filename' in conf['devices']['capture']:
         capturename = conf['devices']['capture']['filename']
-    else: 
+    else:
         capturename = conf['devices']['capture']['type']
     draw_box(ax, 0, active_channels, label=capturename)
     stages.append(channels)
@@ -119,11 +127,10 @@ def plot_pipeline(conf, toimage=False):
                     draw_arrow(ax, src_p, dest_p)
                     stages[-1][ch_nbr].append(b)
 
-
     total_length += 1
     channels = []
     for n in range(active_channels):
-        label = "ch {}".format(n) 
+        label = "ch {}".format(n)
         b = Block(label)
         b.place(2*total_length, -active_channels/2 + 0.5 + n)
         b.draw(ax)
@@ -135,11 +142,11 @@ def plot_pipeline(conf, toimage=False):
         playname = conf['devices']['playback']['device']
     elif 'filename' in conf['devices']['playback']:
         capturename = conf['devices']['playback']['filename']
-    else: 
+    else:
         capturename = conf['devices']['playback']['type']
     draw_box(ax, total_length, active_channels, label=playname)
     stages.append(channels)
-    
+
     nbr_chan = [len(s) for s in stages]
     ylim = math.ceil(max(nbr_chan)/2.0) + 0.5
     ax.set(xlim=(-1, 2*total_length+1), ylim=(-ylim, ylim))
@@ -160,6 +167,6 @@ def main():
     conf = yaml.safe_load(conffile)
     plot_pipeline(conf, 1)
 
+
 if __name__ == "__main__":
     main()
-

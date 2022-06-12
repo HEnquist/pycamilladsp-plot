@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="camilladsp_plot",
-    version="1.0.0",
+    version="1.0.1",
     author="Henrik Enquist",
     author_email="henrik.enquist@gmail.com",
     description="A library for validating, evaluating and plotting configs and filters for CamillaDSP",
@@ -16,8 +16,7 @@ setuptools.setup(
     python_requires=">=3",
     package_data={'camilladsp_plot': ['schemas/*.json']},
     install_requires=["PyYAML", "jsonschema"],
-    entry_points = {
+    entry_points={
         'console_scripts': ['plotcamillaconf=camilladsp_plot.plotcamillaconf:main'],
     }
-
 )

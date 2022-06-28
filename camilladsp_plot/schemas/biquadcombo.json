@@ -84,6 +84,18 @@
     "required": ["type", "freq", "order"],
     "additionalProperties": false
   },
+  "Tilt": {
+    "properties": {
+      "type": {
+        "enum": ["Tilt"]
+      },
+      "gain": {
+        "type": "number"
+      }
+    },
+    "required": ["gain"],
+    "additionalProperties": false
+  },
   "FivePointPeq": {
     "properties": {
       "type": {

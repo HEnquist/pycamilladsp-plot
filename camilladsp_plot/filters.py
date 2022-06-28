@@ -237,6 +237,14 @@ class BiquadCombo(object):
             p3conf = Biquad(
                 {"freq": conf["fp3"], "q": conf["qp3"], "gain": conf["gp3"], "type": "Peaking"}, fs)
             self.biquads = [lsconf, p1conf, p2conf, p3conf, hsconf]
+        elif self.ftype == "Tilt":
+            gain_low = -conf["gain"]/2.0
+            gain_high = conf["gain"]/2.0
+            lsconf = Biquad(
+                {"freq": 110.0, "q": 0.35, "gain": gain_low, "type": "Lowshelf"}, fs)
+            hsconf = Biquad(
+                {"freq": 3500.0, "q": 0.35, "gain": gain_high, "type": "Highshelf"}, fs)
+            self.biquads = [lsconf, hsconf]
 
     def is_stable(self):
         # TODO
@@ -362,7 +370,6 @@ class Biquad(object):
             a2 = 0.0
         elif ftype == "Lowshelf":
             freq = conf["freq"]
-
             gain = conf["gain"]
             omega = 2.0 * math.pi * freq / fs
             ampl = 10.0 ** (gain / 40.0)

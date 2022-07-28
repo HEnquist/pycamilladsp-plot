@@ -8,7 +8,7 @@ def plot_filter(filterconf, name=None, samplerate=44100, npoints=1000, toimage=F
     if toimage:
         matplotlib.use('Agg')
     filterdata = eval_filter(filterconf, name, samplerate, npoints)
-    if filterconf['type'] in ('Biquad', 'DiffEq', 'BiquadCombo'):
+    if filterconf['type'] in ('Biquad', 'DiffEq', 'BiquadCombo', 'Delay', 'Gain'):
         plt.figure(num=name)
         fplot = filterdata["f"]
         magn = filterdata["magnitude"]

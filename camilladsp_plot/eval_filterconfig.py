@@ -1,6 +1,6 @@
 import math
 import cmath
-from .filters import Biquad, BiquadCombo, Conv, DiffEq, Gain, calc_groupdelay
+from .filters import Biquad, BiquadCombo, Conv, Delay, DiffEq, Gain, calc_groupdelay
 
 
 def logspace(minval, maxval, npoints):
@@ -39,6 +39,24 @@ def eval_filter(filterconf, name=None, samplerate=44100, npoints=1000):
         result["phase"] = phase
         result["time"] = t
         result["impulse"] = impulse
+    
+    elif filterconf['type'] == 'Delay':
+        currfilt = Delay(filterconf['parameters'], samplerate)
+        _fplot, magn, phase = currfilt.gain_and_phase(fvect)
+        result["magnitude"] = magn
+        result["phase"] = phase
+
+    elif filterconf['type'] == 'Gain':
+        currfilt = Gain(filterconf['parameters'])
+        _fplot, magn, phase = currfilt.gain_and_phase(fvect)
+        result["magnitude"] = magn
+        result["phase"] = phase
+
+    elif filterconf['type'] in ('Volume', 'Loudness'):
+        raise NotImplementedError
+
+    else:
+        raise ValueError(f"Unknown filter type {filterconf['type']}")
 
     f_grp, groupdelay = calc_groupdelay(result["f"], result["phase"])
     result["f_groupdelay"] = f_grp
@@ -65,6 +83,8 @@ def eval_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, toimag
             currfilt = Conv(filterconf['parameters'], samplerate)
         elif filterconf['type'] == "Gain":
             currfilt = Gain(filterconf['parameters'])
+        elif filterconf['type'] == "Delay":
+            currfilt = Delay(filterconf['parameters'], samplerate)
         else:
             continue
         _, cgainstep = currfilt.complex_gain(fvect)

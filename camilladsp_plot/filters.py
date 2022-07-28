@@ -149,6 +149,55 @@ class DiffEq(object):
         # TODO
         return None
 
+class Delay(object):
+    def __init__(self, conf, fs):
+        self.fs = fs
+        unit = conf.get("unit", "ms")
+        if unit == "ms":
+            self.delay_samples = conf["delay"] / 1000.0 * fs
+        elif unit == "mm":
+            self.delay_samples = conf["delay"] / 1000.0 * fs / 343.0
+        elif unit == "samples":
+            self.delay_samples = conf["delay"]
+        else:
+            raise RuntimeError(f"Unknown unit {unit}")
+        
+        self.subsample = conf.get("subsample", False)
+        if self.subsample:
+            self.delay_full_samples = math.floor(self.delay_samples)
+            self.fraction = self.delay_samples - self.delay_full_samples
+            self.a1 = 1.0 - self.fraction
+            self.a2 = 0.0
+            self.b0 = 1.0 - self.fraction 
+            self.b1 = 1.0
+            self.b2 = 0.0
+        else:
+            self.delay_full_samples = math.round(self.delay_samples)
+
+
+    def complex_gain(self, freq, remove_delay=False):
+        zvec = [cmath.exp(1j * 2 * math.pi * f / self.fs) for f in freq]
+        if self.subsample:
+            A = [((self.b0 + self.b1 * z ** (-1) + self.b2 * z ** (-2)) / (
+                1.0 + self.a1 * z ** (-1) + self.a2 * z ** (-2))) for z in zvec]
+        else:
+            A = [1.0 for _z in zvec]
+        if not remove_delay:
+            delay_s = self.delay_full_samples / self.fs
+            A = [val*cmath.exp(-1j*2.0*math.pi*f*delay_s)
+                   for val, f in zip(A, freq)]
+        return freq, A
+
+    def gain_and_phase(self, f, remove_delay=False):
+        _f, Avec = self.complex_gain(f, remove_delay=remove_delay)
+        gain = [20 * math.log10(abs(A)+1.0e-15) for A in Avec]
+        phase = [180 / math.pi * cmath.phase(A) for A in Avec]
+        return f, gain, phase
+
+    def is_stable(self):
+        # TODO
+        return None
+
 
 class Gain(object):
     def __init__(self, conf):

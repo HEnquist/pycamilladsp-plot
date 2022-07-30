@@ -1,6 +1,6 @@
 import math
 import cmath
-from .filters import Biquad, BiquadCombo, Conv, Delay, DiffEq, Gain, calc_groupdelay
+from .filters import BaseFilter, Biquad, BiquadCombo, Conv, Delay, DiffEq, Gain, calc_groupdelay
 
 
 def logspace(minval, maxval, npoints):
@@ -52,8 +52,11 @@ def eval_filter(filterconf, name=None, samplerate=44100, npoints=1000):
         result["magnitude"] = magn
         result["phase"] = phase
 
-    elif filterconf['type'] in ('Volume', 'Loudness'):
-        raise NotImplementedError
+    elif filterconf['type'] in ('Volume', 'Loudness', 'Dither'):
+        currfilt = BaseFilter()
+        _fplot, magn, phase = currfilt.gain_and_phase(fvect)
+        result["magnitude"] = magn
+        result["phase"] = phase
 
     else:
         raise ValueError(f"Unknown filter type {filterconf['type']}")

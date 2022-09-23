@@ -44,6 +44,23 @@ def calc_groupdelay(freq, phase):
     return freq_new, groupdelay
 
 
+class BaseFilter(object):
+    def __init__(self):
+        pass
+
+    def complex_gain(self, f, remove_delay=False):
+        A = [1.0] * len(f)
+        return f, A
+
+    def gain_and_phase(self, f, remove_delay=False):
+        _f, Avec = self.complex_gain(f, remove_delay=remove_delay)
+        gain = [20 * math.log10(abs(A)+1.0e-15) for A in Avec]
+        phase = [180 / math.pi * cmath.phase(A) for A in Avec]
+        return f, gain, phase
+
+    def is_stable(self):
+        return True
+
 class Conv(object):
 
     def __init__(self, conf, fs):
@@ -118,7 +135,7 @@ class Conv(object):
         return t, self.impulse
 
 
-class DiffEq(object):
+class DiffEq(BaseFilter):
     def __init__(self, conf, fs):
         self.fs = fs
         self.a = conf["a"]
@@ -139,18 +156,55 @@ class DiffEq(object):
         A = [a1 / a2 for (a1, a2) in zip(A1, A2)]
         return freq, A
 
-    def gain_and_phase(self, f, remove_delay=False):
-        _f, Avec = self.complex_gain(f, remove_delay=remove_delay)
-        gain = [20 * math.log10(abs(A)+1.0e-15) for A in Avec]
-        phase = [180 / math.pi * cmath.phase(A) for A in Avec]
-        return f, gain, phase
+    def is_stable(self):
+        # TODO
+        return None
+
+class Delay(BaseFilter):
+    def __init__(self, conf, fs):
+        self.fs = fs
+        unit = conf.get("unit", "ms")
+        if unit == "ms":
+            self.delay_samples = conf["delay"] / 1000.0 * fs
+        elif unit == "mm":
+            self.delay_samples = conf["delay"] / 1000.0 * fs / 343.0
+        elif unit == "samples":
+            self.delay_samples = conf["delay"]
+        else:
+            raise RuntimeError(f"Unknown unit {unit}")
+        
+        self.subsample = conf.get("subsample", False)
+        if self.subsample:
+            self.delay_full_samples = math.floor(self.delay_samples)
+            self.fraction = self.delay_samples - self.delay_full_samples
+            self.a1 = 1.0 - self.fraction
+            self.a2 = 0.0
+            self.b0 = 1.0 - self.fraction 
+            self.b1 = 1.0
+            self.b2 = 0.0
+        else:
+            self.delay_full_samples = round(self.delay_samples)
+
+
+    def complex_gain(self, freq, remove_delay=False):
+        zvec = [cmath.exp(1j * 2 * math.pi * f / self.fs) for f in freq]
+        if self.subsample:
+            A = [((self.b0 + self.b1 * z ** (-1) + self.b2 * z ** (-2)) / (
+                1.0 + self.a1 * z ** (-1) + self.a2 * z ** (-2))) for z in zvec]
+        else:
+            A = [1.0 for _z in zvec]
+        if not remove_delay:
+            delay_s = self.delay_full_samples / self.fs
+            A = [val*cmath.exp(-1j*2.0*math.pi*f*delay_s)
+                   for val, f in zip(A, freq)]
+        return freq, A
 
     def is_stable(self):
         # TODO
         return None
 
 
-class Gain(object):
+class Gain(BaseFilter):
     def __init__(self, conf):
         self.gain = conf["gain"]
         self.inverted = conf["inverted"]
@@ -161,18 +215,9 @@ class Gain(object):
         A = [gain for n in range(len(f))]
         return f, A
 
-    def gain_and_phase(self, f, remove_delay=False):
-        Aval = 10.0**(self.gain/20.0)
-        gain = [Aval for n in range(len(f))]
-        phaseval = 180 / math.pi if self.inverted else 0
-        phase = [phaseval for n in range(len(f))]
-        return f, gain, phase
-
-    def is_stable(self):
-        return True
 
 
-class BiquadCombo(object):
+class BiquadCombo(BaseFilter):
     def Butterw_q(self, order):
         odd = order % 2 > 0
         n_so = math.floor(order / 2.0)
@@ -249,14 +294,8 @@ class BiquadCombo(object):
             A = [a*atemp for (a, atemp) in zip(A, Atemp)]
         return freq, A
 
-    def gain_and_phase(self, f, remove_delay=False):
-        _f, Avec = self.complex_gain(f)
-        gain = [20 * math.log10(abs(A)+1.0e-15) for A in Avec]
-        phase = [180 / math.pi * cmath.phase(A) for A in Avec]
-        return f, gain, phase
 
-
-class Biquad(object):
+class Biquad(BaseFilter):
     def __init__(self, conf, fs):
         ftype = conf["type"]
         if ftype == "Free":
@@ -507,12 +546,6 @@ class Biquad(object):
         A = [((self.b0 + self.b1 * z ** (-1) + self.b2 * z ** (-2)) / (
             1.0 + self.a1 * z ** (-1) + self.a2 * z ** (-2))) for z in zvec]
         return freq, A
-
-    def gain_and_phase(self, f, remove_delay=False):
-        _f, Avec = self.complex_gain(f)
-        gain = [20 * math.log10(abs(A)+1.0e-15) for A in Avec]
-        phase = [180 / math.pi * cmath.phase(A) for A in Avec]
-        return f, gain, phase
 
     def is_stable(self):
         return abs(self.a2) < 1.0 and abs(self.a1) < (self.a2 + 1.0)

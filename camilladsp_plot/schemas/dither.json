@@ -5,13 +5,27 @@
         "type": "string",
         "enum": [
           "Simple",
-          "Uniform",
-          "Lipshitz441",
           "Fweighted441",
+          "FweightedLong441",
+          "FweightedShort441",
+          "Gesemann441",
+          "Gesemann48",
+          "Lipshitz441",
+          "LipshitzLong441",
           "Shibata441",
-          "Shibata48",
+          "ShibataHigh441",
           "ShibataLow441",
+          "Shibata48",
           "ShibataLow48",
+          "Shibata882",
+          "ShibataLow882",
+          "Shibata96",
+          "ShibataLow96",
+          "Shibata192",
+          "ShibataLow192",
+          "Gaussian",
+          "Triangular",
+          "Uniform",
           "None"
         ]
       },
@@ -21,6 +35,48 @@
       }
     },
     "required": ["type", "bits"]
+  },
+  "Gaussian": {
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": [
+          "Gaussian"
+        ]
+      },
+      "amplitude": {
+        "type": "number",
+        "minimum": 0.0,
+        "maximum": 100.0
+      },
+      "bits": {
+        "type": "integer",
+        "minimum": 2
+      }
+    },
+    "required": ["type", "amplitude", "bits"],
+    "additionalProperties": false
+  },
+  "Triangular": {
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": [
+          "Triangular"
+        ]
+      },
+      "amplitude": {
+        "type": "number",
+        "minimum": 0.0,
+        "maximum": 100.0
+      },
+      "bits": {
+        "type": "integer",
+        "minimum": 2
+      }
+    },
+    "required": ["type", "amplitude", "bits"],
+    "additionalProperties": false
   },
   "Uniform": {
     "properties": {

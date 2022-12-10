@@ -4,7 +4,7 @@
       "type": {
         "type": "string",
         "enum": [
-          "None"
+          "None",
           "Flat",
           "HighPass",
           "Fweighted441",
@@ -24,7 +24,7 @@
           "Shibata96",
           "ShibataLow96",
           "Shibata192",
-          "ShibataLow192",
+          "ShibataLow192"
         ]
       },
       "bits": {
@@ -39,7 +39,7 @@
       "type": {
         "type": "string",
         "enum": [
-          "Triangular"
+          "Flat"
         ]
       },
       "amplitude": {
@@ -54,5 +54,5 @@
     },
     "required": ["type", "amplitude", "bits"],
     "additionalProperties": false
-  },
+  }
 }

@@ -466,38 +466,30 @@ class Biquad(BaseFilter):
             a1 = -2.0 * cs
             a2 = 1.0 - alpha
         elif ftype == "GeneralNotch":
-            Fp = conf["freq_pole"]
-            Fz = conf["freq_zero"]
-            Qp = conf["q_pole"]
+            f_p = conf["freq_pole"]
+            f_z = conf["freq_zero"]
+            q_p = conf["q_pole"]
             normalize_at_dc = conf["normalize_at_dc"]
-            Wp = 2.0 * math.pi * Fp
-            Wz = 2.0 * math.pi * Fz
-            K = 2*fs
-            K2 = K*K
-            # apply pre-warping 
-            Wz = K*math.tan( Wz/K )
-            Wp = K*math.tan( Wp/K )
-            # calculate square of pre-warped radian frequencies
-            Wp2 = Wp*Wp
-            Wz2 = Wz*Wz
 
+            # apply pre-warping 
+            tn_z = math.tan( math.pi * f_z / fs )
+            tn_p = math.tan( math.pi * f_p / fs )
+            alpha = tn_p / q_p
+            tn2_p = tn_p**2
+            tn2_z = tn_z**2
+
+            # calculate gain
             if normalize_at_dc:
-                gain = Wp2 / Wz2
+                gain = tn2_p / tn2_z
             else:
                 gain = 1.0
 
-            # 2nd order notch specified by gain, polarity, Fp, Qp, Fz
-            Ab2 = gain
-            Ab0 = Wz2 * gain
-            Aa1 = Wp/Qp
-            Aa0 = Wp2
-
-            b0 = Ab2*K2  + Ab0
-            b1 = 2.0*Ab0 - 2.0*Ab2*K2
-            b2 = Ab2*K2 + Ab0
-            a0 = K2 + Aa1*K + Aa0
-            a1 = 2.0*Aa0 - 2.0*K2
-            a2 = K2 - Aa1*K + Aa0
+            b0 = gain * (1.0 + tn2_z)
+            b1 = -2.0 * gain * (1.0 - tn2_z)
+            b2 = gain * (1.0 + tn2_z)
+            a0 = 1.0 + alpha + tn2_p
+            a1 = -2.0 + 2.0 * tn2_p
+            a2 = 1.0 - alpha + tn2_p
 
         elif ftype == "Bandpass":
             freq = conf["freq"]

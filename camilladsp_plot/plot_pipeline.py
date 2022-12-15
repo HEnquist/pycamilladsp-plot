@@ -138,6 +138,8 @@ def plot_pipeline(conf, toimage=False):
         dest_p = b.input_point()
         draw_arrow(ax, src_p, dest_p)
         channels.append([b])
+    playname=""
+    capturename=""
     if 'device' in conf['devices']['playback']:
         playname = conf['devices']['playback']['device']
     elif 'filename' in conf['devices']['playback']:

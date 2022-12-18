@@ -282,6 +282,24 @@ class BiquadCombo(BaseFilter):
             p3conf = Biquad(
                 {"freq": conf["fp3"], "q": conf["qp3"], "gain": conf["gp3"], "type": "Peaking"}, fs)
             self.biquads = [lsconf, p1conf, p2conf, p3conf, hsconf]
+        elif self.ftype == "GraphicEqualizer":
+            bands = len(conf["gains"])
+            f_min = conf["freq_min"]
+            f_max = conf["freq_max"]
+            f_min_log = math.log2(f_min)
+            f_max_log = math.log2(f_max)
+            self.biquads = []
+            bw = (f_max_log - f_min_log)/bands
+            for band, gain in enumerate(conf["gains"]):
+                if math.fabs(gain) > 0.01:
+                    freq_log = f_min_log + (band + 0.5) * bw
+                    freq = 2.0**freq_log
+                    filt = Biquad(
+                        {"freq": freq, "bandwidth": bw, "gain": gain, "type": "Peaking"}, fs)
+                    self.biquads.append(filt)
+
+
+
 
     def is_stable(self):
         # TODO

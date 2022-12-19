@@ -9,6 +9,7 @@
           "LinkwitzRileyHighpass",
           "LinkwitzRileyLowpass",
           "FivePointPeq",
+          "GraphicEqualizer",
           "Tilt"
         ]
       }
@@ -161,6 +162,33 @@
       }
     },
     "required": ["type", "fls", "fp1", "fp2", "fp3", "fhs", "qls", "qp1", "qp2", "qp3", "qhs", "gls", "gp1", "gp2", "gp3", "ghs"],
+    "additionalProperties": false
+  },
+  "GraphicEqualizer": {
+    "properties": {
+      "type": {
+        "enum": ["GraphicEqualizer"]
+      },
+      "freq_min": {
+        "type": "number",
+        "exclusiveMinimum": 0.0,
+        "default": 20.0
+      },
+      "freq_max": {
+        "type": "number",
+        "exclusiveMinimum": 0.0,
+        "default": 20000.0
+      },
+      "gains": {
+        "type": "array",
+        "items": {
+          "type": "number",
+          "minimum": -20.0,
+          "maximim": 20.0
+        }
+      }
+    },
+    "required": ["type", "gains"],
     "additionalProperties": false
   }
 }

@@ -138,14 +138,12 @@ def plot_pipeline(conf, toimage=False):
         dest_p = b.input_point()
         draw_arrow(ax, src_p, dest_p)
         channels.append([b])
-    playname=""
-    capturename=""
     if 'device' in conf['devices']['playback']:
         playname = conf['devices']['playback']['device']
     elif 'filename' in conf['devices']['playback']:
-        capturename = conf['devices']['playback']['filename']
+        playname = conf['devices']['playback']['filename']
     else:
-        capturename = conf['devices']['playback']['type']
+        playname = conf['devices']['playback']['type']
     draw_box(ax, total_length, active_channels, label=playname)
     stages.append(channels)
 

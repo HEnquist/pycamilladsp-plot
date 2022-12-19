@@ -472,6 +472,32 @@ class Biquad(BaseFilter):
             a0 = 1.0 + alpha
             a1 = -2.0 * cs
             a2 = 1.0 - alpha
+        elif ftype == "GeneralNotch":
+            f_p = conf["freq_pole"]
+            f_z = conf["freq_zero"]
+            q_p = conf["q_pole"]
+            normalize_at_dc = conf["normalize_at_dc"]
+
+            # apply pre-warping 
+            tn_z = math.tan( math.pi * f_z / fs )
+            tn_p = math.tan( math.pi * f_p / fs )
+            alpha = tn_p / q_p
+            tn2_p = tn_p**2
+            tn2_z = tn_z**2
+
+            # calculate gain
+            if normalize_at_dc:
+                gain = tn2_p / tn2_z
+            else:
+                gain = 1.0
+
+            b0 = gain * (1.0 + tn2_z)
+            b1 = -2.0 * gain * (1.0 - tn2_z)
+            b2 = gain * (1.0 + tn2_z)
+            a0 = 1.0 + alpha + tn2_p
+            a1 = -2.0 + 2.0 * tn2_p
+            a2 = 1.0 - alpha + tn2_p
+
         elif ftype == "Bandpass":
             freq = conf["freq"]
             omega = 2.0 * math.pi * freq / fs

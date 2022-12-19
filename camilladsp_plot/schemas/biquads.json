@@ -10,6 +10,7 @@
           "Highshelf",
           "Peaking",
           "Notch",
+          "GeneralNotch",
           "Bandpass",
           "Allpass",
           "AllpassFO",
@@ -98,6 +99,31 @@
       }
     },
     "required": ["type", "freq"],
+    "additionalProperties": false
+  },
+  "GeneralNotch": {
+    "properties": {
+      "type": {
+        "enum": ["GeneralNotch"]
+      },
+      "freq_pole": {
+        "type": "number",
+        "exclusiveMinimum": 0.0
+      },
+      "q_pole": {
+        "type": "number",
+        "exclusiveMinimum": 0.0
+      },
+      "freq_zero": {
+        "type": "number",
+        "exclusiveMinimum": 0.0
+      },
+      "normalize_at_dc": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "required": ["type", "freq_pole", "freq_zero"],
     "additionalProperties": false
   },
   "Allpass": {

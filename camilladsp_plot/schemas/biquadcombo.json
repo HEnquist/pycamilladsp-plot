@@ -8,7 +8,8 @@
           "ButterworthLowpass",
           "LinkwitzRileyHighpass",
           "LinkwitzRileyLowpass",
-          "FivePointPeq"
+          "FivePointPeq",
+          "Tilt"
         ]
       }
     },
@@ -82,6 +83,20 @@
       }
     },
     "required": ["type", "freq", "order"],
+    "additionalProperties": false
+  },
+  "Tilt": {
+    "properties": {
+      "type": {
+        "enum": ["Tilt"]
+      },
+      "gain": {
+        "type": "number",
+        "minimum": -100,
+        "Maximum": 100
+      }
+    },
+    "required": ["gain"],
     "additionalProperties": false
   },
   "FivePointPeq": {

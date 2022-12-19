@@ -6,7 +6,7 @@
         "enum": [
           "None",
           "Flat",
-          "HighPass",
+          "Highpass",
           "Fweighted441",
           "FweightedLong441",
           "FweightedShort441",

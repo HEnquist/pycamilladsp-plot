@@ -9,6 +9,10 @@
   },
   "Mixer": {
     "properties": {
+      "description": {
+        "type": ["string", "null"],
+        "default": null
+      },
       "type": {
         "enum": ["Mixer"]
       },
@@ -22,6 +26,10 @@
   },
   "Filter": {
     "properties": {
+      "description": {
+        "type": ["string", "null"],
+        "default": null
+      },
       "type": {
         "enum": ["Filter"]
       },

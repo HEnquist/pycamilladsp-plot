@@ -19,6 +19,14 @@
         "type": "object"
       },
       "default": null
+    },
+    "title": {
+      "type": ["string", "null"],
+      "default": null
+    },
+    "description": {
+      "type": ["string", "null"],
+      "default": null
     }
   },
   "required": [

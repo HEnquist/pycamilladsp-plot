@@ -11,8 +11,13 @@
         "Dither",
         "Gain",
         "Loudness",
-        "Volume"
+        "Volume",
+        "Limiter"
       ]
+    },
+    "description": {
+      "type": ["string", "null"],
+      "default": null
     },
     "parameters": {
       "type": "object"

@@ -84,5 +84,20 @@
     },
     "required": ["reference_level"],
     "additionalProperties": false
+  },
+  "Limiter": {
+    "properties": {
+      "clip_limit": {
+        "type": ["number", "null"],
+        "maximum": 0.0,
+        "default": null
+      },
+      "soft_clip": {
+        "type": ["boolean", "null"],
+        "default": null
+      }
+    },
+    "required": [],
+    "additionalProperties": false
   }
 }

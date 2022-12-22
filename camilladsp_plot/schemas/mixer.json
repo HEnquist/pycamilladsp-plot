@@ -1,5 +1,9 @@
 {
   "properties": {
+    "description": {
+      "type": ["string", "null"],
+      "default": null
+    },
     "channels": {
       "type": "object",
       "properties": {

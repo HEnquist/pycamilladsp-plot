@@ -4,6 +4,10 @@
       "type": "string",
       "enum": ["DiffEq"]
     },
+    "description": {
+      "type": ["string", "null"],
+      "default": null
+    },
     "parameters": {
       "type": "object",
       "items": {

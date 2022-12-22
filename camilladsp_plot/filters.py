@@ -164,6 +164,8 @@ class Delay(BaseFilter):
     def __init__(self, conf, fs):
         self.fs = fs
         unit = conf.get("unit", "ms")
+        if unit is None:
+            unit = "ms"
         if unit == "ms":
             self.delay_samples = conf["delay"] / 1000.0 * fs
         elif unit == "mm":
@@ -173,7 +175,7 @@ class Delay(BaseFilter):
         else:
             raise RuntimeError(f"Unknown unit {unit}")
         
-        self.subsample = conf.get("subsample", False)
+        self.subsample = conf.get("subsample", False) == True
         if self.subsample:
             self.delay_full_samples = math.floor(self.delay_samples)
             self.fraction = self.delay_samples - self.delay_full_samples
@@ -207,11 +209,17 @@ class Delay(BaseFilter):
 class Gain(BaseFilter):
     def __init__(self, conf):
         self.gain = conf["gain"]
-        self.inverted = conf["inverted"]
+        self.inverted = conf["inverted"] == True
+        self.scale = conf["scale"]
+        if self.scale is None:
+            self.scale = "dB"
 
     def complex_gain(self, f, remove_delay=False):
         sign = -1.0 if self.inverted else 1.0
-        gain = 10.0**(self.gain/20.0) * sign
+        if self.scale == "dB":
+            gain = 10.0**(self.gain/20.0) * sign
+        else:
+            gain = self.gain * sign
         A = [gain for n in range(len(f))]
         return f, A
 

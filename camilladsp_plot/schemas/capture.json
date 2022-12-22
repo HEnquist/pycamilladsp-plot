@@ -10,7 +10,8 @@
           "CoreAudio",
           "Jack",
           "File",
-          "Stdin"
+          "Stdin",
+          "Bluez"
         ]
       }
     },
@@ -190,6 +191,31 @@
       }
     },
     "required": ["type", "filename", "channels", "format"],
+    "additionalProperties": false
+  },
+  "Bluez": {
+    "properties": {
+      "type": {
+        "enum": ["Bluez"]
+      },
+      "service": {
+        "type": ["string", "null"],
+        "minLength": 1,
+        "default": null
+      },
+      "dbus_path": {
+        "type": "string",
+        "minLength": 1
+      },
+      "channels": {
+        "type": "integer",
+        "exclusiveMinimum": 0
+      },
+      "format": {
+        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+      }
+    },
+    "required": ["type", "dbus_path", "channels", "format"],
     "additionalProperties": false
   }
 }

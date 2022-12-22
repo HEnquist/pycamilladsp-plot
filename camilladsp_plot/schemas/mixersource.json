@@ -8,12 +8,12 @@
       "type": "number"
     },
     "inverted": {
-      "type": "boolean",
-      "default": false
+      "type": ["boolean", "null"],
+      "default": null
     },
     "mute": {
-      "type": "boolean",
-      "default": false
+      "type": ["boolean", "null"],
+      "default": null
     }
   },
   "required": ["gain", "channel"],

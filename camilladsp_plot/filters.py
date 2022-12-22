@@ -284,8 +284,8 @@ class BiquadCombo(BaseFilter):
             self.biquads = [lsconf, p1conf, p2conf, p3conf, hsconf]
         elif self.ftype == "GraphicEqualizer":
             bands = len(conf["gains"])
-            f_min = conf["freq_min"]
-            f_max = conf["freq_max"]
+            f_min = conf["freq_min"] if conf["freq_min"] else 20.0
+            f_max = conf["freq_max"] if conf["freq_max"] else 20000.0
             f_min_log = math.log2(f_min)
             f_max_log = math.log2(f_max)
             self.biquads = []
@@ -491,7 +491,7 @@ class Biquad(BaseFilter):
             f_p = conf["freq_pole"]
             f_z = conf["freq_zero"]
             q_p = conf["q_pole"]
-            normalize_at_dc = conf["normalize_at_dc"]
+            normalize_at_dc = conf["normalize_at_dc"] == True
 
             # apply pre-warping 
             tn_z = math.tan( math.pi * f_z / fs )

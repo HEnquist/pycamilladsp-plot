@@ -1,0 +1,25 @@
+{
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "Compressor"
+      ]
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "default": null
+    },
+    "parameters": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "type",
+    "parameters"
+  ],
+  "additionalProperties": false
+}

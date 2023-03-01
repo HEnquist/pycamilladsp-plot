@@ -1,0 +1,74 @@
+{
+  "Compressor": {
+    "properties": {
+      "type": {
+        "enum": [
+          "Compressor"
+        ]
+      },
+      "channels": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "monitor_channels": {
+        "type": ["array", "null"],
+        "items": {
+          "type": "number",
+          "minimum": 0
+        },
+        "default": null
+      },
+      "process_channels": {
+        "type": ["array", "null"],
+        "items": {
+          "type": "number",
+          "minimum": 0
+        },
+        "default": null
+      },
+      "release": {
+        "type": "number",
+        "minimum": 0.0
+      },
+      "attack": {
+        "type": "number",
+        "minimum": 0.0
+      },
+      "threshold": {
+        "type": "number",
+        "minimum": 0.0
+      },
+      "factor": {
+        "type": "number",
+        "minimum": 0.0
+      },
+      "makeup_gain": {
+        "type": ["number", "null"],
+        "minimum": 0.0,
+        "default": null
+      },
+      "clip_limit": {
+        "type": ["number", "null"],
+        "minimum": 0.0,
+        "default": null
+      },
+      "soft_clip": {
+        "type": ["boolean", "null"],
+        "default": null
+      },
+      "enable_clip": {
+        "type": ["boolean", "null"],
+        "default": null
+      }
+    },
+    "required": [
+      "type",
+      "channels",
+      "attack",
+      "release",
+      "threshold",
+      "factor"
+    ],
+    "additionalProperties": false
+  }
+}

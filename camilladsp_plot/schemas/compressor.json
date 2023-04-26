@@ -49,14 +49,11 @@
       },
       "clip_limit": {
         "type": ["number", "null"],
-        "minimum": 0.0,
+        "minimum": -100.0,
+        "maximum": 100.0,
         "default": null
       },
       "soft_clip": {
-        "type": ["boolean", "null"],
-        "default": null
-      },
-      "enable_clip": {
         "type": ["boolean", "null"],
         "default": null
       }

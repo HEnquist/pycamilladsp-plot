@@ -88,6 +88,9 @@
       ],
       "oneOf": [
         {
+          "type": "null"
+        },
+        {
           "type": "object",
           "properties": {
             "type": {
@@ -146,8 +149,9 @@
               ]
             },
             "f_cutoff": {
-              "type": "number",
-              "exclusiveMinimum": 0.0
+              "type": ["number", "null"],
+              "exclusiveMinimum": 0.0,
+              "default": null
             }
           }
         },
@@ -201,6 +205,7 @@
     }
   },
   "required": [
+    "chunksize",
     "capture",
     "playback",
     "samplerate"

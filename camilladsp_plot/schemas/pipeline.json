@@ -19,6 +19,10 @@
       "name": {
         "type": "string",
         "minLength": 1
+      },
+      "bypassed": {
+        "type": ["boolean", "null"],
+        "default": null
       }
     },
     "required": ["type", "name"],
@@ -43,6 +47,10 @@
           "type": "string",
           "minLength": 1
         }
+      },
+      "bypassed": {
+        "type": ["boolean", "null"],
+        "default": null
       }
     },
     "required": ["type", "channel", "names"],
@@ -60,6 +68,10 @@
       "name": {
         "type": "string",
         "minLength": 1
+      },
+      "bypassed": {
+        "type": ["boolean", "null"],
+        "default": null
       }
     },
     "required": ["type", "name"],

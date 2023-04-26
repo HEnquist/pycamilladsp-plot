@@ -110,3 +110,9 @@ config_with_defaults = file_validator.get_processed_config()
 
 CamillaValidator also has `validate_yamlstring` which is used for a config supplied as a yaml string. There is also `validate_config` for configs that have already been parsed into a python object. 
 
+# TODO for v2.0
+- handle gain scale in gain filter and mixer
+- handle optionals in delay
+- add processors with compressor
+
+

@@ -5,8 +5,8 @@
       "minimum": 0
     },
     "mute": {
-      "type": "boolean",
-      "default": false
+      "type": ["boolean", "null"],
+      "default": null
     },
     "sources": {
       "type": "array",

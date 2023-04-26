@@ -126,6 +126,23 @@ def plot_pipeline(conf, toimage=False):
                     dest_p = b.input_point()
                     draw_arrow(ax, src_p, dest_p)
                     stages[-1][ch_nbr].append(b)
+            if step['type'] == 'Processor':
+                total_length += 1
+                name = step['name']
+                procconf = conf['processors'][name]
+                channels = []
+                for n in range(active_channels):
+                    # TODO show what channels are monitored and processed
+                    label = "ch {}".format(n)
+                    b = Block(label)
+                    b.place(2*total_length, -active_channels/2 + 0.5 + n)
+                    b.draw(ax)
+                    src_p = stages[-1][n][-1].output_point()
+                    dest_p = b.input_point()
+                    draw_arrow(ax, src_p, dest_p)
+                    channels.append([b])
+                draw_box(ax, total_length, active_channels, label=name)
+                stages.append(channels)
 
     total_length += 1
     channels = []

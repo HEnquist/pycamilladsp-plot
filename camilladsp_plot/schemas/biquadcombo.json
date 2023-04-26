@@ -170,21 +170,21 @@
         "enum": ["GraphicEqualizer"]
       },
       "freq_min": {
-        "type": "number",
+        "type": ["number", "null"],
         "exclusiveMinimum": 0.0,
-        "default": 20.0
+        "default": null
       },
       "freq_max": {
-        "type": "number",
+        "type": ["number", "null"],
         "exclusiveMinimum": 0.0,
-        "default": 20000.0
+        "default": null
       },
       "gains": {
         "type": "array",
         "items": {
           "type": "number",
-          "minimum": -20.0,
-          "maximim": 20.0
+          "minimum": -40.0,
+          "maximim": 40.0
         }
       }
     },

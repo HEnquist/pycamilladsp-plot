@@ -2,13 +2,17 @@
   "PipelineStep": {
     "properties": {
       "type": {
-        "enum": ["Mixer", "Filter"]
+        "enum": ["Mixer", "Filter", "Processor"]
       }
     },
     "required": ["type"]
   },
   "Mixer": {
     "properties": {
+      "description": {
+        "type": ["string", "null"],
+        "default": null
+      },
       "type": {
         "enum": ["Mixer"]
       },
@@ -22,6 +26,10 @@
   },
   "Filter": {
     "properties": {
+      "description": {
+        "type": ["string", "null"],
+        "default": null
+      },
       "type": {
         "enum": ["Filter"]
       },
@@ -38,6 +46,23 @@
       }
     },
     "required": ["type", "channel", "names"],
+    "additionalProperties": false
+  },
+  "Processor": {
+    "properties": {
+      "description": {
+        "type": ["string", "null"],
+        "default": null
+      },
+      "type": {
+        "enum": ["Processor"]
+      },
+      "name": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "required": ["type", "name"],
     "additionalProperties": false
   }
 }

@@ -274,7 +274,7 @@ class CamillaValidator():
                           "devices", "capture"])
 
         # Filters
-        for name, filt in self.config["filters"].items():
+        for name, filt in self.value_or_default(("filters",)).items():
             ok = self.validate(filt, self.filter_schema,
                                path=["filters", name])
             if ok:
@@ -322,11 +322,11 @@ class CamillaValidator():
                                   "filters", name, "parameters"])
 
         # Mixers
-        for name, mix in self.config["mixers"].items():
+        for name, mix in self.value_or_default(("mixers",)).items():
             self.validate(mix, self.mixer_schema, path=["mixers", name])
 
         # Pipeline
-        for idx, step in enumerate(self.config["pipeline"]):
+        for idx, step in enumerate(self.value_or_default(("pipeline",))):
             ok = self.validate(
                 step, self.pipeline_schemas["PipelineStep"], path=["pipeline", idx])
             if ok:
@@ -337,7 +337,7 @@ class CamillaValidator():
     # Validate the pipeline
     def validate_pipeline(self):
         num_channels = self.config["devices"]["capture"]["channels"]
-        for idx, step in enumerate(self.config["pipeline"]):
+        for idx, step in enumerate(self.value_or_default(("pipeline",))):
             if step["type"] == "Mixer":
                 mixname_with_tokens = step["name"]
                 mixname = self.replace_tokens_in_string(mixname_with_tokens)
@@ -373,7 +373,7 @@ class CamillaValidator():
             self.errorlist.append((path, msg))
 
     def validate_mixers(self):
-        for mixname, mixer_config in self.config["mixers"].items():
+        for mixname, mixer_config in self.value_or_default(("mixers",)).items():
             chan_in = mixer_config["channels"]["in"]
             chan_out = mixer_config["channels"]["out"]
             for idx, mapping in enumerate(mixer_config["mapping"]):
@@ -390,10 +390,10 @@ class CamillaValidator():
 
     def validate_filters(self):
         maxfreq = self.config["devices"]["samplerate"] / 2.0
-        for filter_name, filter_conf in self.config["filters"].items():
+        for filter_name, filter_conf in self.value_or_default(("filters",)).items():
             # Check that frequencies are below Nyquist
             if filter_conf["type"] in ["Biquad", "BiquadCombo"]:
-                for freq_prop in ["freq", "freq_act", "freq_target", "fls", "fhs", "fp1", "fp2", "fp3"]:
+                for freq_prop in ["freq", "freq_act", "freq_target", "fls", "fhs", "fp1", "fp2", "fp3", "freq_p", "freq_z", "freq_min", "freq_max"]:
                     if freq_prop in filter_conf["parameters"].keys():
                         if filter_conf["parameters"][freq_prop] >= maxfreq:
                             msg = "Frequency must be < samplerate/2"
@@ -420,6 +420,14 @@ class CamillaValidator():
                 if has_q and has_bw:
                     msg = "Both 'bandwidth' and 'q' given, only one is allowed"
                     path = ["filters", filter_name, "parameters"]
+                    self.errorlist.append((path, msg))
+            # Check that GraphicEqualizer min frequency is smaller than max frequency
+            if filter_conf["type"] == "BiquadCombo" and filter_conf["parameters"]["type"] == "GraphicEqualizer":
+                f_max = self.value_or_default(("parameters", "freq_max"), config=filter_conf)
+                f_min = self.value_or_default(("parameters", "freq_min"), config=filter_conf)
+                if f_max <= f_min:
+                    msg = "Invalid range, 'freq_max' must be larger than 'freq_min'"
+                    path = ["filters", filter_name, "parameters", "freq_max"]
                     self.errorlist.append((path, msg))
             # Check that Biquads have at only one of q and slope
             if filter_conf["type"] == "Biquad" and filter_conf["parameters"]["type"] in ["Highshelf", "Lowshelf"]:
@@ -453,8 +461,8 @@ class CamillaValidator():
                             path = ["filters", filter_name,
                                     "parameters", "filename"]
                             self.errorlist.append((path, msg))
-                        elif filter_conf["parameters"]["channel"] >= wavparams["channels"]:
-                            msg = f"Can't read channel {filter_conf['parameters']['channel']} of file '{fname}' which has channels 0..{wavparams['channels']-1}"
+                        elif self.value_or_default(("parameters", "channel"), config=filter_conf) >= wavparams["channels"]:
+                            msg = f"Can't read channel {self.value_or_default(('parameters', 'channel'), config=filter_conf)} of file '{fname}' which has channels 0..{wavparams['channels']-1}"
                             path = ["filters", filter_name,
                                     "parameters", "filename"]
                             self.errorlist.append((path, msg))
@@ -467,7 +475,7 @@ class CamillaValidator():
                         if filter_conf["parameters"]["format"] == "TEXT":
                             try:
                                 values = read_text_coeffs(
-                                    fname, filter_conf["parameters"]["skip_bytes_lines"], filter_conf["parameters"]["read_bytes_lines"])
+                                    fname, self.value_or_default(("parameters", "skip_bytes_lines"), config=filter_conf), self.value_or_default(("parameters", "read_bytes_lines"), config=filter_conf))
                                 if len(values) == 0:
                                     msg = f"File '{fname}' contains no values"
                                     path = ["filters", filter_name,
@@ -488,7 +496,7 @@ class CamillaValidator():
                                 with open(fname, 'rb') as f:
                                     f.seek(0, 2)
                                     coeff_len = f.tell()
-                                if coeff_len <= filter_conf["parameters"]["skip_bytes_lines"]:
+                                if coeff_len <= self.value_or_default(("parameters", "skip_bytes_lines"), config=filter_conf):
                                     msg = f"File '{fname}' contains no values"
                                     path = ["filters", filter_name,
                                             "parameters", "filename"]
@@ -500,23 +508,52 @@ class CamillaValidator():
                                 self.errorlist.append((path, msg))
 
     def validate_devices(self):
-        if self.config["devices"]["target_level"] >= 2 * self.config["devices"]["chunksize"]:
+        if self.value_or_default(("devices", "target_level")) >= 2 * self.config["devices"]["chunksize"]:
             self.errorlist.append(
                 (["devices", "target_level"], f"target_level can't be larger than {2 * self.config['devices']['chunksize']}"))
 
         # Specific checks for Wasapi
         if self.config["devices"]["capture"]["type"] == "Wasapi":
-            if self.config["devices"]["capture"]["loopback"] and self.config["devices"]["capture"]["exclusive"]:
+            if self.value_or_default(("devices", "capture" ,"loopback")) and self.value_or_default(("devices", "capture", "exclusive")):
                 self.errorlist.append((["devices", "capture", "exclusive"],
                                        "exclusive mode can't be combined with loopback capture"))
-            if not self.config["devices"]["capture"]["exclusive"] and self.config["devices"]["capture"]["format"] != "FLOAT32LE":
+            if not self.value_or_default(("devices", "capture", "exclusive")) and self.config["devices"]["capture"]["format"] != "FLOAT32LE":
                 self.errorlist.append(
                     (["devices", "capture", "format"], "in shared mode the format must be FLOAT32LE"))
         if self.config["devices"]["playback"]["type"] == "Wasapi":
-            if not self.config["devices"]["playback"]["exclusive"] and self.config["devices"]["playback"]["format"] != "FLOAT32LE":
+            if not self.value_or_default(("devices", "capture", "exclusive")) and self.config["devices"]["playback"]["format"] != "FLOAT32LE":
                 self.errorlist.append(
                     (["devices", "playback", "format"], "in shared mode the format must be FLOAT32LE"))
 
+    def value_or_default(self, path, config=None):
+        if config:
+            val=config
+        else:
+            val = self.config
+        for p in path:
+            val = val.get(p, {})
+        if val is None:
+            return self.lookup_default(path)
+        return val
+
+    def lookup_default(self, path):
+        if path == ("devices", "target_level"):
+            return self.config["devices"]["chunksize"]
+        return DEFAULT_VALUES.get(path)
+
+DEFAULT_VALUES = {
+    ("filters",): {},
+    ("mixers",): {},
+    ("pipeline",): [],
+    ("devices", "capture", "loopback"): False,
+    ("devices", "capture", "exclusive"): False,
+    ("parameters","freq_min"): 20.0,
+    ("parameters", "freq_max"): 20000.0,
+    ("parameters", "format"): "TEXT",
+    ("parameters", "skip_bytes_lines"): 0,
+    ("parameters", "read_bytes_lines"): 0,
+    ("parameters", "channel"): 0,
+}
 
 if __name__ == "__main__":
     file_validator = CamillaValidator()

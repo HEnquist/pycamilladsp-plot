@@ -16,7 +16,7 @@
       },
       "scale": {
         "type": ["string", "null"],
-        "enum": ["linear", "dB"],
+        "enum": ["linear", "dB", null],
         "default": null
       }
     },
@@ -31,7 +31,7 @@
       },
       "unit": {
         "type": ["string", "null"],
-        "enum": ["ms", "samples"],
+        "enum": ["ms", "samples", null],
         "default": null
       },
       "subsample": {
@@ -78,7 +78,7 @@
       },
       "fader" :{
         "type": ["string", "null"],
-        "enum": ["Main", "Aux1", "Aux2", "Aux3", "Aux4"],
+        "enum": ["Main", "Aux1", "Aux2", "Aux3", "Aux4", null],
         "default": null
       }
     },
@@ -88,9 +88,8 @@
   "Limiter": {
     "properties": {
       "clip_limit": {
-        "type": ["number", "null"],
-        "maximum": 0.0,
-        "default": null
+        "type": "number",
+        "maximum": 0.0
       },
       "soft_clip": {
         "type": ["boolean", "null"],

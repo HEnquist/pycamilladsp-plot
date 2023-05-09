@@ -95,10 +95,8 @@
         "exclusiveMinimum": 0
       },
       "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"]
-      },
-      "change_format": {
-        "type": ["boolean", "null"],
+        "type": ["string", "null"],
+        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", null],
         "default": null
       },
       "exclusive": {
@@ -106,7 +104,7 @@
         "default": null
       }
     },
-    "required": ["type", "device", "channels", "format"],
+    "required": ["type", "device", "channels"],
     "additionalProperties": false
   },
   "Jack": {

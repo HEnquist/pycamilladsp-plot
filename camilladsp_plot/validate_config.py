@@ -44,6 +44,8 @@ class CamillaValidator():
             self.playback_schemas_backup = json.load(f)
         with open(self.get_full_path("schemas/capture.json")) as f:
             self.capture_schemas_backup = json.load(f)
+        with open(self.get_full_path("schemas/resampler.json")) as f:
+            self.resampler_schemas = json.load(f)
         self.capture_schemas = deepcopy(self.capture_schemas_backup)
         self.playback_schemas = deepcopy(self.playback_schemas_backup)
 
@@ -272,6 +274,20 @@ class CamillaValidator():
             capture_schema = self.capture_schemas[capture_type]
             self.validate(self.config["devices"]["capture"], capture_schema, path=[
                           "devices", "capture"])
+
+        # Resampler
+        if self.config["devices"]["resampler"] is not None:
+            self.validate(self.config["devices"]["resampler"],
+                      self.resampler_schemas["resampler"], path=["devices", "resampler"])
+            resamp_type = self.config["devices"]["resampler"]["type"]
+            if resamp_type in ["Synchronous", "AsyncPoly"]:
+                resampler_schema = self.resampler_schemas[resamp_type]
+            elif "profile" in self.config["devices"]["resampler"]:
+                resampler_schema = self.resampler_schemas["AsyncSincProfile"]
+            else:
+                resampler_schema = self.resampler_schemas["AsyncSincFree"]
+            self.validate(self.config["devices"]["resampler"],
+                      resampler_schema, path=["devices", "resampler"])
 
         # Filters
         for name, filt in self.value_or_default(("filters",)).items():

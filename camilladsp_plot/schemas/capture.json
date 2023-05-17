@@ -34,7 +34,7 @@
         "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
       }
     },
-    "required": ["type", "device", "channels", "format"],
+    "required": ["type", "channels", "device", "format"],
     "additionalProperties": false
   },
   "Pulse": {
@@ -83,7 +83,7 @@
         "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"]
       }
     },
-    "required": ["type", "device", "channels", "format"],
+    "required": ["type", "channels", "format"],
     "additionalProperties": false
   },
   "CoreAudio": {
@@ -92,7 +92,8 @@
         "enum": ["CoreAudio"]
       },
       "device": {
-        "type": "string",
+        "type": ["string", "null"],
+        "default": null,
         "minLength": 1
       },
       "channels": {
@@ -105,7 +106,7 @@
         "default": null
       }
     },
-    "required": ["type", "device", "channels"],
+    "required": ["type", "channels"],
     "additionalProperties": false
   },
   "Jack": {

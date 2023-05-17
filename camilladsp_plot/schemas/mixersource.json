@@ -11,6 +11,11 @@
       "type": ["boolean", "null"],
       "default": null
     },
+    "scale": {
+      "type": ["string", "null"],
+      "emum": ["dB", "linear", null],
+      "default": null
+    },
     "mute": {
       "type": ["boolean", "null"],
       "default": null

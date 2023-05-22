@@ -276,7 +276,7 @@ class CamillaValidator():
                           "devices", "capture"])
 
         # Resampler
-        if self.config["devices"]["resampler"] is not None:
+        if self.config["devices"].get("resampler") is not None:
             self.validate(self.config["devices"]["resampler"],
                       self.resampler_schemas["resampler"], path=["devices", "resampler"])
             resamp_type = self.config["devices"]["resampler"]["type"]

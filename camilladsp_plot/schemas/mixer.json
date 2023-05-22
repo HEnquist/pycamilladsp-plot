@@ -43,6 +43,11 @@
                 "gain": {
                   "type": "number"
                 },
+                "scale": {
+                  "type": ["string", "null"],
+                  "emum": ["dB", "linear", null],
+                  "default": null
+                },
                 "inverted": {
                   "type": ["boolean", "null"],
                   "default": null

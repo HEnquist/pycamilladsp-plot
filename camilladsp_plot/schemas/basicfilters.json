@@ -80,6 +80,10 @@
         "type": ["string", "null"],
         "enum": ["Main", "Aux1", "Aux2", "Aux3", "Aux4", null],
         "default": null
+      },
+      "attenuate_mid": {
+        "type": ["boolean", "null"],
+        "default": null
       }
     },
     "required": ["reference_level"],

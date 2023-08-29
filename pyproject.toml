@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["camilladsp_plot"]
+
+[project]
+name = "camilladsp_plot"
+authors = [
+    {name = "Henrik Enquist", email = "henrik.enquist@gmail.com"},
+]
+description = "A library for validating, evaluating and plotting configs and filters for CamillaDSP"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "PyYAML >= 6.0",
+    "jsonschema >= 4.10"
+]
+dynamic = ["version"]
+license = {file = "LICENSE.txt"}
+
+[tool.setuptools.dynamic]
+version = {attr = "camilladsp_plot.VERSION"}
+
+[project.optional-dependencies]
+numpy = ["numpy"]
+plot = ["numpy", "matplotlib"]
+
+[project.scripts]
+plotcamillaconf = "camilladsp_plot.plotcamillaconf:main"
+
+[tool.setuptools.package-data]
+camilladsp_plot = ['schemas/*.json']

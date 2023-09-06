@@ -31,19 +31,24 @@ For Homebrew, install Python with `brew install python`, after which you can ins
 ## Install
 This library is installed with `pip`. It is recommended to install it in a dedicated environment.
 This can be a [conda environment](https://conda.io/activation) or [virtual python environment](https://docs.python.org/3/library/venv.html).
-Download the library, either by `git clone` or by downloading a zip file of the code. Then unpack the files, go to the folder containing the `pyproject.toml` file, activate the virtual environment (see respective documentation).
-The install by running: 
+The easiest way to install is to let `pip` fetch the needed files directly from github.
+For example, the following command would install version 2.0.0:
 ```sh
-pip install .
+pip install git+https://github.com/HEnquist/pycamilladsp-plot.git@v2.0.0
 ```
 Note that on some systems the command is `pip3` instead of `pip`.
+The last part, `@v2.0.0`, is the git reference of the version to install.
+It can be a tag, a branch or a commit.
 
-Instead of installing the dependencies in the system, they can be installed in the virtual environment.
-To do this, run:
+### Optional dependencies
+The dependencies `matplotlib` and `numpy` are defined as optional,
+and the pip command shown above will not install them if they are not already available.
+To tell pip to install these dependencies, run:
 ```sh
-pip install ".[plot]"
+pip install "camilladsp-plot[plot]@git+https://github.com/HEnquist/pycamilladsp-plot.git@v2.0.0"
 ```
-The `[plot]` option tells pip to install also the optional dependencies `numpy` and `pyplot`.
+The `[plot]` option tells pip to install also the optional dependencies `numpy` and `matplotlib`.
+There is also a `[numpy]` option that includes `numpy` but not `matplotlib`. 
 
 
 ## Plotting a configuration from the command line

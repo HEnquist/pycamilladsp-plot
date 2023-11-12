@@ -32,7 +32,7 @@ For Homebrew, install Python with `brew install python`, after which you can ins
 This library is installed with `pip`. It is recommended to install it in a dedicated environment.
 This can be a [conda environment](https://conda.io/activation) or [virtual python environment](https://docs.python.org/3/library/venv.html).
 The easiest way to install is to let `pip` fetch the needed files directly from github.
-For example, the following command would install version 2.0.0:
+For example, the following command would install version 2.0.0 which is tagged `v2.0.0`:
 ```sh
 pip install git+https://github.com/HEnquist/pycamilladsp-plot.git@v2.0.0
 ```
@@ -128,9 +128,8 @@ config_with_defaults = file_validator.get_processed_config()
 
 CamillaValidator also has `validate_yamlstring` which is used for a config supplied as a yaml string. There is also `validate_config` for configs that have already been parsed into a python object. 
 
-# TODO for v2.0
-- handle gain scale in gain filter and mixer
-- handle optionals in delay
-- add processors with compressor
+# TODO
+- pipeline view: leave out bypassed blocks
+- pipeline view: indicate muted channels in mixers
 
 

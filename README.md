@@ -1,44 +1,17 @@
 # pyCamillaDSP_plot
 Companion Python library for plotting configurations and filters for CamillaDSP. It is also used by the web interface.
 
-## Requirements
-This library requires Python 3.8 or newer. For plotting configurations with the commandline tool `plotcamillaconf`, it also requires `numpy` and `matplotlib`. These are not required for using only with the web interface, but if `numpy` is available it will be used to speed up evaluation of FIR filters. 
+## Installation
+### Requirements
+This library requires Python 3.8 or newer. For plotting configurations with the commandline tool `plotcamillaconf`, it also requires `numpy` and `matplotlib`. These are not required for using only with the web interface, but if `numpy` is available it will be used to speed up evaluation of FIR filters.
 
-These are the names of the packages needed:
-| Distribution    | python    | jsonschema         | numpy (optional) | matplotlib (optional) |
-|-----------------|-----------|--------------------|------------------|-----------------------|
-| Fedora          | python3   | python3-jsonschema | python3-numpy    | python3-matplotlib    |
-| Debian/Raspbian | python3   | python3-jsonschema | python3-numpy    | python3-matplotlib    |
-| Arch            | python    | python-jsonschema  | python-numpy     | python-matplotlib     |
-| pip             | -         | jsonschema         | numpy            | matplotlib            | 
-| Anaconda        | -         | jsonschema         | numpy            | matplotlib            |
+### Prepare the Python environment
+The easiest way to get the Python environment prepared is to use the setup scripts from
+[camilladsp-setupscripts](https://github.com/HEnquist/camilladsp-setupscripts).
 
-### Linux
-Most linux distributions have Python 3.8 or newer installed by default. Use the normal package manager to install the packages.
-
-### Windows
-Use [miniconda](https://docs.conda.io/projects/miniconda/en/latest/),
-and install the dependencies with the `conda` command line tool.
-It's also possible to use the full [Anaconda distribution](https://www.anaconda.com/products/individual).
-Then use either `conda` or Anaconda Navigator to install the dependencies.
-
-
-### macOS
-On macOS use either miniconda, Anaconda or Homebrew. The miniconda and Anaconda procedures are the same as for Windows. 
-
-For Homebrew, install Python with `brew install python`, after which you can install the needed packages with pip, `pip3 install numpy` etc.
-
-## Install
-This library is installed with `pip`. It is recommended to install it in a dedicated environment.
-This can be a [conda environment](https://conda.io/activation) or [virtual python environment](https://docs.python.org/3/library/venv.html).
-The easiest way to install is to let `pip` fetch the needed files directly from github.
-For example, the following command would install version 2.0.0 which is tagged `v2.0.0`:
-```sh
-pip install git+https://github.com/HEnquist/pycamilladsp-plot.git@v2.0.0
-```
-Note that on some systems the command is `pip3` instead of `pip`.
-The last part, `@v2.0.0`, is the git reference of the version to install.
-It can be a tag, a branch or a commit.
+If doing a manual installation, there are many ways of installing Python and setting up environments.
+Please see the [documentation for pycamilladsp](https://henquist.github.io/pycamilladsp/install/#installing)
+for more information.
 
 ### Optional dependencies
 The dependencies `matplotlib` and `numpy` are defined as optional,

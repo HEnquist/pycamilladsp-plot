@@ -6,7 +6,8 @@
         "enum": [
           "Raw",
           "Wav",
-          "Values"
+          "Values",
+          "Dummy"
         ]
       }
     },
@@ -22,7 +23,7 @@
         "minLength": 1
       },
       "format": {
-        "type": "string",
+        "type": ["string", "null"],
         "enum": [
           "S16LE",
           "S24LE",
@@ -30,18 +31,19 @@
           "S32LE",
           "FLOAT32LE",
           "FLOAT64LE",
-          "TEXT"
+          "TEXT",
+          null
         ],
-        "default": "TEXT"
+        "default": null
       },
       "skip_bytes_lines": {
-        "type": "integer",
-        "default": 0,
+        "type": ["integer", "null"],
+        "default": null,
         "minimum": 0
       },
       "read_bytes_lines": {
-        "type": "integer",
-        "default": 0,
+        "type": ["integer", "null"],
+        "default": null,
         "minimum": 0
       }
     },
@@ -58,8 +60,8 @@
         "minLength": 1
       },
       "channel": {
-        "type": "integer",
-        "default": 0,
+        "type": ["integer", "null"],
+        "default": null,
         "minimum": 0
       }
     },
@@ -75,16 +77,23 @@
         "type": "array",
         "items": {
           "type": "number"
-        },
-        "default": [1]
-      },
-      "length": {
-        "type": "number",
-        "default": 0,
-        "minimum": 0
+        }
       }
     },
     "required": ["type", "values"],
+    "additionalProperties": false
+  },
+  "Dummy": {
+    "properties": {
+      "type": {
+        "enum": ["Dummy"]
+      },
+      "length": {
+        "type": "number",
+        "minimum": 1
+      }
+    },
+    "required": ["type", "length"],
     "additionalProperties": false
   }
 }

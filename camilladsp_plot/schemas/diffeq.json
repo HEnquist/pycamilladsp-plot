@@ -4,23 +4,27 @@
       "type": "string",
       "enum": ["DiffEq"]
     },
+    "description": {
+      "type": ["string", "null"],
+      "default": null
+    },
     "parameters": {
       "type": "object",
       "items": {
         "properties": {
           "a": {
-            "type": "array",
+            "type": ["array", "null"],
             "items": {
               "type": "number"
             },
-            "default": [1.0]
+            "default": null
           },
           "b": {
-            "type": "array",
+            "type": ["array", "null"],
             "items": {
               "type": "number"
             },
-            "default": [1.0]
+            "default": null
           }
         },
         "additionalProperties": false

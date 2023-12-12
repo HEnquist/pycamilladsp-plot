@@ -7,12 +7,17 @@
         "maximum": 150.0
       },
       "inverted": {
-        "type": "boolean",
-        "default": false
+        "type": ["boolean", "null"],
+        "default": null
       },
       "mute": {
-        "type": "boolean",
-        "default": false
+        "type": ["boolean", "null"],
+        "default": null
+      },
+      "scale": {
+        "type": ["string", "null"],
+        "enum": ["linear", "dB", null],
+        "default": null
       }
     },
     "required": ["gain"],
@@ -25,12 +30,13 @@
         "minimum": 0.0
       },
       "unit": {
-        "enum": ["ms", "samples"],
-        "default": "ms"
+        "type": ["string", "null"],
+        "enum": ["ms", "samples", null],
+        "default": null
       },
       "subsample": {
-        "type": "boolean",
-        "default": false
+        "type": ["boolean", "null"],
+        "default": null
       }
     },
     "required": ["delay"],
@@ -39,40 +45,62 @@
   "Volume": {
     "properties": {
       "ramp_time": {
-        "type": "number",
-        "default": "200",
+        "type": ["number", "null"],
+        "default": null,
         "minimum": 0.0
+      },
+      "fader" :{
+        "type": "string",
+        "enum": ["Aux1", "Aux2", "Aux3", "Aux4"]
       }
     },
-    "required": [],
+    "required": ["fader"],
     "additionalProperties": false
   },
   "Loudness": {
     "properties": {
-      "ramp_time": {
-        "type": "number",
-        "default": "200.0",
-        "minimum": 0.0
-      },
       "reference_level": {
         "type": "number",
         "minimum": -100.0,
-        "maximum": 0.0
+        "maximum": 20.0
       },
       "high_boost": {
-        "type": "number",
-        "default": "10.0",
+        "type": ["number", "null"],
+        "default": null,
         "minimum": 0.0,
         "maximum": 20.0
       },
       "low_boost": {
-        "type": "number",
-        "default": "10.0",
+        "type": ["number", "null"],
+        "default": null,
         "minimum": 0.0,
         "maximum": 20.0
+      },
+      "fader" :{
+        "type": ["string", "null"],
+        "enum": ["Main", "Aux1", "Aux2", "Aux3", "Aux4", null],
+        "default": null
+      },
+      "attenuate_mid": {
+        "type": ["boolean", "null"],
+        "default": null
       }
     },
     "required": ["reference_level"],
+    "additionalProperties": false
+  },
+  "Limiter": {
+    "properties": {
+      "clip_limit": {
+        "type": "number",
+        "maximum": 0.0
+      },
+      "soft_clip": {
+        "type": ["boolean", "null"],
+        "default": null
+      }
+    },
+    "required": [],
     "additionalProperties": false
   }
 }

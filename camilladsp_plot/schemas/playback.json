@@ -33,7 +33,7 @@
         "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
       }
     },
-    "required": ["type", "device", "channels", "format"],
+    "required": ["type", "channels", "device", "format"],
     "additionalProperties": false
   },
   "Pulse": {
@@ -62,7 +62,8 @@
         "enum": ["Wasapi"]
       },
       "device": {
-        "type": "string",
+        "type": ["string", "null"],
+        "default": null,
         "minLength": 1
       },
       "channels": {
@@ -70,14 +71,14 @@
         "exclusiveMinimum": 0
       },
       "exclusive": {
-        "type": "boolean",
-        "default": false
+        "type": ["boolean", "null"],
+        "default": null
       },
       "format": {
         "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"]
       }
     },
-    "required": ["type", "device", "channels", "format"],
+    "required": ["type", "channels", "format"],
     "additionalProperties": false
   },
   "CoreAudio": {
@@ -86,7 +87,8 @@
         "enum": ["CoreAudio"]
       },
       "device": {
-        "type": "string",
+        "type": ["string", "null"],
+        "default": null,
         "minLength": 1
       },
       "channels": {
@@ -94,18 +96,16 @@
         "exclusiveMinimum": 0
       },
       "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"]
-      },
-      "change_format": {
-        "type": "boolean",
-        "default": false
+        "type": ["string", "null"],
+        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", null],
+        "default": null
       },
       "exclusive": {
-        "type": "boolean",
-        "default": false
+        "type": ["boolean", "null"],
+        "default": null
       }
     },
-    "required": ["type", "device", "channels", "format"],
+    "required": ["type", "channels"],
     "additionalProperties": false
   },
   "Jack": {

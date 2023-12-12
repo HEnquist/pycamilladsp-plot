@@ -1,36 +1,27 @@
 # pyCamillaDSP_plot
 Companion Python library for plotting configurations and filters for CamillaDSP. It is also used by the web interface.
 
-Download the library, either by `git clone` or by downloading a zip file of the code. Then unpack the files, go to the folder containing the `setup.py` file and run: 
+## Installation
+### Requirements
+This library requires Python 3.8 or newer. For plotting configurations with the commandline tool `plotcamillaconf`, it also requires `numpy` and `matplotlib`. These are not required for using only with the web interface, but if `numpy` is available it will be used to speed up evaluation of FIR filters.
+
+### Prepare the Python environment
+The easiest way to get the Python environment prepared is to use the setup scripts from
+[camilladsp-setupscripts](https://github.com/HEnquist/camilladsp-setupscripts).
+
+If doing a manual installation, there are many ways of installing Python and setting up environments.
+Please see the [documentation for pycamilladsp](https://henquist.github.io/pycamilladsp/install/#installing)
+for more information.
+
+### Optional dependencies
+The dependencies `matplotlib` and `numpy` are defined as optional,
+and the pip command shown above will not install them if they are not already available.
+To tell pip to install these dependencies, run:
 ```sh
-pip install .
+pip install "camilladsp-plot[plot]@git+https://github.com/HEnquist/pycamilladsp-plot.git@v2.0.0"
 ```
-Note that on some systems the command is `pip3` instead of `pip`.
-
-## Requirements
-This library requires Python 3.6 or newer. For plotting configurations with the commandline tool `plotcamillaconf`, it also requires `numpy` and `matplotlib`. These are not required for using only with the web interface, but if `numpy` is available it will be used to speed up evaluation of FIR filters. 
-
-These are the names of the packages needed:
-| Distribution    | python    | jsonschema         | numpy (optional) | matplotlib (optional) |
-|-----------------|-----------|--------------------|------------------|-----------------------|
-| Fedora          | python3   | python3-jsonschema | python3-numpy    | python3-matplotlib    |
-| Debian/Raspbian | python3   | python3-jsonschema | python3-numpy    | python3-matplotlib    |
-| Arch            | python    | python-jsonschema  | python-numpy     | python-matplotlib     |
-| pip             | -         | jsonschema         | numpy            | matplotlib            | 
-| Anaconda        | -         | jsonschema         | numpy            | matplotlib            |
-
-### Linux
-Most linux distributions have Python 3.6 or newer installed by default. Use the normal package manager to install the packages.
-
-### Windows
-Use Anaconda: https://www.anaconda.com/products/individual. Then use Anaconda Navigator to install the dependencies.
-
-### macOS
-On macOS use either Anaconda or Homebrew. The Anaconda procedure is the same as for Windows. 
-
-For Homebrew, install Python with `brew install python`, after which you can install the needed packages with pip, `pip3 install numpy` etc.
-
-
+The `[plot]` option tells pip to install also the optional dependencies `numpy` and `matplotlib`.
+There is also a `[numpy]` option that includes `numpy` but not `matplotlib`. 
 
 
 ## Plotting a configuration from the command line
@@ -109,4 +100,9 @@ config_with_defaults = file_validator.get_processed_config()
 ```
 
 CamillaValidator also has `validate_yamlstring` which is used for a config supplied as a yaml string. There is also `validate_config` for configs that have already been parsed into a python object. 
+
+# TODO
+- pipeline view: leave out bypassed blocks
+- pipeline view: indicate muted channels in mixers
+
 

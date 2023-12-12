@@ -4,15 +4,28 @@
       "type": {
         "type": "string",
         "enum": [
-          "Simple",
-          "Uniform",
-          "Lipshitz441",
+          "None",
+          "Flat",
+          "Highpass",
           "Fweighted441",
+          "FweightedLong441",
+          "FweightedShort441",
+          "Gesemann441",
+          "Gesemann48",
+          "Lipshitz441",
+          "LipshitzLong441",
           "Shibata441",
-          "Shibata48",
+          "ShibataHigh441",
           "ShibataLow441",
+          "Shibata48",
+          "ShibataHigh48",
           "ShibataLow48",
-          "None"
+          "Shibata882",
+          "ShibataLow882",
+          "Shibata96",
+          "ShibataLow96",
+          "Shibata192",
+          "ShibataLow192"
         ]
       },
       "bits": {
@@ -22,12 +35,12 @@
     },
     "required": ["type", "bits"]
   },
-  "Uniform": {
+  "Flat": {
     "properties": {
       "type": {
         "type": "string",
         "enum": [
-          "Uniform"
+          "Flat"
         ]
       },
       "amplitude": {

@@ -164,6 +164,8 @@ class Delay(BaseFilter):
     def __init__(self, conf, fs):
         self.fs = fs
         unit = conf.get("unit", "ms")
+        if unit is None:
+            unit = "ms"
         if unit == "ms":
             self.delay_samples = conf["delay"] / 1000.0 * fs
         elif unit == "mm":
@@ -173,7 +175,7 @@ class Delay(BaseFilter):
         else:
             raise RuntimeError(f"Unknown unit {unit}")
         
-        self.subsample = conf.get("subsample", False)
+        self.subsample = conf.get("subsample", False) == True
         if self.subsample:
             self.delay_full_samples = math.floor(self.delay_samples)
             self.fraction = self.delay_samples - self.delay_full_samples
@@ -207,11 +209,17 @@ class Delay(BaseFilter):
 class Gain(BaseFilter):
     def __init__(self, conf):
         self.gain = conf["gain"]
-        self.inverted = conf["inverted"]
+        self.inverted = conf["inverted"] == True
+        self.scale = conf["scale"]
+        if self.scale is None:
+            self.scale = "dB"
 
     def complex_gain(self, f, remove_delay=False):
         sign = -1.0 if self.inverted else 1.0
-        gain = 10.0**(self.gain/20.0) * sign
+        if self.scale == "dB":
+            gain = 10.0**(self.gain/20.0) * sign
+        else:
+            gain = self.gain * sign
         A = [gain for n in range(len(f))]
         return f, A
 
@@ -282,6 +290,29 @@ class BiquadCombo(BaseFilter):
             p3conf = Biquad(
                 {"freq": conf["fp3"], "q": conf["qp3"], "gain": conf["gp3"], "type": "Peaking"}, fs)
             self.biquads = [lsconf, p1conf, p2conf, p3conf, hsconf]
+        elif self.ftype == "GraphicEqualizer":
+            bands = len(conf["gains"])
+            f_min = conf["freq_min"] if conf["freq_min"] else 20.0
+            f_max = conf["freq_max"] if conf["freq_max"] else 20000.0
+            f_min_log = math.log2(f_min)
+            f_max_log = math.log2(f_max)
+            self.biquads = []
+            bw = (f_max_log - f_min_log)/bands
+            for band, gain in enumerate(conf["gains"]):
+                if math.fabs(gain) > 0.01:
+                    freq_log = f_min_log + (band + 0.5) * bw
+                    freq = 2.0**freq_log
+                    filt = Biquad(
+                        {"freq": freq, "bandwidth": bw, "gain": gain, "type": "Peaking"}, fs)
+                    self.biquads.append(filt)
+        elif self.ftype == "Tilt":
+            gain_low = -conf["gain"]/2.0
+            gain_high = conf["gain"]/2.0
+            lsconf = Biquad(
+                {"freq": 110.0, "q": 0.35, "gain": gain_low, "type": "Lowshelf"}, fs)
+            hsconf = Biquad(
+                {"freq": 3500.0, "q": 0.35, "gain": gain_high, "type": "Highshelf"}, fs)
+            self.biquads = [lsconf, hsconf]
 
     def is_stable(self):
         # TODO
@@ -401,7 +432,6 @@ class Biquad(BaseFilter):
             a2 = 0.0
         elif ftype == "Lowshelf":
             freq = conf["freq"]
-
             gain = conf["gain"]
             omega = 2.0 * math.pi * freq / fs
             ampl = 10.0 ** (gain / 40.0)
@@ -465,6 +495,32 @@ class Biquad(BaseFilter):
             a0 = 1.0 + alpha
             a1 = -2.0 * cs
             a2 = 1.0 - alpha
+        elif ftype == "GeneralNotch":
+            f_p = conf["freq_pole"]
+            f_z = conf["freq_zero"]
+            q_p = conf["q_pole"]
+            normalize_at_dc = conf["normalize_at_dc"] == True
+
+            # apply pre-warping 
+            tn_z = math.tan( math.pi * f_z / fs )
+            tn_p = math.tan( math.pi * f_p / fs )
+            alpha = tn_p / q_p
+            tn2_p = tn_p**2
+            tn2_z = tn_z**2
+
+            # calculate gain
+            if normalize_at_dc:
+                gain = tn2_p / tn2_z
+            else:
+                gain = 1.0
+
+            b0 = gain * (1.0 + tn2_z)
+            b1 = -2.0 * gain * (1.0 - tn2_z)
+            b2 = gain * (1.0 + tn2_z)
+            a0 = 1.0 + alpha + tn2_p
+            a1 = -2.0 + 2.0 * tn2_p
+            a2 = 1.0 - alpha + tn2_p
+
         elif ftype == "Bandpass":
             freq = conf["freq"]
             omega = 2.0 * math.pi * freq / fs

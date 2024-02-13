@@ -115,17 +115,20 @@ def plot_pipeline(conf, toimage=False):
                 stages.append(channels)
                 stage_start = total_length
             elif step['type'] == 'Filter':
-                ch_nbr = step['channel']
-                for name in step['names']:
-                    b = Block(name)
-                    ch_step = stage_start + len(stages[-1][ch_nbr])
-                    total_length = max((total_length, ch_step))
-                    b.place(ch_step*2, -active_channels/2 + 0.5 + ch_nbr)
-                    b.draw(ax)
-                    src_p = stages[-1][ch_nbr][-1].output_point()
-                    dest_p = b.input_point()
-                    draw_arrow(ax, src_p, dest_p)
-                    stages[-1][ch_nbr].append(b)
+                ch_nbrs = step['channels']
+                if ch_nbrs is None:
+                    ch_nbrs = range(active_channels)
+                for ch_nbr in ch_nbrs:
+                    for name in step['names']:
+                        b = Block(name)
+                        ch_step = stage_start + len(stages[-1][ch_nbr])
+                        total_length = max((total_length, ch_step))
+                        b.place(ch_step*2, -active_channels/2 + 0.5 + ch_nbr)
+                        b.draw(ax)
+                        src_p = stages[-1][ch_nbr][-1].output_point()
+                        dest_p = b.input_point()
+                        draw_arrow(ax, src_p, dest_p)
+                        stages[-1][ch_nbr].append(b)
             if step['type'] == 'Processor':
                 total_length += 1
                 name = step['name']

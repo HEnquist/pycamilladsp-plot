@@ -42,7 +42,8 @@
         "items": {
           "type": "number",
           "minimum": 0
-        }
+        },
+        "uniqueItems": true
       },
       "names": {
         "type": "array",

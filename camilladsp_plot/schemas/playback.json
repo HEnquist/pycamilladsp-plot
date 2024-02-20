@@ -136,6 +136,10 @@
       },
       "format": {
         "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+      },
+      "wav_header": {
+        "type": ["boolean", "null"],
+        "default": null
       }
     },
     "required": ["type", "channels", "format"],
@@ -156,6 +160,10 @@
       },
       "format": {
         "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+      },
+      "wav_header": {
+        "type": ["boolean", "null"],
+        "default": null
       }
     },
     "required": ["type", "filename", "channels", "format"],

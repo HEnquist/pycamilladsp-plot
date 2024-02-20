@@ -11,7 +11,8 @@
           "Jack",
           "File",
           "Stdin",
-          "Bluez"
+          "Bluez",
+          "SignalGenerator"
         ]
       }
     },
@@ -215,6 +216,22 @@
       }
     },
     "required": ["type", "dbus_path", "channels", "format"],
+    "additionalProperties": false
+  },
+  "SignalGenerator": {
+    "properties": {
+      "type": {
+        "enum": ["SignalGenerator"]
+      },
+      "channels": {
+        "type": "integer",
+        "exclusiveMinimum": 0
+      },
+      "signal": {
+        "type": "object"
+      }
+    },
+    "required": ["type", "channels", "signal"],
     "additionalProperties": false
   }
 }

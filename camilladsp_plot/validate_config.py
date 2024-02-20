@@ -48,6 +48,8 @@ class CamillaValidator():
             self.resampler_schemas = json.load(f)
         self.capture_schemas = deepcopy(self.capture_schemas_backup)
         self.playback_schemas = deepcopy(self.playback_schemas_backup)
+        with open(self.get_full_path("schemas/signalgen.json")) as f:
+            self.signal_schemas = json.load(f)
 
         # Filters
         with open(self.get_full_path("schemas/filter.json")) as f:
@@ -112,26 +114,29 @@ class CamillaValidator():
 
     def replace_tokens(self):
         config = deepcopy(self.config)
-        for _filt, fconf in config['filters'].items():
-            if fconf['type'] == 'Conv':
-                if 'parameters' in fconf:
-                    if "filename" in fconf['parameters']:
-                        fconf['parameters']["filename"] = self.replace_tokens_in_string(
-                            fconf['parameters']["filename"])
+        if config.get('filters') is not None:
+            for _filt, fconf in config['filters'].items():
+                if fconf['type'] == 'Conv':
+                    if 'parameters' in fconf:
+                        if "filename" in fconf['parameters']:
+                            fconf['parameters']["filename"] = self.replace_tokens_in_string(
+                                fconf['parameters']["filename"])
 
-        for step in config['pipeline']:
-            if step['type'] == 'Mixer':
-                step['name'] = self.replace_tokens_in_string(step['name'])
-            elif step['type'] == 'Filter':
-                for _i, name in enumerate(step['names']):
-                    name = self.replace_tokens_in_string(name)
+        if config.get('mixers') is not None:
+            for step in config['pipeline']:
+                if step['type'] == 'Mixer':
+                    step['name'] = self.replace_tokens_in_string(step['name'])
+                elif step['type'] == 'Filter':
+                    for _i, name in enumerate(step['names']):
+                        name = self.replace_tokens_in_string(name)
         return config
 
     def make_paths_absolute(self, config):
-        for _name, filt in config["filters"].items():
-            if filt["type"] == "Conv" and filt["parameters"]["type"] in ["Raw", "Wav"]:
-                filt["parameters"]["filename"] = self.check_and_replace_relative_path(
-                    filt["parameters"]["filename"])
+        if config.get('filters') is not None:
+            for _name, filt in config["filters"].items():
+                if filt["type"] == "Conv" and filt["parameters"]["type"] in ["Raw", "Wav"]:
+                    filt["parameters"]["filename"] = self.check_and_replace_relative_path(
+                        filt["parameters"]["filename"])
 
     def check_and_replace_relative_path(self, path_str):
         if self.filename is None:
@@ -252,6 +257,15 @@ class CamillaValidator():
             capture_schema = self.capture_schemas[capture_type]
             self.validate(self.config["devices"]["capture"], capture_schema, path=[
                           "devices", "capture"])
+            if capture_type == "SignalGenerator":
+                signal_schema = self.signal_schemas["signal"]
+                ok = self.validate(self.config["devices"]["capture"]["signal"], signal_schema, path=[
+                           "devices", "capture", "signal"])
+                if ok:
+                    signal_type = self.config["devices"]["capture"]["signal"]["type"]
+                    signal_schema = self.signal_schemas[signal_type]
+                    self.validate(self.config["devices"]["capture"]["signal"], signal_schema, path=[
+                              "devices", "capture", "signal"])
 
         # Resampler
         if self.config["devices"].get("resampler") is not None:

@@ -87,7 +87,7 @@ def plot_pipeline(conf, toimage=False):
 
     total_length = 0
     stage_start = 0
-    if 'pipeline' in conf:
+    if 'pipeline' in conf and conf['pipeline'] is not None:
         for step in conf['pipeline']:
             if step['type'] == 'Mixer':
                 total_length += 1

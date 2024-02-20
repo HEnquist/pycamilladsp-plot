@@ -61,7 +61,7 @@ def plot_filter(filterconf, name=None, samplerate=44100, npoints=1000, toimage=F
 
 def plot_filters(conf):
     srate = conf['devices']['samplerate']
-    if 'filters' in conf:
+    if 'filters' in conf and conf['filters'] is not None:
         for filter, fconf in conf['filters'].items():
             plot_filter(fconf, samplerate=srate, name=filter)
 
@@ -90,7 +90,7 @@ def plot_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, toimag
 
 
 def plot_all_filtersteps(conf, npoints=1000, toimage=False):
-    if 'pipeline' in conf:
+    if 'pipeline' in conf and conf['pipeline'] is not None:
         for idx, step in enumerate(conf['pipeline']):
             if step["type"] == "Filter":
                 plot_filterstep(conf, idx, name="Pipeline step {}".format(

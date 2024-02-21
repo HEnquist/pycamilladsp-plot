@@ -43,6 +43,7 @@
           "type": "number",
           "minimum": 0
         },
+        "default": null,
         "uniqueItems": true
       },
       "names": {

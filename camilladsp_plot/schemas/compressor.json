@@ -16,7 +16,8 @@
           "type": "number",
           "minimum": 0
         },
-        "default": null
+        "default": null,
+        "uniqueItems": true
       },
       "process_channels": {
         "type": ["array", "null"],
@@ -24,7 +25,8 @@
           "type": "number",
           "minimum": 0
         },
-        "default": null
+        "default": null,
+        "uniqueItems": true
       },
       "release": {
         "type": "number",

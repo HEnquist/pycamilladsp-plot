@@ -59,17 +59,19 @@ def plot_filter(filterconf, name=None, samplerate=44100, npoints=1000, toimage=F
         return buf
 
 
-def plot_filters(conf):
+def plot_filters(conf, overrides=None):
     srate = conf['devices']['samplerate']
+    if overrides is not None and overrides.get('samplerate') is not None and conf["devices"].get("resampler") is None:
+        srate = overrides['samplerate']
     if 'filters' in conf and conf['filters'] is not None:
         for filter, fconf in conf['filters'].items():
             plot_filter(fconf, samplerate=srate, name=filter)
 
 
-def plot_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, toimage=False):
+def plot_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, toimage=False, overrides=None):
     if toimage:
         matplotlib.use('Agg')
-    filterdata = eval_filterstep(conf, pipelineindex, name, npoints)
+    filterdata = eval_filterstep(conf, pipelineindex, name, npoints, overrides=overrides)
     fplot = filterdata["f"]
     magn = filterdata["magnitude"]
     phase = filterdata["phase"]
@@ -89,9 +91,9 @@ def plot_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, toimag
         return buf
 
 
-def plot_all_filtersteps(conf, npoints=1000, toimage=False):
+def plot_all_filtersteps(conf, npoints=1000, toimage=False, overrides=None):
     if 'pipeline' in conf and conf['pipeline'] is not None:
         for idx, step in enumerate(conf['pipeline']):
             if step["type"] == "Filter":
                 plot_filterstep(conf, idx, name="Pipeline step {}".format(
-                    idx), npoints=npoints, toimage=toimage)
+                    idx), npoints=npoints, toimage=toimage, overrides=overrides)

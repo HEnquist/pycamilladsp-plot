@@ -68,9 +68,10 @@ def eval_filter(filterconf, name=None, samplerate=44100, npoints=1000):
     return result
 
 
-def eval_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, toimage=False):
-
+def eval_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, overrides=None):
     samplerate = conf['devices']['samplerate']
+    if overrides is not None and overrides.get('samplerate') is not None and conf["devices"].get("resampler") is None:
+        samplerate = overrides['samplerate']
     fvect = logspace(10.0, samplerate*0.95/2.0, npoints)
     pipelinestep = conf['pipeline'][pipelineindex]
     totcgain = [1.0 for n in range(npoints)]

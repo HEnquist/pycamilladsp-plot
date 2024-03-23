@@ -9,7 +9,8 @@
           "Wasapi",
           "CoreAudio",
           "Jack",
-          "File",
+          "RawFile",
+          "WavFile",
           "Stdin",
           "Bluez",
           "SignalGenerator"
@@ -158,10 +159,10 @@
     "required": ["type", "channels", "format"],
     "additionalProperties": false
   },
-  "File": {
+  "RawFile": {
     "properties": {
       "type": {
-        "enum": ["File"]
+        "enum": ["RawFile"]
       },
       "filename": {
         "type": "string",
@@ -191,6 +192,24 @@
       }
     },
     "required": ["type", "filename", "channels", "format"],
+    "additionalProperties": false
+  },
+  "WavFile": {
+    "properties": {
+      "type": {
+        "enum": ["WavFile"]
+      },
+      "filename": {
+        "type": "string",
+        "minLength": 1
+      },
+      "extra_samples": {
+        "type": ["integer", "null"],
+        "default": null,
+        "minimum": 0
+      }
+    },
+    "required": ["type", "filename"],
     "additionalProperties": false
   },
   "Bluez": {

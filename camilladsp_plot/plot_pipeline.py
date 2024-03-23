@@ -58,7 +58,7 @@ def draw_box(ax, level, size, label=None):
                 verticalalignment='bottom')
 
 
-def plot_pipeline(conf, toimage=False):
+def plot_pipeline(conf, toimage=False, overrides=None):
     if toimage:
         matplotlib.use('Agg')
     stages = []
@@ -67,7 +67,10 @@ def plot_pipeline(conf, toimage=False):
     ax = fig.add_subplot(111, aspect='equal')
     # add input
     channels = []
-    active_channels = int(conf['devices']['capture']['channels'])
+    if overrides is not None and overrides.get("channels") is not None:
+        active_channels = int(overrides.get("channels"))
+    else:
+        active_channels = int(conf['devices']['capture']['channels'])
     for n in range(active_channels):
         label = "ch {}".format(n)
         b = Block(label)

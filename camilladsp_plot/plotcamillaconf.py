@@ -26,9 +26,9 @@ def main():
             print("Matplotlib is not available! Can't display plots.")
             return
         #conf = validator.get_config()
-        conf = validator.get_processed_config()
-        plot_pipeline(conf)
-        plot_filters(conf)
+        conf, overrides = validator.get_processed_config()
+        plot_pipeline(conf, overrides=overrides)
+        plot_filters(conf, overrides=overrides)
         plot_all_filtersteps(conf)
         plt.show()
     else:

@@ -19,19 +19,24 @@ def extend_with_default(validator_class):
                 instance.setdefault(property, subschema["default"])
 
         for error in validate_properties(
-            validator, properties, instance, schema,
+            validator,
+            properties,
+            instance,
+            schema,
         ):
             yield error
 
     return validators.extend(
-        validator_class, {"properties": set_defaults},
+        validator_class,
+        {"properties": set_defaults},
     )
 
 
-class CamillaValidator():
+class CamillaValidator:
 
     def __init__(self):
         self.config = None
+        self.overrides = None
         self.validator = extend_with_default(Draft7Validator)
         # Overall
         with open(self.get_full_path("schemas/sections.json")) as f:
@@ -80,16 +85,14 @@ class CamillaValidator():
         backup = self.capture_schemas_backup["capture"]["properties"]["type"]["enum"]
         common = list(set(backup).intersection(types))
         if len(common) == 0:
-            raise ValueError(
-                "List of supported capture device types can't be empty.")
+            raise ValueError("List of supported capture device types can't be empty.")
         self.capture_schemas["capture"]["properties"]["type"]["enum"] = common
 
     def set_supported_playback_types(self, types):
         backup = self.playback_schemas_backup["playback"]["properties"]["type"]["enum"]
         common = list(set(backup).intersection(types))
         if len(common) == 0:
-            raise ValueError(
-                "List of supported playback device types can't be empty.")
+            raise ValueError("List of supported playback device types can't be empty.")
         self.playback_schemas["playback"]["properties"]["type"]["enum"] = common
 
     def validate(self, config, schema, path=[]):
@@ -102,41 +105,62 @@ class CamillaValidator():
     def get_full_path(self, file):
         return os.path.join(os.path.dirname(__file__), file)
 
+    # return the override for a value if given, else just return the value
+    def _override_value(self, value, parameter):
+        if self.overrides is not None and self.overrides.get(parameter) is not None:
+            if (
+                parameter == "samplerate"
+                and self.config["devices"].get("resampler") is not None
+            ):
+                # The config has a resampler, overriding samplerate changes only capture_samplerate.
+                return value
+            return self.overrides.get(parameter)
+        return value
 
     def replace_tokens_in_string(self, string):
-        srate = self.config['devices']['samplerate']
-        channels = self.config['devices']['capture']['channels']
+        srate = self.config["devices"]["samplerate"]
+        srate = self._override_value(srate, "samplerate")
+        channels = self.config["devices"]["capture"]["channels"]
+        channels = self._override_value(channels, "channels")
         string = string.replace("$samplerate$", str(srate))
         string = string.replace("$channels$", str(channels))
         return string
 
     # Replace the $samplerate$ and $channels$ tokens with the corresponding values
-
     def replace_tokens(self):
         config = deepcopy(self.config)
-        if config.get('filters') is not None:
-            for _filt, fconf in config['filters'].items():
-                if fconf['type'] == 'Conv':
-                    if 'parameters' in fconf:
-                        if "filename" in fconf['parameters']:
-                            fconf['parameters']["filename"] = self.replace_tokens_in_string(
-                                fconf['parameters']["filename"])
+        if config.get("filters") is not None:
+            for _filt, fconf in config["filters"].items():
+                if fconf["type"] == "Conv":
+                    if "parameters" in fconf:
+                        if "filename" in fconf["parameters"]:
+                            fconf["parameters"]["filename"] = (
+                                self.replace_tokens_in_string(
+                                    fconf["parameters"]["filename"]
+                                )
+                            )
 
-        if config.get('mixers') is not None:
-            for step in config['pipeline']:
-                if step['type'] == 'Mixer':
-                    step['name'] = self.replace_tokens_in_string(step['name'])
-                elif step['type'] == 'Filter':
-                    for _i, name in enumerate(step['names']):
+        if config.get("mixers") is not None:
+            for step in config["pipeline"]:
+                if step["type"] == "Mixer":
+                    step["name"] = self.replace_tokens_in_string(step["name"])
+                elif step["type"] == "Filter":
+                    for _i, name in enumerate(step["names"]):
                         name = self.replace_tokens_in_string(name)
         return config
 
     def make_paths_absolute(self, config):
-        if config.get('filters') is not None:
+        if config.get("filters") is not None:
             for _name, filt in config["filters"].items():
-                if filt["type"] == "Conv" and filt["parameters"]["type"] in ["Raw", "Wav"]:
-                    filt["parameters"]["filename"] = self.check_and_replace_relative_path(
-                        filt["parameters"]["filename"])
+                if filt["type"] == "Conv" and filt["parameters"]["type"] in [
+                    "Raw",
+                    "Wav",
+                ]:
+                    filt["parameters"]["filename"] = (
+                        self.check_and_replace_relative_path(
+                            filt["parameters"]["filename"]
+                        )
+                    )
 
     def check_and_replace_relative_path(self, path_str):
         if self.filename is None:
@@ -151,10 +175,11 @@ class CamillaValidator():
         return path_str
 
     # Validate a file read from disk
-    def validate_file(self, file):
+    def validate_file(self, file, overrides=None):
         self.errorlist = []
         self.warninglist = []
         self.filename = file
+        self.overrides = overrides
         with open(file) as f:
             try:
                 self.config = yaml.safe_load(f)
@@ -171,10 +196,11 @@ class CamillaValidator():
         self._validate_config()
 
     # Validate a config supplied as a yaml string
-    def validate_yamlstring(self, config):
+    def validate_yamlstring(self, config, overrides=None):
         self.errorlist = []
         self.warninglist = []
         self.filename = None
+        self.overrides = overrides
         try:
             self.config = yaml.safe_load(config)
         except yaml.YAMLError as e:
@@ -190,20 +216,30 @@ class CamillaValidator():
         self._validate_config()
 
     # Validate a config already parsed into a python object
-    def validate_config(self, config):
+    def validate_config(self, config, overrides=None):
         self.errorlist = []
         self.warninglist = []
         self.filename = None
         self.config = config
+        self.overrides = overrides
         self._validate_config()
 
     def _validate_config(self):
+        self._check_overrides()
         self.validate_with_schemas()
         if len(self.errorlist) == 0:
             self.validate_devices()
             self.validate_mixers()
             self.validate_filters()
             self.validate_pipeline()
+
+    # Check that the supplied overrides are valid, null them if not
+    def _check_overrides(self):
+        if self.overrides is None:
+            return
+        if not isinstance(self.overrides, dict):
+            self.overrides = None
+            return
 
     # Return the validated config.
     # All missing values have been filled by defaults.
@@ -219,7 +255,7 @@ class CamillaValidator():
             config = self.replace_tokens()
             if self.filename is not None:
                 self.make_paths_absolute(config)
-            return config
+            return config, self.overrides
         return None
 
     # Get the list of errors
@@ -235,42 +271,62 @@ class CamillaValidator():
         self.validate(self.config, self.section_schema)
 
         # Devices section
-        self.validate(self.config["devices"],
-                      self.devices_schema, path=["devices"])
+        self.validate(self.config["devices"], self.devices_schema, path=["devices"])
 
         # Playback device
         playback_schema = self.playback_schemas["playback"]
-        ok = self.validate(self.config["devices"]["playback"], playback_schema, path=[
-                           "devices", "playback"])
+        ok = self.validate(
+            self.config["devices"]["playback"],
+            playback_schema,
+            path=["devices", "playback"],
+        )
         if ok:
             playback_type = self.config["devices"]["playback"]["type"]
             playback_schema = self.playback_schemas[playback_type]
-            self.validate(self.config["devices"]["playback"], playback_schema, path=[
-                          "devices", "playback"])
+            self.validate(
+                self.config["devices"]["playback"],
+                playback_schema,
+                path=["devices", "playback"],
+            )
 
         # Capture device
         capture_schema = self.capture_schemas["capture"]
-        ok = self.validate(self.config["devices"]["capture"], capture_schema, path=[
-                           "devices", "capture"])
+        ok = self.validate(
+            self.config["devices"]["capture"],
+            capture_schema,
+            path=["devices", "capture"],
+        )
         if ok:
             capture_type = self.config["devices"]["capture"]["type"]
             capture_schema = self.capture_schemas[capture_type]
-            self.validate(self.config["devices"]["capture"], capture_schema, path=[
-                          "devices", "capture"])
+            self.validate(
+                self.config["devices"]["capture"],
+                capture_schema,
+                path=["devices", "capture"],
+            )
             if capture_type == "SignalGenerator":
                 signal_schema = self.signal_schemas["signal"]
-                ok = self.validate(self.config["devices"]["capture"]["signal"], signal_schema, path=[
-                           "devices", "capture", "signal"])
+                ok = self.validate(
+                    self.config["devices"]["capture"]["signal"],
+                    signal_schema,
+                    path=["devices", "capture", "signal"],
+                )
                 if ok:
                     signal_type = self.config["devices"]["capture"]["signal"]["type"]
                     signal_schema = self.signal_schemas[signal_type]
-                    self.validate(self.config["devices"]["capture"]["signal"], signal_schema, path=[
-                              "devices", "capture", "signal"])
+                    self.validate(
+                        self.config["devices"]["capture"]["signal"],
+                        signal_schema,
+                        path=["devices", "capture", "signal"],
+                    )
 
         # Resampler
         if self.config["devices"].get("resampler") is not None:
-            self.validate(self.config["devices"]["resampler"],
-                      self.resampler_schemas["resampler"], path=["devices", "resampler"])
+            self.validate(
+                self.config["devices"]["resampler"],
+                self.resampler_schemas["resampler"],
+                path=["devices", "resampler"],
+            )
             resamp_type = self.config["devices"]["resampler"]["type"]
             if resamp_type in ["Synchronous", "AsyncPoly"]:
                 resampler_schema = self.resampler_schemas[resamp_type]
@@ -278,56 +334,75 @@ class CamillaValidator():
                 resampler_schema = self.resampler_schemas["AsyncSincProfile"]
             else:
                 resampler_schema = self.resampler_schemas["AsyncSincFree"]
-            self.validate(self.config["devices"]["resampler"],
-                      resampler_schema, path=["devices", "resampler"])
+            self.validate(
+                self.config["devices"]["resampler"],
+                resampler_schema,
+                path=["devices", "resampler"],
+            )
 
         # Filters
         for name, filt in self.value_or_default(("filters",)).items():
-            ok = self.validate(filt, self.filter_schema,
-                               path=["filters", name])
+            ok = self.validate(filt, self.filter_schema, path=["filters", name])
             if ok:
                 filt_type = filt["type"]
                 if filt_type == "Biquad":
                     schema = self.biquad_schemas["Biquad"]
-                    ok = self.validate(filt["parameters"], schema, path=[
-                                       "filters", name, "parameters"])
+                    ok = self.validate(
+                        filt["parameters"], schema, path=["filters", name, "parameters"]
+                    )
                     if ok:
                         filt_subtype = filt["parameters"]["type"]
                         schema = self.biquad_schemas[filt_subtype]
-                        self.validate(filt["parameters"], schema, path=[
-                                      "filters", name, "parameters"])
+                        self.validate(
+                            filt["parameters"],
+                            schema,
+                            path=["filters", name, "parameters"],
+                        )
                 elif filt_type == "BiquadCombo":
                     schema = self.biquadcombo_schemas["BiquadCombo"]
-                    ok = self.validate(filt["parameters"], schema, path=[
-                                       "filters", name, "parameters"])
+                    ok = self.validate(
+                        filt["parameters"], schema, path=["filters", name, "parameters"]
+                    )
                     if ok:
                         filt_subtype = filt["parameters"]["type"]
                         schema = self.biquadcombo_schemas[filt_subtype]
-                        self.validate(filt["parameters"], schema, path=[
-                                      "filters", name, "parameters"])
+                        self.validate(
+                            filt["parameters"],
+                            schema,
+                            path=["filters", name, "parameters"],
+                        )
                 elif filt_type == "Conv":
                     schema = self.conv_schemas["Conv"]
-                    ok = self.validate(filt["parameters"], schema, path=[
-                                       "filters", name, "parameters"])
+                    ok = self.validate(
+                        filt["parameters"], schema, path=["filters", name, "parameters"]
+                    )
                     if ok:
                         filt_subtype = filt["parameters"]["type"]
                         schema = self.conv_schemas[filt_subtype]
-                        self.validate(filt["parameters"], schema, path=[
-                                      "filters", name, "parameters"])
+                        self.validate(
+                            filt["parameters"],
+                            schema,
+                            path=["filters", name, "parameters"],
+                        )
                 elif filt_type == "Dither":
                     schema = self.dither_schemas["Dither"]
-                    ok = self.validate(filt["parameters"], schema, path=[
-                                       "filters", name, "parameters"])
+                    ok = self.validate(
+                        filt["parameters"], schema, path=["filters", name, "parameters"]
+                    )
                     if ok:
                         filt_subtype = filt["parameters"]["type"]
                         if filt_subtype in self.dither_schemas.keys():
                             schema = self.dither_schemas[filt_subtype]
-                            self.validate(filt["parameters"], schema, path=[
-                                          "filters", name, "parameters"])
+                            self.validate(
+                                filt["parameters"],
+                                schema,
+                                path=["filters", name, "parameters"],
+                            )
                 elif filt_type in self.basics_schemas.keys():
                     schema = self.basics_schemas[filt_type]
-                    self.validate(filt["parameters"], schema, path=[
-                                  "filters", name, "parameters"])
+                    self.validate(
+                        filt["parameters"], schema, path=["filters", name, "parameters"]
+                    )
 
         # Mixers
         for name, mix in self.value_or_default(("mixers",)).items():
@@ -336,7 +411,8 @@ class CamillaValidator():
         # Pipeline
         for idx, step in enumerate(self.value_or_default(("pipeline",))):
             ok = self.validate(
-                step, self.pipeline_schemas["PipelineStep"], path=["pipeline", idx])
+                step, self.pipeline_schemas["PipelineStep"], path=["pipeline", idx]
+            )
             if ok:
                 step_type = step["type"]
                 schema = self.pipeline_schemas[step_type]
@@ -344,7 +420,8 @@ class CamillaValidator():
 
     # Validate the pipeline
     def validate_pipeline(self):
-        num_channels = self.config["devices"]["capture"]["channels"]
+        num_channels = self.config["devices"]["capture"].get("channels")
+        num_channels = self._override_value(num_channels, "channels")
         for idx, step in enumerate(self.value_or_default(("pipeline",))):
             if step["type"] == "Mixer":
                 mixname_with_tokens = step["name"]
@@ -369,8 +446,7 @@ class CamillaValidator():
                             path = ["pipeline", idx, "channels"]
                             self.errorlist.append((path, msg))
                 for subidx, filtname_with_tokens in enumerate(step["names"]):
-                    filtname = self.replace_tokens_in_string(
-                        filtname_with_tokens)
+                    filtname = self.replace_tokens_in_string(filtname_with_tokens)
                     if filtname not in self.config["filters"].keys():
                         msg = f"Use of missing filter '{filtname}'"
                         path = ["pipeline", idx, "names", subidx]
@@ -394,24 +470,41 @@ class CamillaValidator():
                 for subidx, source in enumerate(mapping["sources"]):
                     if source["channel"] >= chan_in:
                         msg = f"Invalid source channel {source['channel']}, max is {chan_in-1}"
-                        path = ["mixers", mixname, "mapping",
-                                idx, "sources", subidx]
+                        path = ["mixers", mixname, "mapping", idx, "sources", subidx]
                         self.errorlist.append((path, msg))
 
     def validate_filters(self):
-        maxfreq = self.config["devices"]["samplerate"] / 2.0
+        samplerate = self.config["devices"]["samplerate"]
+        samplerate = self._override_value(samplerate, "samplerate")
+        maxfreq = samplerate / 2.0
+
         for filter_name, filter_conf in self.value_or_default(("filters",)).items():
             # Check that frequencies are below Nyquist
             if filter_conf["type"] in ["Biquad", "BiquadCombo"]:
-                for freq_prop in ["freq", "freq_act", "freq_target", "fls", "fhs", "fp1", "fp2", "fp3", "freq_p", "freq_z", "freq_min", "freq_max"]:
+                for freq_prop in [
+                    "freq",
+                    "freq_act",
+                    "freq_target",
+                    "fls",
+                    "fhs",
+                    "fp1",
+                    "fp2",
+                    "fp3",
+                    "freq_p",
+                    "freq_z",
+                    "freq_min",
+                    "freq_max",
+                ]:
                     if freq_prop in filter_conf["parameters"].keys():
                         if filter_conf["parameters"][freq_prop] >= maxfreq:
                             msg = "Frequency must be < samplerate/2"
-                            path = ["filters", filter_name,
-                                    "parameters", freq_prop]
+                            path = ["filters", filter_name, "parameters", freq_prop]
                             self.errorlist.append((path, msg))
             # Check that free biquads are stable
-            if filter_conf["type"] == "Biquad" and filter_conf["parameters"]["type"] == "Free":
+            if (
+                filter_conf["type"] == "Biquad"
+                and filter_conf["parameters"]["type"] == "Free"
+            ):
                 a1 = filter_conf["parameters"]["a1"]
                 a2 = filter_conf["parameters"]["a2"]
                 stable = abs(a2) < 1.0 and abs(a1) < (a2 + 1.0)
@@ -420,7 +513,9 @@ class CamillaValidator():
                     path = ["filters", filter_name, "parameters"]
                     self.errorlist.append((path, msg))
             # Check that Biquads have at only one of q and bandwidth
-            if filter_conf["type"] == "Biquad" and filter_conf["parameters"]["type"] in ["Bandpass", "Notch", "Allpass", "Peaking"]:
+            if filter_conf["type"] == "Biquad" and filter_conf["parameters"][
+                "type"
+            ] in ["Bandpass", "Notch", "Allpass", "Peaking"]:
                 has_q = "q" in filter_conf["parameters"]
                 has_bw = "bandwidth" in filter_conf["parameters"]
                 if not has_q and not has_bw:
@@ -432,15 +527,24 @@ class CamillaValidator():
                     path = ["filters", filter_name, "parameters"]
                     self.errorlist.append((path, msg))
             # Check that GraphicEqualizer min frequency is smaller than max frequency
-            if filter_conf["type"] == "BiquadCombo" and filter_conf["parameters"]["type"] == "GraphicEqualizer":
-                f_max = self.value_or_default(("parameters", "freq_max"), config=filter_conf)
-                f_min = self.value_or_default(("parameters", "freq_min"), config=filter_conf)
+            if (
+                filter_conf["type"] == "BiquadCombo"
+                and filter_conf["parameters"]["type"] == "GraphicEqualizer"
+            ):
+                f_max = self.value_or_default(
+                    ("parameters", "freq_max"), config=filter_conf
+                )
+                f_min = self.value_or_default(
+                    ("parameters", "freq_min"), config=filter_conf
+                )
                 if f_max <= f_min:
                     msg = "Invalid range, 'freq_max' must be larger than 'freq_min'"
                     path = ["filters", filter_name, "parameters", "freq_max"]
                     self.errorlist.append((path, msg))
             # Check that Biquads have at only one of q and slope
-            if filter_conf["type"] == "Biquad" and filter_conf["parameters"]["type"] in ["Highshelf", "Lowshelf"]:
+            if filter_conf["type"] == "Biquad" and filter_conf["parameters"][
+                "type"
+            ] in ["Highshelf", "Lowshelf"]:
                 has_q = "q" in filter_conf["parameters"]
                 has_slope = "slope" in filter_conf["parameters"]
                 if not has_q and not has_slope:
@@ -455,89 +559,164 @@ class CamillaValidator():
             if filter_conf["type"] == "Conv":
                 if filter_conf["parameters"]["type"] in ["Raw", "Wav"]:
                     fname_with_tokens = filter_conf["parameters"]["filename"]
-                    fname_rel = self.replace_tokens_in_string(
-                        fname_with_tokens)
+                    fname_rel = self.replace_tokens_in_string(fname_with_tokens)
                     fname = self.check_and_replace_relative_path(fname_rel)
                     if not os.path.exists(fname):
                         msg = f"Unable to find coefficent file '{fname}'"
-                        path = ["filters", filter_name,
-                                "parameters", "filename"]
+                        path = ["filters", filter_name, "parameters", "filename"]
                         self.errorlist.append((path, msg))
                         continue
                     if filter_conf["parameters"]["type"] == "Wav":
                         wavparams = read_wav_header(fname)
                         if wavparams is None:
                             msg = f"Invalid or unsupported wav file '{fname}'"
-                            path = ["filters", filter_name,
-                                    "parameters", "filename"]
+                            path = ["filters", filter_name, "parameters", "filename"]
                             self.errorlist.append((path, msg))
-                        elif self.value_or_default(("parameters", "channel"), config=filter_conf) >= wavparams["channels"]:
+                        elif (
+                            self.value_or_default(
+                                ("parameters", "channel"), config=filter_conf
+                            )
+                            >= wavparams["channels"]
+                        ):
                             msg = f"Can't read channel {self.value_or_default(('parameters', 'channel'), config=filter_conf)} of file '{fname}' which has channels 0..{wavparams['channels']-1}"
-                            path = ["filters", filter_name,
-                                    "parameters", "filename"]
+                            path = ["filters", filter_name, "parameters", "filename"]
                             self.errorlist.append((path, msg))
-                        elif wavparams["samplerate"] != self.config["devices"]["samplerate"]:
-                            msg = f"Sample rate mismatch, file '{fname}': {wavparams['samplerate']}, dsp: {self.config['devices']['samplerate']}"
-                            path = ["filters", filter_name,
-                                    "parameters", "filename"]
+                        elif wavparams["samplerate"] != samplerate:
+                            msg = f"Sample rate mismatch, file '{fname}': {wavparams['samplerate']}, dsp: {samplerate}"
+                            path = ["filters", filter_name, "parameters", "filename"]
                             self.warninglist.append((path, msg))
                     elif filter_conf["parameters"]["type"] == "Raw":
                         if filter_conf["parameters"]["format"] == "TEXT":
                             try:
                                 values = read_text_coeffs(
-                                    fname, self.value_or_default(("parameters", "skip_bytes_lines"), config=filter_conf), self.value_or_default(("parameters", "read_bytes_lines"), config=filter_conf))
+                                    fname,
+                                    self.value_or_default(
+                                        ("parameters", "skip_bytes_lines"),
+                                        config=filter_conf,
+                                    ),
+                                    self.value_or_default(
+                                        ("parameters", "read_bytes_lines"),
+                                        config=filter_conf,
+                                    ),
+                                )
                                 if len(values) == 0:
                                     msg = f"File '{fname}' contains no values"
-                                    path = ["filters", filter_name,
-                                            "parameters", "filename"]
+                                    path = [
+                                        "filters",
+                                        filter_name,
+                                        "parameters",
+                                        "filename",
+                                    ]
                                     self.errorlist.append((path, msg))
                             except ValueError as e:
-                                msg = f"File '{fname}' contains invalid numbers, {str(e)}"
-                                path = ["filters", filter_name,
-                                        "parameters", "filename"]
+                                msg = (
+                                    f"File '{fname}' contains invalid numbers, {str(e)}"
+                                )
+                                path = [
+                                    "filters",
+                                    filter_name,
+                                    "parameters",
+                                    "filename",
+                                ]
                                 self.errorlist.append((path, msg))
                             except Exception as e:
                                 msg = f"Cant open file '{fname}', {str(e)}"
-                                path = ["filters", filter_name,
-                                        "parameters", "filename"]
+                                path = [
+                                    "filters",
+                                    filter_name,
+                                    "parameters",
+                                    "filename",
+                                ]
                                 self.errorlist.append((path, msg))
                         else:
                             try:
-                                with open(fname, 'rb') as f:
+                                with open(fname, "rb") as f:
                                     f.seek(0, 2)
                                     coeff_len = f.tell()
-                                if coeff_len <= self.value_or_default(("parameters", "skip_bytes_lines"), config=filter_conf):
+                                if coeff_len <= self.value_or_default(
+                                    ("parameters", "skip_bytes_lines"),
+                                    config=filter_conf,
+                                ):
                                     msg = f"File '{fname}' contains no values"
-                                    path = ["filters", filter_name,
-                                            "parameters", "filename"]
+                                    path = [
+                                        "filters",
+                                        filter_name,
+                                        "parameters",
+                                        "filename",
+                                    ]
                                     self.errorlist.append((path, msg))
                             except Exception as e:
                                 msg = f"Cant open file '{fname}', {str(e)}"
-                                path = ["filters", filter_name,
-                                        "parameters", "filename"]
+                                path = [
+                                    "filters",
+                                    filter_name,
+                                    "parameters",
+                                    "filename",
+                                ]
                                 self.errorlist.append((path, msg))
 
     def validate_devices(self):
-        if self.value_or_default(("devices", "target_level")) >= 2 * self.config["devices"]["chunksize"]:
+        if (
+            self.value_or_default(("devices", "target_level"))
+            >= 2 * self.config["devices"]["chunksize"]
+        ):
             self.errorlist.append(
-                (["devices", "target_level"], f"target_level can't be larger than {2 * self.config['devices']['chunksize']}"))
+                (
+                    ["devices", "target_level"],
+                    f"target_level can't be larger than {2 * self.config['devices']['chunksize']}",
+                )
+            )
 
         # Specific checks for Wasapi
         if self.config["devices"]["capture"]["type"] == "Wasapi":
-            if self.value_or_default(("devices", "capture" ,"loopback")) and self.value_or_default(("devices", "capture", "exclusive")):
-                self.errorlist.append((["devices", "capture", "exclusive"],
-                                       "exclusive mode can't be combined with loopback capture"))
-            if not self.value_or_default(("devices", "capture", "exclusive")) and self.config["devices"]["capture"]["format"] != "FLOAT32LE":
+            if self.value_or_default(
+                ("devices", "capture", "loopback")
+            ) and self.value_or_default(("devices", "capture", "exclusive")):
                 self.errorlist.append(
-                    (["devices", "capture", "format"], "in shared mode the format must be FLOAT32LE"))
+                    (
+                        ["devices", "capture", "exclusive"],
+                        "exclusive mode can't be combined with loopback capture",
+                    )
+                )
+            if (
+                not self.value_or_default(("devices", "capture", "exclusive"))
+                and self.config["devices"]["capture"]["format"] != "FLOAT32LE"
+            ):
+                self.errorlist.append(
+                    (
+                        ["devices", "capture", "format"],
+                        "in shared mode the format must be FLOAT32LE",
+                    )
+                )
         if self.config["devices"]["playback"]["type"] == "Wasapi":
-            if not self.value_or_default(("devices", "capture", "exclusive")) and self.config["devices"]["playback"]["format"] != "FLOAT32LE":
+            if (
+                not self.value_or_default(("devices", "capture", "exclusive"))
+                and self.config["devices"]["playback"]["format"] != "FLOAT32LE"
+            ):
                 self.errorlist.append(
-                    (["devices", "playback", "format"], "in shared mode the format must be FLOAT32LE"))
+                    (
+                        ["devices", "playback", "format"],
+                        "in shared mode the format must be FLOAT32LE",
+                    )
+                )
+
+        # Checks for WavFile capture device
+        if self.config["devices"]["capture"]["type"] == "WavFile":
+            fname = self.config["devices"]["capture"]["filename"]
+            wavparams = read_wav_header(fname)
+            if wavparams is None:
+                msg = f"Invalid or unsupported wav file '{fname}'"
+                path = ["devices", "capture", "filename"]
+                self.errorlist.append((path, msg))
+            else:
+                if self.overrides is None:
+                    self.overrides = {}
+                self.overrides["samplerate"] = wavparams["samplerate"]
+                self.overrides["channels"] = wavparams["channels"]
 
     def value_or_default(self, path, config=None):
         if config:
-            val=config
+            val = config
         else:
             val = self.config
         for p in path:
@@ -551,13 +730,14 @@ class CamillaValidator():
             return self.config["devices"]["chunksize"]
         return DEFAULT_VALUES.get(path)
 
+
 DEFAULT_VALUES = {
     ("filters",): {},
     ("mixers",): {},
     ("pipeline",): [],
     ("devices", "capture", "loopback"): False,
     ("devices", "capture", "exclusive"): False,
-    ("parameters","freq_min"): 20.0,
+    ("parameters", "freq_min"): 20.0,
     ("parameters", "freq_max"): 20000.0,
     ("parameters", "format"): "TEXT",
     ("parameters", "skip_bytes_lines"): 0,
@@ -572,7 +752,7 @@ if __name__ == "__main__":
     warnings = file_validator.get_warnings()
     print("\nErrors:")
     for e in errors:
-        print("/".join([str(p) for p in e[0]]), " : ",  e[1])
+        print("/".join([str(p) for p in e[0]]), " : ", e[1])
     print("\nWarnings:")
     for w in warnings:
         print("/".join([str(p) for p in w[0]]), " : ", w[1])

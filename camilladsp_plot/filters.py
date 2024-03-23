@@ -8,11 +8,11 @@ from .audiofileread import read_coeffs
 def unwrap_phase(values, threshold=150.0):
     offset = 0
     prevdiff = 0.0
-    unwrapped = [0.0]*len(values)
+    unwrapped = [0.0] * len(values)
     if len(values) > 0:
         unwrapped[0] = values[0]
         for n in range(1, len(values)):
-            guess = values[n-1] + prevdiff
+            guess = values[n - 1] + prevdiff
             diff = values[n] - guess
             if diff > threshold:
                 offset -= 1
@@ -22,9 +22,9 @@ def unwrap_phase(values, threshold=150.0):
                 jumped = True
             else:
                 jumped = False
-            unwrapped[n] = values[n] + 2*180.0*offset
+            unwrapped[n] = values[n] + 2 * 180.0 * offset
             if not jumped:
-                prevdiff = unwrapped[n] - unwrapped[n-1]
+                prevdiff = unwrapped[n] - unwrapped[n - 1]
     return unwrapped
 
 
@@ -35,11 +35,11 @@ def calc_groupdelay(freq, phase):
     freq_new = []
     groupdelay = []
     for n in range(1, len(freq)):
-        dw = (freq[n] - freq[n-1])*2*math.pi
-        f = (freq[n-1] + freq[n])/2.0
+        dw = (freq[n] - freq[n - 1]) * 2 * math.pi
+        f = (freq[n - 1] + freq[n]) / 2.0
         freq_new.append(f)
-        dp = (phase[n]-phase[n-1])/180.0*math.pi
-        delay = -1000.0*dp/dw
+        dp = (phase[n] - phase[n - 1]) / 180.0 * math.pi
+        delay = -1000.0 * dp / dw
         groupdelay.append(delay)
     return freq_new, groupdelay
 
@@ -54,12 +54,13 @@ class BaseFilter(object):
 
     def gain_and_phase(self, f, remove_delay=False):
         _f, Avec = self.complex_gain(f, remove_delay=remove_delay)
-        gain = [20 * math.log10(abs(A)+1.0e-15) for A in Avec]
+        gain = [20 * math.log10(abs(A) + 1.0e-15) for A in Avec]
         phase = [180 / math.pi * cmath.phase(A) for A in Avec]
         return f, gain, phase
 
     def is_stable(self):
         return True
+
 
 class Conv(object):
 
@@ -86,12 +87,14 @@ class Conv(object):
         padding = [0.0 for _n in range(npoints - impulselen)]
         impulse.extend(padding)
         impfft = fft(impulse)
-        f_fft = [self.fs*n/(npoints) for n in range(int(npoints/2))]
-        cut = impfft[0:int(npoints/2)]
+        f_fft = [self.fs * n / (npoints) for n in range(int(npoints / 2))]
+        cut = impfft[0 : int(npoints / 2)]
         if remove_delay:
             maxidx = self.find_peak()
-            cut = [val*cmath.exp(1j*1.0/(npoints/2)*math.pi*idx*maxidx)
-                   for idx, val in enumerate(cut)]
+            cut = [
+                val * cmath.exp(1j * 1.0 / (npoints / 2) * math.pi * idx * maxidx)
+                for idx, val in enumerate(cut)
+            ]
         if f is not None:
             interpolated = self.interpolate_polar(cut, f_fft, f)
             return f, interpolated
@@ -102,23 +105,24 @@ class Conv(object):
         ynew = []
 
         for x in xnew:
-            idx = len(y)*x/xold[-1]
+            idx = len(y) * x / xold[-1]
             i1 = int(math.floor(idx))
-            i2 = i1+1
+            i2 = i1 + 1
             if i1 >= (len(y)):
-                i1 = len(y)-1
+                i1 = len(y) - 1
             if i2 >= (len(y)):
                 i2 = i1
             fract = idx - i1
-            newval = (1-fract)*y[i1] + fract*y[i2]
+            newval = (1 - fract) * y[i1] + fract * y[i2]
             ynew.append(newval)
         return ynew
 
     def interpolate_polar(self, y, xold, xnew):
         y_magn = [abs(yval) for yval in y]
-        y_ang = [180.0/math.pi*cmath.phase(yval) for yval in y]
-        y_ang = [math.pi*yval /
-                 180.0 for yval in unwrap_phase(y_ang, threshold=270.0)]
+        y_ang = [180.0 / math.pi * cmath.phase(yval) for yval in y]
+        y_ang = [
+            math.pi * yval / 180.0 for yval in unwrap_phase(y_ang, threshold=270.0)
+        ]
         y_magn_interp = self.interpolate(y_magn, xold, xnew)
         y_ang_interp = self.interpolate(y_ang, xold, xnew)
         return [cmath.rect(r, phi) for (r, phi) in zip(y_magn_interp, y_ang_interp)]
@@ -126,12 +130,12 @@ class Conv(object):
     def gain_and_phase(self, f, remove_delay=False):
         f_fft, Avec = self.complex_gain(None, remove_delay=remove_delay)
         interpolated = self.interpolate_polar(Avec, f_fft, f)
-        gain = [20.0 * math.log10(abs(A)+1.0e-15) for A in interpolated]
+        gain = [20.0 * math.log10(abs(A) + 1.0e-15) for A in interpolated]
         phase = [180.0 / math.pi * cmath.phase(A) for A in interpolated]
         return f, gain, phase
 
     def get_impulse(self):
-        t = [n/self.fs for n in range(len(self.impulse))]
+        t = [n / self.fs for n in range(len(self.impulse))]
         return t, self.impulse
 
 
@@ -160,6 +164,7 @@ class DiffEq(BaseFilter):
         # TODO
         return None
 
+
 class Delay(BaseFilter):
     def __init__(self, conf, fs):
         self.fs = fs
@@ -174,31 +179,37 @@ class Delay(BaseFilter):
             self.delay_samples = conf["delay"]
         else:
             raise RuntimeError(f"Unknown unit {unit}")
-        
+
         self.subsample = conf.get("subsample", False) == True
         if self.subsample:
             self.delay_full_samples = math.floor(self.delay_samples)
             self.fraction = self.delay_samples - self.delay_full_samples
             self.a1 = 1.0 - self.fraction
             self.a2 = 0.0
-            self.b0 = 1.0 - self.fraction 
+            self.b0 = 1.0 - self.fraction
             self.b1 = 1.0
             self.b2 = 0.0
         else:
             self.delay_full_samples = round(self.delay_samples)
 
-
     def complex_gain(self, freq, remove_delay=False):
         zvec = [cmath.exp(1j * 2 * math.pi * f / self.fs) for f in freq]
         if self.subsample:
-            A = [((self.b0 + self.b1 * z ** (-1) + self.b2 * z ** (-2)) / (
-                1.0 + self.a1 * z ** (-1) + self.a2 * z ** (-2))) for z in zvec]
+            A = [
+                (
+                    (self.b0 + self.b1 * z ** (-1) + self.b2 * z ** (-2))
+                    / (1.0 + self.a1 * z ** (-1) + self.a2 * z ** (-2))
+                )
+                for z in zvec
+            ]
         else:
             A = [1.0 for _z in zvec]
         if not remove_delay:
             delay_s = self.delay_full_samples / self.fs
-            A = [val*cmath.exp(-1j*2.0*math.pi*f*delay_s)
-                   for val, f in zip(A, freq)]
+            A = [
+                val * cmath.exp(-1j * 2.0 * math.pi * f * delay_s)
+                for val, f in zip(A, freq)
+            ]
         return freq, A
 
     def is_stable(self):
@@ -217,12 +228,11 @@ class Gain(BaseFilter):
     def complex_gain(self, f, remove_delay=False):
         sign = -1.0 if self.inverted else 1.0
         if self.scale == "dB":
-            gain = 10.0**(self.gain/20.0) * sign
+            gain = 10.0 ** (self.gain / 20.0) * sign
         else:
             gain = self.gain * sign
         A = [gain for n in range(len(f))]
         return f, A
-
 
 
 class BiquadCombo(BaseFilter):
@@ -239,7 +249,13 @@ class BiquadCombo(BaseFilter):
 
     def __init__(self, conf, fs):
         self.ftype = conf["type"]
-        if self.ftype in ["LinkwitzRileyHighpass", "LinkwitzRileyLowpass", "ButterworthHighpass", "ButterworthHighpass", "ButterworthLowpass"]:
+        if self.ftype in [
+            "LinkwitzRileyHighpass",
+            "LinkwitzRileyLowpass",
+            "ButterworthHighpass",
+            "ButterworthHighpass",
+            "ButterworthLowpass",
+        ]:
             self.order = conf["order"]
             self.freq = conf["freq"]
             self.fs = fs
@@ -280,15 +296,50 @@ class BiquadCombo(BaseFilter):
                 self.biquads.append(Biquad(bqconf, self.fs))
         elif self.ftype == "FivePointPeq":
             lsconf = Biquad(
-                {"freq": conf["fls"], "q": conf["qls"], "gain": conf["gls"], "type": "Lowshelf"}, fs)
+                {
+                    "freq": conf["fls"],
+                    "q": conf["qls"],
+                    "gain": conf["gls"],
+                    "type": "Lowshelf",
+                },
+                fs,
+            )
             hsconf = Biquad(
-                {"freq": conf["fhs"], "q": conf["qhs"], "gain": conf["ghs"], "type": "Highshelf"}, fs)
+                {
+                    "freq": conf["fhs"],
+                    "q": conf["qhs"],
+                    "gain": conf["ghs"],
+                    "type": "Highshelf",
+                },
+                fs,
+            )
             p1conf = Biquad(
-                {"freq": conf["fp1"], "q": conf["qp1"], "gain": conf["gp1"], "type": "Peaking"}, fs)
+                {
+                    "freq": conf["fp1"],
+                    "q": conf["qp1"],
+                    "gain": conf["gp1"],
+                    "type": "Peaking",
+                },
+                fs,
+            )
             p2conf = Biquad(
-                {"freq": conf["fp2"], "q": conf["qp2"], "gain": conf["gp2"], "type": "Peaking"}, fs)
+                {
+                    "freq": conf["fp2"],
+                    "q": conf["qp2"],
+                    "gain": conf["gp2"],
+                    "type": "Peaking",
+                },
+                fs,
+            )
             p3conf = Biquad(
-                {"freq": conf["fp3"], "q": conf["qp3"], "gain": conf["gp3"], "type": "Peaking"}, fs)
+                {
+                    "freq": conf["fp3"],
+                    "q": conf["qp3"],
+                    "gain": conf["gp3"],
+                    "type": "Peaking",
+                },
+                fs,
+            )
             self.biquads = [lsconf, p1conf, p2conf, p3conf, hsconf]
         elif self.ftype == "GraphicEqualizer":
             bands = len(conf["gains"])
@@ -297,21 +348,30 @@ class BiquadCombo(BaseFilter):
             f_min_log = math.log2(f_min)
             f_max_log = math.log2(f_max)
             self.biquads = []
-            bw = (f_max_log - f_min_log)/bands
+            bw = (f_max_log - f_min_log) / bands
             for band, gain in enumerate(conf["gains"]):
                 if math.fabs(gain) > 0.01:
                     freq_log = f_min_log + (band + 0.5) * bw
                     freq = 2.0**freq_log
                     filt = Biquad(
-                        {"freq": freq, "bandwidth": bw, "gain": gain, "type": "Peaking"}, fs)
+                        {
+                            "freq": freq,
+                            "bandwidth": bw,
+                            "gain": gain,
+                            "type": "Peaking",
+                        },
+                        fs,
+                    )
                     self.biquads.append(filt)
         elif self.ftype == "Tilt":
-            gain_low = -conf["gain"]/2.0
-            gain_high = conf["gain"]/2.0
+            gain_low = -conf["gain"] / 2.0
+            gain_high = conf["gain"] / 2.0
             lsconf = Biquad(
-                {"freq": 110.0, "q": 0.35, "gain": gain_low, "type": "Lowshelf"}, fs)
+                {"freq": 110.0, "q": 0.35, "gain": gain_low, "type": "Lowshelf"}, fs
+            )
             hsconf = Biquad(
-                {"freq": 3500.0, "q": 0.35, "gain": gain_high, "type": "Highshelf"}, fs)
+                {"freq": 3500.0, "q": 0.35, "gain": gain_high, "type": "Highshelf"}, fs
+            )
             self.biquads = [lsconf, hsconf]
 
     def is_stable(self):
@@ -322,7 +382,7 @@ class BiquadCombo(BaseFilter):
         A = [1.0 for n in range(len(freq))]
         for bq in self.biquads:
             _f, Atemp = bq.complex_gain(freq)
-            A = [a*atemp for (a, atemp) in zip(A, Atemp)]
+            A = [a * atemp for (a, atemp) in zip(A, Atemp)]
         return freq, A
 
 
@@ -374,8 +434,7 @@ class Biquad(BaseFilter):
                 alpha = sn / (2.0 * q)
             else:
                 bandwidth = conf["bandwidth"]
-                alpha = sn * math.sinh(math.log(2.0) /
-                                       2.0 * bandwidth * omega / sn)
+                alpha = sn * math.sinh(math.log(2.0) / 2.0 * bandwidth * omega / sn)
             b0 = 1.0 + (alpha * ampl)
             b1 = -2.0 * cs
             b2 = 1.0 - (alpha * ampl)
@@ -388,8 +447,8 @@ class Biquad(BaseFilter):
             omega = 2.0 * math.pi * freq / fs
             ampl = 10.0 ** (gain / 40.0)
             tn = math.tan(omega / 2)
-            b0 = ampl * tn + ampl ** 2
-            b1 = ampl * tn - ampl ** 2
+            b0 = ampl * tn + ampl**2
+            b1 = ampl * tn - ampl**2
             b2 = 0.0
             a0 = ampl * tn + 1
             a1 = ampl * tn - 1
@@ -406,7 +465,9 @@ class Biquad(BaseFilter):
                 alpha = (
                     sn
                     / 2.0
-                    * math.sqrt((ampl + 1.0 / ampl) * (1.0 / (slope / 12.0) - 1.0) + 2.0)
+                    * math.sqrt(
+                        (ampl + 1.0 / ampl) * (1.0 / (slope / 12.0) - 1.0) + 2.0
+                    )
                 )
                 beta = 2.0 * math.sqrt(ampl) * alpha
             else:
@@ -424,8 +485,8 @@ class Biquad(BaseFilter):
             omega = 2.0 * math.pi * freq / fs
             ampl = 10.0 ** (gain / 40.0)
             tn = math.tan(omega / 2)
-            b0 = ampl ** 2 * tn + ampl
-            b1 = ampl ** 2 * tn - ampl
+            b0 = ampl**2 * tn + ampl
+            b1 = ampl**2 * tn - ampl
             b2 = 0.0
             a0 = tn + ampl
             a1 = tn - ampl
@@ -442,7 +503,9 @@ class Biquad(BaseFilter):
                 alpha = (
                     sn
                     / 2.0
-                    * math.sqrt((ampl + 1.0 / ampl) * (1.0 / (slope / 12.0) - 1.0) + 2.0)
+                    * math.sqrt(
+                        (ampl + 1.0 / ampl) * (1.0 / (slope / 12.0) - 1.0) + 2.0
+                    )
                 )
                 beta = 2.0 * math.sqrt(ampl) * alpha
             else:
@@ -487,8 +550,7 @@ class Biquad(BaseFilter):
                 alpha = sn / (2.0 * q)
             else:
                 bandwidth = conf["bandwidth"]
-                alpha = sn * math.sinh(math.log(2.0) /
-                                       2.0 * bandwidth * omega / sn)
+                alpha = sn * math.sinh(math.log(2.0) / 2.0 * bandwidth * omega / sn)
             b0 = 1.0
             b1 = -2.0 * cs
             b2 = 1.0
@@ -501,9 +563,9 @@ class Biquad(BaseFilter):
             q_p = conf["q_pole"]
             normalize_at_dc = conf["normalize_at_dc"] == True
 
-            # apply pre-warping 
-            tn_z = math.tan( math.pi * f_z / fs )
-            tn_p = math.tan( math.pi * f_p / fs )
+            # apply pre-warping
+            tn_z = math.tan(math.pi * f_z / fs)
+            tn_p = math.tan(math.pi * f_p / fs)
             alpha = tn_p / q_p
             tn2_p = tn_p**2
             tn2_z = tn_z**2
@@ -531,8 +593,7 @@ class Biquad(BaseFilter):
                 alpha = sn / (2.0 * q)
             else:
                 bandwidth = conf["bandwidth"]
-                alpha = sn * math.sinh(math.log(2.0) /
-                                       2.0 * bandwidth * omega / sn)
+                alpha = sn * math.sinh(math.log(2.0) / 2.0 * bandwidth * omega / sn)
             b0 = alpha
             b1 = 0.0
             b2 = -alpha
@@ -549,8 +610,7 @@ class Biquad(BaseFilter):
                 alpha = sn / (2.0 * q)
             else:
                 bandwidth = conf["bandwidth"]
-                alpha = sn * math.sinh(math.log(2.0) /
-                                       2.0 * bandwidth * omega / sn)
+                alpha = sn * math.sinh(math.log(2.0) / 2.0 * bandwidth * omega / sn)
             b0 = 1.0 - alpha
             b1 = -2.0 * cs
             b2 = 1.0 + alpha
@@ -581,14 +641,14 @@ class Biquad(BaseFilter):
             fc = (ft + f0) / 2.0
 
             gn = 2 * math.pi * fc / math.tan(math.pi * fc / fs)
-            cci = c0i + gn * c1i + gn ** 2
+            cci = c0i + gn * c1i + gn**2
 
-            b0 = (d0i + gn * d1i + gn ** 2) / cci
-            b1 = 2 * (d0i - gn ** 2) / cci
-            b2 = (d0i - gn * d1i + gn ** 2) / cci
+            b0 = (d0i + gn * d1i + gn**2) / cci
+            b1 = 2 * (d0i - gn**2) / cci
+            b2 = (d0i - gn * d1i + gn**2) / cci
             a0 = 1.0
-            a1 = 2.0 * (c0i - gn ** 2) / cci
-            a2 = (c0i - gn * c1i + gn ** 2) / cci
+            a1 = 2.0 * (c0i - gn**2) / cci
+            a2 = (c0i - gn * c1i + gn**2) / cci
 
         self.fs = fs
         self.a1 = a1 / a0
@@ -599,8 +659,13 @@ class Biquad(BaseFilter):
 
     def complex_gain(self, freq, remove_delay=False):
         zvec = [cmath.exp(1j * 2 * math.pi * f / self.fs) for f in freq]
-        A = [((self.b0 + self.b1 * z ** (-1) + self.b2 * z ** (-2)) / (
-            1.0 + self.a1 * z ** (-1) + self.a2 * z ** (-2))) for z in zvec]
+        A = [
+            (
+                (self.b0 + self.b1 * z ** (-1) + self.b2 * z ** (-2))
+                / (1.0 + self.a1 * z ** (-1) + self.a2 * z ** (-2))
+            )
+            for z in zvec
+        ]
         return freq, A
 
     def is_stable(self):

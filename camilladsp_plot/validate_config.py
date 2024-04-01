@@ -120,7 +120,7 @@ class CamillaValidator:
     def replace_tokens_in_string(self, string):
         srate = self.config["devices"]["samplerate"]
         srate = self._override_value(srate, "samplerate")
-        channels = self.config["devices"]["capture"]["channels"]
+        channels = self.config["devices"]["capture"].get("channels")
         channels = self._override_value(channels, "channels")
         string = string.replace("$samplerate$", str(srate))
         string = string.replace("$channels$", str(channels))

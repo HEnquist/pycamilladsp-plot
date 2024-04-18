@@ -656,14 +656,16 @@ class CamillaValidator:
                                 self.errorlist.append((path, msg))
 
     def validate_devices(self):
-        if (
-            self.value_or_default(("devices", "target_level"))
-            >= 2 * self.config["devices"]["chunksize"]
-        ):
+        if self.config["devices"]["playback"]["type"] == "Alsa":
+            # With Alsa playback we can allow a limit of up to 4 chunks
+            target_level_limit = 4 * self.config["devices"]["chunksize"]
+        else:
+            target_level_limit = 2 * self.config["devices"]["chunksize"]
+        if self.value_or_default(("devices", "target_level")) >= target_level_limit:
             self.errorlist.append(
                 (
                     ["devices", "target_level"],
-                    f"target_level can't be larger than {2 * self.config['devices']['chunksize']}",
+                    f"target_level can't be larger than {target_level_limit}",
                 )
             )
 

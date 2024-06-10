@@ -393,7 +393,7 @@ class Loudness(BiquadCombo):
         conf["attenuate_mid"]
         rel_boost = rel_vol / 20.0
         if rel_boost > 1.0:
-            rel_boost = 1.0:
+            rel_boost = 1.0
         elif rel_boost < 0.0:
             rel_boost = 0.0
         high_boost = rel_boost * conf["high_boost"]

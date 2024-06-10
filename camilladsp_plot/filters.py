@@ -386,6 +386,40 @@ class BiquadCombo(BaseFilter):
         return freq, A
 
 
+class Loudness(BiquadCombo):
+    def __init__(self, conf, fs, volume):
+        rel_vol = volume - conf["reference_level"]
+        conf["low_boost"]
+        conf["attenuate_mid"]
+        rel_boost = rel_vol / 20.0
+        if rel_boost > 1.0:
+            rel_boost = 1.0:
+        elif rel_boost < 0.0:
+            rel_boost = 0.0
+        high_boost = rel_boost * conf["high_boost"]
+        low_boost = rel_boost * conf["low_boost"]
+        if conf["attenuate_mid"]:
+            max_gain = max(high_boost, low_boost)
+            self.mid_gain = 10.0 ** (max_gain / 20.0)
+        else:
+            self.mid_gain = 1.0
+
+        lsconf = Biquad(
+            {"freq": 70.0, "slope": 12.0, "gain": low_boost, "type": "Lowshelf"}, fs
+        )
+        hsconf = Biquad(
+            {"freq": 3500.0, "slope": 12.0, "gain": high_boost, "type": "Highshelf"}, fs
+        )
+        self.biquads = [lsconf, hsconf]
+
+    def complex_gain(self, freq, remove_delay=False):
+        A = [self.mid_gain for n in range(len(freq))]
+        for bq in self.biquads:
+            _f, Atemp = bq.complex_gain(freq)
+            A = [a * atemp for (a, atemp) in zip(A, Atemp)]
+        return freq, A
+
+
 class Biquad(BaseFilter):
     def __init__(self, conf, fs):
         ftype = conf["type"]

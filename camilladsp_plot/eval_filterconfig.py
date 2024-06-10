@@ -8,6 +8,7 @@ from .filters import (
     Delay,
     DiffEq,
     Gain,
+    Loudness,
     calc_groupdelay,
 )
 
@@ -20,7 +21,7 @@ def logspace(minval, maxval, npoints):
     return values
 
 
-def eval_filter(filterconf, name=None, samplerate=44100, npoints=1000):
+def eval_filter(filterconf, name=None, samplerate=44100, npoints=1000, volume=0.0):
     fvect = logspace(1.0, samplerate * 0.95 / 2.0, npoints)
     if name is None:
         name = "unnamed {}".format(filterconf["type"])
@@ -61,7 +62,13 @@ def eval_filter(filterconf, name=None, samplerate=44100, npoints=1000):
         result["magnitude"] = magn
         result["phase"] = phase
 
-    elif filterconf["type"] in ("Volume", "Loudness", "Dither"):
+    elif filterconf["type"] == "Loudness":
+        currfilt = Loudness(filterconf["parameters"], samplerate, volume)
+        _fplot, magn, phase = currfilt.gain_and_phase(fvect)
+        result["magnitude"] = magn
+        result["phase"] = phase
+
+    elif filterconf["type"] in ("Volume", "Dither"):
         currfilt = BaseFilter()
         _fplot, magn, phase = currfilt.gain_and_phase(fvect)
         result["magnitude"] = magn

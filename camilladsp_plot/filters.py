@@ -386,12 +386,12 @@ class BiquadCombo(BaseFilter):
         return freq, A
 
 
-class Loudness(BiquadCombo):
+class Loudness(BaseFilter):
     def __init__(self, conf, fs, volume):
         rel_vol = volume - conf["reference_level"]
         conf["low_boost"]
         conf["attenuate_mid"]
-        rel_boost = rel_vol / 20.0
+        rel_boost = -rel_vol / 20.0
         if rel_boost > 1.0:
             rel_boost = 1.0
         elif rel_boost < 0.0:
@@ -400,7 +400,7 @@ class Loudness(BiquadCombo):
         low_boost = rel_boost * conf["low_boost"]
         if conf["attenuate_mid"]:
             max_gain = max(high_boost, low_boost)
-            self.mid_gain = 10.0 ** (max_gain / 20.0)
+            self.mid_gain = 10.0 ** (-max_gain / 20.0)
         else:
             self.mid_gain = 1.0
 

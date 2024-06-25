@@ -787,6 +787,7 @@ class CamillaValidator:
 DEFAULT_VALUES = {
     ("filters",): {},
     ("mixers",): {},
+    ("processors",): {},
     ("pipeline",): [],
     ("devices", "capture", "loopback"): False,
     ("devices", "capture", "exclusive"): False,

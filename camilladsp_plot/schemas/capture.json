@@ -45,6 +45,13 @@
         "type": ["string", "null"],
         "default": null,
         "minLength": 1
+      },
+      "labels": {
+        "type": ["array", "null"],
+        "items": {
+          "type": ["string", "null"]
+        },
+        "default": null
       }
     },
     "required": ["type", "channels", "device"],
@@ -65,6 +72,13 @@
       },
       "format": {
         "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"]
+      },
+      "labels": {
+        "type": ["array", "null"],
+        "items": {
+          "type": ["string", "null"]
+        },
+        "default": null
       }
     },
     "required": ["type", "device", "channels", "format"],
@@ -94,6 +108,13 @@
       },
       "format": {
         "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"]
+      },
+      "labels": {
+        "type": ["array", "null"],
+        "items": {
+          "type": ["string", "null"]
+        },
+        "default": null
       }
     },
     "required": ["type", "channels", "format"],
@@ -117,6 +138,13 @@
         "type": ["string", "null"],
         "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", null],
         "default": null
+      },
+      "labels": {
+        "type": ["array", "null"],
+        "items": {
+          "type": ["string", "null"]
+        },
+        "default": null
       }
     },
     "required": ["type", "channels"],
@@ -134,6 +162,13 @@
       "channels": {
         "type": "integer",
         "exclusiveMinimum": 0
+      },
+      "labels": {
+        "type": ["array", "null"],
+        "items": {
+          "type": ["string", "null"]
+        },
+        "default": null
       }
     },
     "required": ["type", "device", "channels"],
@@ -165,6 +200,13 @@
         "type": ["integer", "null"],
         "default": null,
         "minimum": 0
+      },
+      "labels": {
+        "type": ["array", "null"],
+        "items": {
+          "type": ["string", "null"]
+        },
+        "default": null
       }
     },
     "required": ["type", "channels", "format"],
@@ -200,6 +242,13 @@
         "type": ["integer", "null"],
         "default": null,
         "minimum": 0
+      },
+      "labels": {
+        "type": ["array", "null"],
+        "items": {
+          "type": ["string", "null"]
+        },
+        "default": null
       }
     },
     "required": ["type", "filename", "channels", "format"],
@@ -218,6 +267,13 @@
         "type": ["integer", "null"],
         "default": null,
         "minimum": 0
+      },
+      "labels": {
+        "type": ["array", "null"],
+        "items": {
+          "type": ["string", "null"]
+        },
+        "default": null
       }
     },
     "required": ["type", "filename"],
@@ -243,6 +299,13 @@
       },
       "format": {
         "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+      },
+      "labels": {
+        "type": ["array", "null"],
+        "items": {
+          "type": ["string", "null"]
+        },
+        "default": null
       }
     },
     "required": ["type", "dbus_path", "channels", "format"],
@@ -259,6 +322,13 @@
       },
       "signal": {
         "type": "object"
+      },
+      "labels": {
+        "type": ["array", "null"],
+        "items": {
+          "type": ["string", "null"]
+        },
+        "default": null
       }
     },
     "required": ["type", "channels", "signal"],

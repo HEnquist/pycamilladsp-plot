@@ -1,6 +1,7 @@
 # Adapted from https://jeremykun.com/2012/07/18/the-fast-fourier-transform/
 import cmath
 import math
+
 try:
     import numpy.fft as npfft
 except ImportError:
@@ -115,7 +116,7 @@ if __name__ == "__main__":
     for n in range(len(pyf)):
         print(abs(pyf[n] - npf[n]))
 
-    data = [float(n) for n in range(2 ** 16)]
+    data = [float(n) for n in range(2**16)]
 
     start = time.time()
     nf = npfft.fft(data)

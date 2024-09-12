@@ -5,7 +5,7 @@ import itertools
 NUMBERFORMATS = {
     1: "int",
     3: "float",
-    0xfffe: "extended",
+    0xFFFE: "extended",
 }
 
 SUBFORMAT_FLOAT = (3, 0, 16, 128, 0, 0, 170, 0, 56, 155, 113)
@@ -19,23 +19,17 @@ TYPES_DIRECT = {
 }
 
 TYPES_INDIRECT = {
-    "S24LE": {
-        "pattern": "sssx",
-        "endian": "little"
-    },
-    "S24LE3": {
-        "pattern": "sss",
-        "endian": "little"
-    },
+    "S24LE": {"pattern": "sssx", "endian": "little"},
+    "S24LE3": {"pattern": "sss", "endian": "little"},
 }
 
 SCALEFACTOR = {
     "FLOAT64LE": 1.0,
     "FLOAT32LE": 1.0,
-    "S16LE": (2 ** 15),
-    "S24LE": (2 ** 23),
-    "S24LE3": (2 ** 23),
-    "S32LE": (2 ** 31),
+    "S16LE": (2**15),
+    "S24LE": (2**23),
+    "S24LE3": (2**23),
+    "S32LE": (2**31),
 }
 
 BYTESPERSAMPLE = {
@@ -57,7 +51,8 @@ def read_coeffs(conf):
             read_nbr = None
         skip_nbr = conf.get("skip_bytes_lines", 0)
         values = read_raw_coeffs(
-            fname, sampleformat, skip_nbr=skip_nbr, read_nbr=read_nbr)
+            fname, sampleformat, skip_nbr=skip_nbr, read_nbr=read_nbr
+        )
         return values
     elif conf["type"] == "Wav":
         channel = conf.get("channel", 0)
@@ -74,10 +69,12 @@ def read_raw_coeffs(filename, sampleformat=None, skip_nbr=0, read_nbr=None):
     else:
         if sampleformat in TYPES_DIRECT:
             values = read_binary_direct_coeffs(
-                filename, sampleformat, skip_nbr, read_nbr)
+                filename, sampleformat, skip_nbr, read_nbr
+            )
         elif sampleformat in TYPES_INDIRECT:
             values = read_binary_indirect_coeffs(
-                filename, sampleformat, skip_nbr, read_nbr)
+                filename, sampleformat, skip_nbr, read_nbr
+            )
         else:
             raise ValueError(f"Unsupported format {sampleformat}")
     return values
@@ -101,11 +98,10 @@ def read_binary_direct_coeffs(fname, sampleformat, skip_bytes, read_bytes):
 
     datatype = TYPES_DIRECT[sampleformat]
     factor = SCALEFACTOR[sampleformat]
-    with open(fname, 'rb') as f:
+    with open(fname, "rb") as f:
         f.seek(skip_bytes)
         data = f.read(count)
-    values = [
-        float(val[0])/factor for val in struct.iter_unpack(datatype, data)]
+    values = [float(val[0]) / factor for val in struct.iter_unpack(datatype, data)]
     return values
 
 
@@ -119,11 +115,13 @@ def read_binary_indirect_coeffs(fname, sampleformat, skip_bytes, read_bytes):
     pattern = TYPES_INDIRECT[sampleformat]["pattern"]
     factor = SCALEFACTOR[sampleformat]
     endian = TYPES_INDIRECT[sampleformat]["endian"]
-    with open(fname, 'rb') as f:
+    with open(fname, "rb") as f:
         f.seek(skip_bytes)
         data = f.read(count)
-    values = [int.from_bytes(b"".join(val), endian, signed=True) /
-              factor for val in struct.iter_unpack(pattern, data)]
+    values = [
+        int.from_bytes(b"".join(val), endian, signed=True) / factor
+        for val in struct.iter_unpack(pattern, data)
+    ]
     return values
 
 
@@ -133,89 +131,94 @@ def read_wav_coeffs(fname, channel):
         raise ValueError(f"Invalid or unsupported wav file '{fname}'")
     if channel >= params["channels"]:
         raise ValueError(
-            f"Can't read channel {channel} from {fname} which has {params['channels']} channels")
+            f"Can't read channel {channel} from {fname} which has {params['channels']} channels"
+        )
     allvalues = read_raw_coeffs(
-        fname, sampleformat=params["sampleformat"], skip_nbr=params["dataoffset"], read_nbr=params["datalength"])
-    values = allvalues[channel::params["channels"]]
+        fname,
+        sampleformat=params["sampleformat"],
+        skip_nbr=params["dataoffset"],
+        read_nbr=params["datalength"],
+    )
+    values = allvalues[channel :: params["channels"]]
     return values
 
 
 def analyze_wav_chunk(type, start, length, file, wav_info):
     if type == "fmt ":
         data = file.read(length)
-        wav_info['sampleformat'] = NUMBERFORMATS.get(
-            struct.unpack('<H', data[0:2])[0], "unknown")
-        wav_info['channels'] = struct.unpack('<H', data[2:4])[0]
-        wav_info['samplerate'] = struct.unpack('<L', data[4:8])[0]
-        wav_info['byterate'] = struct.unpack('<L', data[8:12])[0]
-        wav_info['bytesperframe'] = struct.unpack('<H', data[12:14])[0]
-        wav_info['bitspersample'] = struct.unpack('<H', data[14:16])[0]
-        bytes_per_sample = wav_info['bytesperframe']/wav_info['channels']
+        wav_info["sampleformat"] = NUMBERFORMATS.get(
+            struct.unpack("<H", data[0:2])[0], "unknown"
+        )
+        wav_info["channels"] = struct.unpack("<H", data[2:4])[0]
+        wav_info["samplerate"] = struct.unpack("<L", data[4:8])[0]
+        wav_info["byterate"] = struct.unpack("<L", data[8:12])[0]
+        wav_info["bytesperframe"] = struct.unpack("<H", data[12:14])[0]
+        wav_info["bitspersample"] = struct.unpack("<H", data[14:16])[0]
+        bytes_per_sample = wav_info["bytesperframe"] / wav_info["channels"]
 
         # Handle extended fmt chunk
-        if wav_info['sampleformat'] == "extended":
+        if wav_info["sampleformat"] == "extended":
             if length != 40:
                 print("Invalid extended wav header")
                 return
-            cb_size = struct.unpack('<H', data[16:18])[0]
-            valid_bits_per_sample = struct.unpack('<H', data[18:20])[0]
-            if cb_size != 22 or valid_bits_per_sample != wav_info['bitspersample']:
+            cb_size = struct.unpack("<H", data[16:18])[0]
+            valid_bits_per_sample = struct.unpack("<H", data[18:20])[0]
+            if cb_size != 22 or valid_bits_per_sample != wav_info["bitspersample"]:
                 print("Invalid extended wav header")
                 return
-            _channel_mask = struct.unpack('<L', data[20:24])[0]
-            subformat = struct.unpack('<LHHBBBBBBBB', data[24:40])
+            _channel_mask = struct.unpack("<L", data[20:24])[0]
+            subformat = struct.unpack("<LHHBBBBBBBB", data[24:40])
             if subformat == SUBFORMAT_FLOAT:
-                wav_info['sampleformat'] = "float"
+                wav_info["sampleformat"] = "float"
             elif subformat == SUBFORMAT_INT:
-                wav_info['sampleformat'] = "int"
+                wav_info["sampleformat"] = "int"
             else:
-                wav_info['sampleformat'] = "unknown"
+                wav_info["sampleformat"] = "unknown"
 
-        if wav_info['sampleformat'] == "int":
-            if wav_info['bitspersample'] == 16:
+        if wav_info["sampleformat"] == "int":
+            if wav_info["bitspersample"] == 16:
                 sfmt = "S16LE"
-            elif wav_info['bitspersample'] == 24 and bytes_per_sample == 3:
+            elif wav_info["bitspersample"] == 24 and bytes_per_sample == 3:
                 sfmt = "S24LE3"
-            elif wav_info['bitspersample'] == 24 and bytes_per_sample == 4:
+            elif wav_info["bitspersample"] == 24 and bytes_per_sample == 4:
                 sfmt = "S24LE"
-            elif wav_info['bitspersample'] == 32:
+            elif wav_info["bitspersample"] == 32:
                 sfmt = "S32LE"
-        elif wav_info['sampleformat'] == "float":
-            if wav_info['bitspersample'] == 32:
+        elif wav_info["sampleformat"] == "float":
+            if wav_info["bitspersample"] == 32:
                 sfmt = "FLOAT32LE"
-            elif wav_info['bitspersample'] == 64:
+            elif wav_info["bitspersample"] == 64:
                 sfmt = "FLOAT64LE"
         else:
             sfmt = "unknown"
-        wav_info['sampleformat'] = sfmt
+        wav_info["sampleformat"] = sfmt
     elif type == "data":
-        wav_info['dataoffset'] = start+8
-        wav_info['datalength'] = length
+        wav_info["dataoffset"] = start + 8
+        wav_info["datalength"] = length
 
 
 def read_wav_header(filename):
-    """ 
+    """
     Reads the wav header to extract sample format, number of channels, and location of the audio data in the file
     """
     try:
-        with open(filename, 'rb') as file_in:
+        with open(filename, "rb") as file_in:
             # Read fixed header
             buf_header = file_in.read(12)
             # Verify that the correct identifiers are present
-            if (buf_header[0:4] != b"RIFF") or \
-                    (buf_header[8:12] != b"WAVE"):
+            if (buf_header[0:4] != b"RIFF") or (buf_header[8:12] != b"WAVE"):
                 print("Input file is not a standard WAV file")
                 return
 
             wav_info = {
-                'dataoffset': None,
-                'datalength': None,
-                'sampleformat': None,
-                'bitspersample': None,
-                'channels': None,
-                'byterate': None,
-                'samplerate': None,
-                'bytesperframe': None,
+                "dataoffset": None,
+                "datalength": None,
+                "sampleformat": None,
+                "bitspersample": None,
+                "channels": None,
+                "byterate": None,
+                "samplerate": None,
+                "bytesperframe": None,
             }
 
             # Get file length
@@ -227,22 +230,28 @@ def read_wav_header(filename):
                 file_in.seek(next_chunk_location)
                 buf_header = file_in.read(8)
                 chunk_type = buf_header[0:4].decode("utf-8")
-                chunk_length = struct.unpack('<L', buf_header[4:8])[0]
-                analyze_wav_chunk(chunk_type, next_chunk_location,
-                                  chunk_length, file_in, wav_info)
-                next_chunk_location += (8 + chunk_length)
+                chunk_length = struct.unpack("<L", buf_header[4:8])[0]
+                analyze_wav_chunk(
+                    chunk_type, next_chunk_location, chunk_length, file_in, wav_info
+                )
+                next_chunk_location += 8 + chunk_length
                 if next_chunk_location >= input_filesize:
                     break
-            if wav_info['datalength'] is not None and wav_info['sampleformat'] not in [None, "unknown"]:
+            if wav_info["datalength"] is not None and wav_info["sampleformat"] not in [
+                None,
+                "unknown",
+            ]:
                 return wav_info
     except IOError as err:
-        print('Could not open input file: "{}", error: {}'.format(
-            str(filename), str(err)))
+        print(
+            'Could not open input file: "{}", error: {}'.format(str(filename), str(err))
+        )
         return
 
 
 if __name__ == "__main__":
     import sys
+
     info = read_wav_header(sys.argv[1])
     if info is not None:
         print("Wav properties:")

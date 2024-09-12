@@ -49,6 +49,12 @@
         "default": null,
         "minimum": 0.0
       },
+      "limit": {
+        "type": ["number", "null"],
+        "default": null,
+        "minimum": -150.0,
+        "maximum": 50.0
+      },
       "fader" :{
         "type": "string",
         "enum": ["Aux1", "Aux2", "Aux3", "Aux4"]

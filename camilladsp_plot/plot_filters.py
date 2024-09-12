@@ -6,9 +6,9 @@ import io
 
 def plot_filter(filterconf, name=None, samplerate=44100, npoints=1000, toimage=False):
     if toimage:
-        matplotlib.use('Agg')
+        matplotlib.use("Agg")
     filterdata = eval_filter(filterconf, name, samplerate, npoints)
-    if filterconf['type'] in ('Biquad', 'DiffEq', 'BiquadCombo', 'Delay', 'Gain'):
+    if filterconf["type"] in ("Biquad", "DiffEq", "BiquadCombo", "Delay", "Gain"):
         plt.figure(num=name)
         fplot = filterdata["f"]
         magn = filterdata["magnitude"]
@@ -26,7 +26,7 @@ def plot_filter(filterconf, name=None, samplerate=44100, npoints=1000, toimage=F
         plt.semilogx(f_grp, groupdelay)
         plt.ylabel("Group delay, ms")
 
-    elif filterconf['type'] == 'Conv':
+    elif filterconf["type"] == "Conv":
         plt.figure(num=name)
         fplot = filterdata["f"]
         magn = filterdata["magnitude"]
@@ -39,37 +39,47 @@ def plot_filter(filterconf, name=None, samplerate=44100, npoints=1000, toimage=F
         plt.semilogx(fplot, magn)
         plt.title("{}".format(name))
         plt.ylabel("Magnitude, dB")
-        plt.gca().set(xlim=(10, samplerate/2.0))
+        plt.gca().set(xlim=(10, samplerate / 2.0))
         plt.subplot(4, 1, 2)
         plt.plot(t, impulse)
         plt.ylabel("Impulse response")
         plt.subplot(4, 1, 3)
         plt.semilogx(fplot, phase)
         plt.ylabel("Phase, deg")
-        plt.gca().set(xlim=(10, samplerate/2.0))
+        plt.gca().set(xlim=(10, samplerate / 2.0))
         plt.subplot(4, 1, 4)
         plt.semilogx(f_grp, groupdelay)
         plt.ylabel("Group delay, ms")
-        plt.gca().set(xlim=(10, samplerate/2.0))
+        plt.gca().set(xlim=(10, samplerate / 2.0))
     if toimage:
         buf = io.BytesIO()
-        plt.savefig(buf, format='svg')
+        plt.savefig(buf, format="svg")
         buf.seek(0)
         plt.close()
         return buf
 
 
-def plot_filters(conf):
-    srate = conf['devices']['samplerate']
-    if 'filters' in conf:
-        for filter, fconf in conf['filters'].items():
+def plot_filters(conf, overrides=None):
+    srate = conf["devices"]["samplerate"]
+    if (
+        overrides is not None
+        and overrides.get("samplerate") is not None
+        and conf["devices"].get("resampler") is None
+    ):
+        srate = overrides["samplerate"]
+    if "filters" in conf and conf["filters"] is not None:
+        for filter, fconf in conf["filters"].items():
             plot_filter(fconf, samplerate=srate, name=filter)
 
 
-def plot_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, toimage=False):
+def plot_filterstep(
+    conf, pipelineindex, name="filterstep", npoints=1000, toimage=False, overrides=None
+):
     if toimage:
-        matplotlib.use('Agg')
-    filterdata = eval_filterstep(conf, pipelineindex, name, npoints)
+        matplotlib.use("Agg")
+    filterdata = eval_filterstep(
+        conf, pipelineindex, name, npoints, overrides=overrides
+    )
     fplot = filterdata["f"]
     magn = filterdata["magnitude"]
     phase = filterdata["phase"]
@@ -83,15 +93,21 @@ def plot_filterstep(conf, pipelineindex, name="filterstep", npoints=1000, toimag
     plt.ylabel("Phase")
     if toimage:
         buf = io.BytesIO()
-        plt.savefig(buf, format='svg')
+        plt.savefig(buf, format="svg")
         buf.seek(0)
         plt.close()
         return buf
 
 
-def plot_all_filtersteps(conf, npoints=1000, toimage=False):
-    if 'pipeline' in conf:
-        for idx, step in enumerate(conf['pipeline']):
+def plot_all_filtersteps(conf, npoints=1000, toimage=False, overrides=None):
+    if "pipeline" in conf and conf["pipeline"] is not None:
+        for idx, step in enumerate(conf["pipeline"]):
             if step["type"] == "Filter":
-                plot_filterstep(conf, idx, name="Pipeline step {}".format(
-                    idx), npoints=npoints, toimage=toimage)
+                plot_filterstep(
+                    conf,
+                    idx,
+                    name="Pipeline step {}".format(idx),
+                    npoints=npoints,
+                    toimage=toimage,
+                    overrides=overrides,
+                )

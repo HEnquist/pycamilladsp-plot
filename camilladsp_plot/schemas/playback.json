@@ -30,10 +30,12 @@
         "exclusiveMinimum": 0
       },
       "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+        "type": ["string", "null"],
+        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE", null],
+        "default": null
       }
     },
-    "required": ["type", "channels", "device", "format"],
+    "required": ["type", "channels", "device"],
     "additionalProperties": false
   },
   "Pulse": {
@@ -136,6 +138,10 @@
       },
       "format": {
         "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+      },
+      "wav_header": {
+        "type": ["boolean", "null"],
+        "default": null
       }
     },
     "required": ["type", "channels", "format"],
@@ -156,6 +162,10 @@
       },
       "format": {
         "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+      },
+      "wav_header": {
+        "type": ["boolean", "null"],
+        "default": null
       }
     },
     "required": ["type", "filename", "channels", "format"],

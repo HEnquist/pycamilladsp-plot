@@ -104,6 +104,21 @@
       "default": null,
       "exclusiveMinimum": 0
     },
+    "multithreaded": {
+      "type": [
+        "boolean",
+        "null"
+      ],
+      "default": null
+    },
+    "worker_threads": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "default": null,
+      "minimum": 0
+    },
     "capture": {
       "type": "object"
     },

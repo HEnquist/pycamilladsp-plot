@@ -41,7 +41,12 @@
         "type": ["boolean", "null"],
         "default": null
       },
-      "follow_volume_control": {
+      "link_volume_control": {
+        "type": ["string", "null"],
+        "default": null,
+        "minLength": 1
+      },
+      "link_mute_control": {
         "type": ["string", "null"],
         "default": null,
         "minLength": 1

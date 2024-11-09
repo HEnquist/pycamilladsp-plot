@@ -94,14 +94,14 @@ class CamillaValidator:
         backup = self.capture_schemas_backup["capture"]["properties"]["type"]["enum"]
         common = list(set(backup).intersection(types))
         if len(common) == 0:
-            raise ValueError("List of supported capture device types can't be empty.")
+            raise ValueError("List of supported capture device types cannot be empty.")
         self.capture_schemas["capture"]["properties"]["type"]["enum"] = common
 
     def set_supported_playback_types(self, types):
         backup = self.playback_schemas_backup["playback"]["properties"]["type"]["enum"]
         common = list(set(backup).intersection(types))
         if len(common) == 0:
-            raise ValueError("List of supported playback device types can't be empty.")
+            raise ValueError("List of supported playback device types cannot be empty.")
         self.playback_schemas["playback"]["properties"]["type"]["enum"] = common
 
     def validate(self, config, schema, path=[]):
@@ -712,11 +712,11 @@ class CamillaValidator:
             target_level_limit = 4 * self.config["devices"]["chunksize"]
         else:
             target_level_limit = 2 * self.config["devices"]["chunksize"]
-        if self.value_or_default(("devices", "target_level")) >= target_level_limit:
+        if self.value_or_default(("devices", "target_level")) > target_level_limit:
             self.errorlist.append(
                 (
                     ["devices", "target_level"],
-                    f"target_level can't be larger than {target_level_limit}",
+                    f"target_level cannot be larger than {target_level_limit}",
                 )
             )
 
@@ -728,7 +728,7 @@ class CamillaValidator:
                 self.errorlist.append(
                     (
                         ["devices", "capture", "exclusive"],
-                        "exclusive mode can't be combined with loopback capture",
+                        "exclusive mode cannot be combined with loopback capture",
                     )
                 )
             if (

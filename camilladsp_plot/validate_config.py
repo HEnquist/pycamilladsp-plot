@@ -78,6 +78,15 @@ class CamillaValidator:
         with open(self.get_full_path("schemas/mixer.json")) as f:
             self.mixer_schema = json.load(f)
 
+        # Procesors
+        with open(self.get_full_path("schemas/processor.json")) as f:
+            self.processor_schema = json.load(f)
+        with open(self.get_full_path("schemas/compressor.json")) as f:
+            self.compressor_schema = json.load(f)
+        with open(self.get_full_path("schemas/noisegate.json")) as f:
+            self.noisegate_schema = json.load(f)
+
+
         self.errorlist = []
         self.warninglist = []
 
@@ -85,14 +94,14 @@ class CamillaValidator:
         backup = self.capture_schemas_backup["capture"]["properties"]["type"]["enum"]
         common = list(set(backup).intersection(types))
         if len(common) == 0:
-            raise ValueError("List of supported capture device types can't be empty.")
+            raise ValueError("List of supported capture device types cannot be empty.")
         self.capture_schemas["capture"]["properties"]["type"]["enum"] = common
 
     def set_supported_playback_types(self, types):
         backup = self.playback_schemas_backup["playback"]["properties"]["type"]["enum"]
         common = list(set(backup).intersection(types))
         if len(common) == 0:
-            raise ValueError("List of supported playback device types can't be empty.")
+            raise ValueError("List of supported playback device types cannot be empty.")
         self.playback_schemas["playback"]["properties"]["type"]["enum"] = common
 
     def validate(self, config, schema, path=[]):
@@ -408,6 +417,22 @@ class CamillaValidator:
         for name, mix in self.value_or_default(("mixers",)).items():
             self.validate(mix, self.mixer_schema, path=["mixers", name])
 
+        # Processors
+        for name, prc in self.value_or_default(("processors",)).items():
+            ok = self.validate(prc, self.processor_schema, path=["processors", name])
+            if ok:
+                prc_type = prc["type"]
+                if prc_type == "Compressor":
+                    schema = self.compressor_schema
+                    ok = self.validate(
+                        prc["parameters"], schema, path=["processors", name, "parameters"]
+                    )
+                elif prc_type == "NoiseGate":
+                    schema = self.noisegate_schema
+                    ok = self.validate(
+                        prc["parameters"], schema, path=["processors", name, "parameters"]
+                    )
+
         # Pipeline
         for idx, step in enumerate(self.value_or_default(("pipeline",))):
             ok = self.validate(
@@ -450,6 +475,32 @@ class CamillaValidator:
                     if filtname not in self.config["filters"].keys():
                         msg = f"Use of missing filter '{filtname}'"
                         path = ["pipeline", idx, "names", subidx]
+                        self.errorlist.append((path, msg))
+
+            if step["type"] == "Processor":
+                prcname_with_tokens = step["name"]
+                prcname = self.replace_tokens_in_string(prcname_with_tokens)
+                if prcname not in self.config["processors"].keys():
+                    msg = f"Use of missing processor '{prcname}'"
+                    path = ["pipeline", idx, "name"]
+                    self.errorlist.append((path, msg))
+                else:
+                    channels = self.config["processors"][prcname]["parameters"]["channels"]
+                    if channels != num_channels:
+                        msg = f"Processor '{prcname}' has wrong number of channels. Expected {num_channels}, found {channels}"
+                        path = ["pipeline", idx]
+                        self.errorlist.append((path, msg))
+                    monitor_channels = self.config["processors"][prcname]["parameters"]["monitor_channels"]
+                    if monitor_channels is not None and any(ch >= num_channels for ch in monitor_channels):
+                        bad_channels = ", ".join(str(ch) for ch in monitor_channels if ch >= num_channels)
+                        msg = f"Processor '{prcname}' monitors non-existing channel(s) {bad_channels}. Max is {num_channels-1}"
+                        path = ["pipeline", idx]
+                        self.errorlist.append((path, msg))
+                    process_channels = self.config["processors"][prcname]["parameters"]["process_channels"]
+                    if process_channels is not None and any(ch >= num_channels for ch in process_channels):
+                        bad_channels = ", ".join(str(ch) for ch in process_channels if ch >= num_channels)
+                        msg = f"Processor '{prcname}' processes non-existing channel(s) {bad_channels}. Max is {num_channels-1}"
+                        path = ["pipeline", idx]
                         self.errorlist.append((path, msg))
 
         num_channels_out = self.config["devices"]["playback"]["channels"]
@@ -681,11 +732,11 @@ class CamillaValidator:
             target_level_limit = 4 * self.config["devices"]["chunksize"]
         else:
             target_level_limit = 2 * self.config["devices"]["chunksize"]
-        if self.value_or_default(("devices", "target_level")) >= target_level_limit:
+        if self.value_or_default(("devices", "target_level")) > target_level_limit:
             self.errorlist.append(
                 (
                     ["devices", "target_level"],
-                    f"target_level can't be larger than {target_level_limit}",
+                    f"target_level cannot be larger than {target_level_limit}",
                 )
             )
 
@@ -697,7 +748,7 @@ class CamillaValidator:
                 self.errorlist.append(
                     (
                         ["devices", "capture", "exclusive"],
-                        "exclusive mode can't be combined with loopback capture",
+                        "exclusive mode cannot be combined with loopback capture",
                     )
                 )
             if (
@@ -756,6 +807,7 @@ class CamillaValidator:
 DEFAULT_VALUES = {
     ("filters",): {},
     ("mixers",): {},
+    ("processors",): {},
     ("pipeline",): [],
     ("devices", "capture", "loopback"): False,
     ("devices", "capture", "exclusive"): False,

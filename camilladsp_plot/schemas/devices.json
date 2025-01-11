@@ -81,6 +81,15 @@
       "default": null,
       "minimum": 0.0
     },
+    "volume_limit": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "default": null,
+      "minimum": -150.0,
+      "maximum": 50.0
+    },
     "resampler": {
       "type": [
         "object",
@@ -94,6 +103,21 @@
       ],
       "default": null,
       "exclusiveMinimum": 0
+    },
+    "multithreaded": {
+      "type": [
+        "boolean",
+        "null"
+      ],
+      "default": null
+    },
+    "worker_threads": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "default": null,
+      "minimum": 0
     },
     "capture": {
       "type": "object"

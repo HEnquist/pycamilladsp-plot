@@ -3,7 +3,8 @@
     "type": {
       "type": "string",
       "enum": [
-        "Compressor"
+        "Compressor",
+        "NoiseGate"
       ]
     },
     "description": {

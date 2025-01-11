@@ -1,5 +1,6 @@
 import sys
 from camilladsp_plot.validate_config import CamillaValidator
+
 try:
     from matplotlib import pyplot as plt
     from camilladsp_plot.plot_pipeline import plot_pipeline
@@ -21,20 +22,20 @@ def main():
         if len(warnings) > 0:
             print("Warnings:")
             for w in warnings:
-                print("/".join([str(p) for p in w[0]]), " : ",  w[1])
+                print("/".join([str(p) for p in w[0]]), " : ", w[1])
         if plt is None:
             print("Matplotlib is not available! Can't display plots.")
             return
-        #conf = validator.get_config()
-        conf = validator.get_processed_config()
-        plot_pipeline(conf)
-        plot_filters(conf)
+        # conf = validator.get_config()
+        conf, overrides = validator.get_processed_config()
+        plot_pipeline(conf, overrides=overrides)
+        plot_filters(conf, overrides=overrides)
         plot_all_filtersteps(conf)
         plt.show()
     else:
         print("Unable to plot, config has errors:")
         for err in errors:
-            print("/".join([str(p) for p in err[0]]), " : ",  err[1])
+            print("/".join([str(p) for p in err[0]]), " : ", err[1])
 
 
 if __name__ == "__main__":

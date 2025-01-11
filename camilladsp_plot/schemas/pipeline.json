@@ -37,9 +37,14 @@
       "type": {
         "enum": ["Filter"]
       },
-      "channel": {
-        "type": "integer",
-        "minimum": 0
+      "channels": {
+        "type": ["array", "null"],
+        "items": {
+          "type": "number",
+          "minimum": 0
+        },
+        "default": null,
+        "uniqueItems": true
       },
       "names": {
         "type": "array",
@@ -53,7 +58,7 @@
         "default": null
       }
     },
-    "required": ["type", "channel", "names"],
+    "required": ["type", "names"],
     "additionalProperties": false
   },
   "Processor": {

@@ -65,6 +65,13 @@
         "required": ["dest", "sources"],
         "additionalProperties": false
       }
+    },
+    "labels": {
+      "type": ["array", "null"],
+      "items": {
+        "type": ["string", "null"]
+      },
+      "default": null
     }
   },
   "required": ["channels", "mapping"],

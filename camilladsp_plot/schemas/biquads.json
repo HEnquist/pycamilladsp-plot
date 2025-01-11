@@ -106,15 +106,15 @@
       "type": {
         "enum": ["GeneralNotch"]
       },
-      "freq_pole": {
+      "freq_p": {
         "type": "number",
         "exclusiveMinimum": 0.0
       },
-      "q_pole": {
+      "q_p": {
         "type": "number",
         "exclusiveMinimum": 0.0
       },
-      "freq_zero": {
+      "freq_z": {
         "type": "number",
         "exclusiveMinimum": 0.0
       },
@@ -123,7 +123,7 @@
         "default": null
       }
     },
-    "required": ["type", "freq_pole", "freq_zero"],
+    "required": ["type", "freq_p", "freq_z", "q_p"],
     "additionalProperties": false
   },
   "Allpass": {

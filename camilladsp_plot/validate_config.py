@@ -85,7 +85,8 @@ class CamillaValidator:
             self.compressor_schema = json.load(f)
         with open(self.get_full_path("schemas/noisegate.json")) as f:
             self.noisegate_schema = json.load(f)
-
+        with open(self.get_full_path("schemas/race.json")) as f:
+            self.race_schema = json.load(f)
 
         self.errorlist = []
         self.warninglist = []
@@ -240,6 +241,7 @@ class CamillaValidator:
             self.validate_devices()
             self.validate_mixers()
             self.validate_filters()
+            self.validate_processors()
             self.validate_pipeline()
 
     # Check that the supplied overrides are valid, null them if not
@@ -432,6 +434,11 @@ class CamillaValidator:
                     ok = self.validate(
                         prc["parameters"], schema, path=["processors", name, "parameters"]
                     )
+                elif prc_type == "RACE":
+                    schema = self.race_schema
+                    ok = self.validate(
+                        prc["parameters"], schema, path=["processors", name, "parameters"]
+                    )
 
         # Pipeline
         for idx, step in enumerate(self.value_or_default(("pipeline",))):
@@ -488,18 +495,6 @@ class CamillaValidator:
                     channels = self.config["processors"][prcname]["parameters"]["channels"]
                     if channels != num_channels:
                         msg = f"Processor '{prcname}' has wrong number of channels. Expected {num_channels}, found {channels}"
-                        path = ["pipeline", idx]
-                        self.errorlist.append((path, msg))
-                    monitor_channels = self.config["processors"][prcname]["parameters"]["monitor_channels"]
-                    if monitor_channels is not None and any(ch >= num_channels for ch in monitor_channels):
-                        bad_channels = ", ".join(str(ch) for ch in monitor_channels if ch >= num_channels)
-                        msg = f"Processor '{prcname}' monitors non-existing channel(s) {bad_channels}. Max is {num_channels-1}"
-                        path = ["pipeline", idx]
-                        self.errorlist.append((path, msg))
-                    process_channels = self.config["processors"][prcname]["parameters"]["process_channels"]
-                    if process_channels is not None and any(ch >= num_channels for ch in process_channels):
-                        bad_channels = ", ".join(str(ch) for ch in process_channels if ch >= num_channels)
-                        msg = f"Processor '{prcname}' processes non-existing channel(s) {bad_channels}. Max is {num_channels-1}"
                         path = ["pipeline", idx]
                         self.errorlist.append((path, msg))
 
@@ -766,6 +761,38 @@ class CamillaValidator:
                     self.overrides = {}
                 self.overrides["samplerate"] = wavparams["samplerate"]
                 self.overrides["channels"] = wavparams["channels"]
+
+    def validate_processors(self):
+        for proc_name, proc_conf in self.value_or_default(("processors",)).items():
+            num_channels = proc_conf["parameters"]["channels"]
+            if proc_conf["type"] in ["Compressor", "NoiseGate"]:
+                monitor_channels = proc_conf["parameters"]["monitor_channels"]
+                if monitor_channels is not None and any(ch >= num_channels for ch in monitor_channels):
+                    bad_channels = ", ".join(str(ch) for ch in monitor_channels if ch >= num_channels)
+                    msg = f"Processor '{proc_name}' monitors non-existing channel(s) {bad_channels}. Max is {num_channels-1}"
+                    path = ["processors", proc_name, "parameters", "monitor_channels"]
+                    self.errorlist.append((path, msg))
+                process_channels = proc_conf["parameters"]["process_channels"]
+                if process_channels is not None and any(ch >= num_channels for ch in process_channels):
+                    bad_channels = ", ".join(str(ch) for ch in process_channels if ch >= num_channels)
+                    msg = f"Processor '{proc_name}' processes non-existing channel(s) {bad_channels}. Max is {num_channels-1}"
+                    path = ["processors", proc_name, "parameters", "process_channels"]
+                    self.errorlist.append((path, msg))
+            elif proc_conf["type"] == "RACE":
+                channel_a = proc_conf["parameters"]["channel_a"]
+                if channel_a >= num_channels:
+                    msg = f"Invalid value for channel_a, max is {num_channels-1}"
+                    path = ["processors", proc_name, "parameters", "channel_a"]
+                    self.errorlist.append((path, msg))
+                channel_b = proc_conf["parameters"]["channel_b"]
+                if channel_b >= num_channels:
+                    msg = f"Invalid value for channel_b, max is {num_channels-1}"
+                    path = ["processors", proc_name, "parameters", "channel_b"]
+                    self.errorlist.append((path, msg))
+                if channel_b == channel_a:
+                    msg = f"Values for channel_a and channel_b must be different"
+                    path = ["processors", proc_name, "parameters", "channel_b"]
+                    self.errorlist.append((path, msg))
 
     def value_or_default(self, path, config=None):
         if config:

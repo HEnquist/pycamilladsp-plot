@@ -1,0 +1,50 @@
+{
+  "properties": {
+    "channels": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "channel_a": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "channel_b": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "delay": {
+      "type": "number",
+      "minimum": 0.0
+    },
+    "delay_unit": {
+      "type": ["string", "null"],
+      "enum": ["ms", "us", "samples", null],
+      "default": null
+    },
+    "subsample_delay": {
+      "type": ["boolean", "null"],
+      "default": null
+    },
+    "attenuation": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 100.0
+    }
+  },
+  "required": [
+    "channels",
+    "channel_a",
+    "channel_b",
+    "delay",
+    "attenuation"
+  ],
+  "additionalProperties": false
+}
+
+* `channels`: number of channels, must match the number of channels of the pipeline where the compressor is inserted.
+* `channel_a`: channel number of first channel of the pair.
+* `channel_b`: channel number of second channel of the pair.
+* `attenuation`: attenuation in dB, must be larger than zero. Typical values are 2 - 3 dB.
+* `delay`: delay value, must be larger than zero. Typical values are in the range 0.06 - 0.1 ms
+* `delay_unit`: unit for delay, see the `Delay` filter.
+* `subsample_delay`: enable subsample delay values, see the `Delay` filter.

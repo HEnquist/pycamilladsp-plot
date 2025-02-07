@@ -31,7 +31,7 @@
       },
       "unit": {
         "type": ["string", "null"],
-        "enum": ["ms", "samples", null],
+        "enum": ["ms", "us", "samples", null],
         "default": null
       },
       "subsample": {

@@ -173,6 +173,8 @@ class Delay(BaseFilter):
             unit = "ms"
         if unit == "ms":
             self.delay_samples = conf["delay"] / 1000.0 * fs
+        elif unit == "us":
+            self.delay_samples = conf["delay"] / 1000000.0 * fs
         elif unit == "mm":
             self.delay_samples = conf["delay"] / 1000.0 * fs / 343.0
         elif unit == "samples":

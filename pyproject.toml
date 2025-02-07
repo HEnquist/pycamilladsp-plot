@@ -12,7 +12,7 @@ authors = [
 ]
 description = "A library for validating, evaluating and plotting configs and filters for CamillaDSP"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "PyYAML >= 6.0",
     "jsonschema >= 4.10"

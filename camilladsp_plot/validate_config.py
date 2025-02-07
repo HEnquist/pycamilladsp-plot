@@ -513,30 +513,28 @@ class CamillaValidator:
         for mixname, mixer_config in self.value_or_default(("mixers",)).items():
             chan_in = mixer_config["channels"]["in"]
             chan_out = mixer_config["channels"]["out"]
-            output_channels = []
+            output_channels = set()
             for idx, mapping in enumerate(mixer_config["mapping"]):
-                # Check that there is no more than one mapping for each ooutput channel
+                # Check that there is no more than one mapping for each output channel
                 if mapping["dest"] in output_channels:
                     msg = f"Destination channel {mapping['dest']} has more than one mapping"
                     path = ["mixers", mixname, "mapping", idx, "dest"]
                     self.errorlist.append((path, msg))
-                else:
-                    output_channels.append(mapping["dest"])
+                output_channels.add(mapping["dest"])
 
                 # Check that the output channel number is valid
                 if mapping["dest"] >= chan_out:
                     msg = f"Invalid destination channel {mapping['dest']}, max is {chan_out-1}"
                     path = ["mixers", mixname, "mapping", idx, "dest"]
                     self.errorlist.append((path, msg))
-                input_channels = []
+                input_channels = set()
                 for subidx, source in enumerate(mapping["sources"]):
                     # Check that each input channel is not listed more than once in a mapping
                     if source["channel"] in input_channels:
                         msg = f"Source channel {source['channel']} occurs more than once for destination channel {mapping['dest']}"
                         path = ["mixers", mixname, "mapping", idx, "sources", subidx]
                         self.errorlist.append((path, msg))
-                    else:
-                        input_channels.append(source["channel"])
+                    input_channels.add(source["channel"])
 
                     # Check that the source channel number is valid
                     if source["channel"] >= chan_in:

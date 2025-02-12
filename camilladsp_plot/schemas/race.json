@@ -18,7 +18,7 @@
     },
     "delay_unit": {
       "type": ["string", "null"],
-      "enum": ["ms", "us", "samples", null],
+      "enum": ["ms", "us", "mm", "samples", null],
       "default": null
     },
     "subsample_delay": {

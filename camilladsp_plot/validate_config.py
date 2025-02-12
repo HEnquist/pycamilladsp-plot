@@ -446,6 +446,11 @@ class CamillaValidator:
     # Validate the pipeline
     def validate_pipeline(self):
         num_channels = self.config["devices"]["capture"].get("channels")
+        if num_channels is None and (self.overrides is None or "channels" not in self.overrides):
+            msg = "The number of capture channels is unknown, unable to validate pipeline"
+            path = ["pipeline"]
+            self.errorlist.append((path, msg))
+            return
         num_channels = self._override_value(num_channels, "channels")
         for idx, step in enumerate(self.value_or_default(("pipeline",))):
             if step["type"] == "Mixer":

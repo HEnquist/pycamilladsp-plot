@@ -3,7 +3,7 @@ Companion Python library for plotting configurations and filters for CamillaDSP.
 
 ## Installation
 ### Requirements
-This library requires Python 3.8 or newer. For plotting configurations with the commandline tool `plotcamillaconf`, it also requires `numpy` and `matplotlib`. These are not required for using only with the web interface, but if `numpy` is available it will be used to speed up evaluation of FIR filters.
+This library requires Python 3.9 or newer. For plotting configurations with the commandline tool `plotcamillaconf`, it also requires `numpy` and `matplotlib`. These are not required for using only with the web interface, but if `numpy` is available it will be used to speed up evaluation of FIR filters.
 
 ### Prepare the Python environment
 The easiest way to get the Python environment prepared is to use the setup scripts from

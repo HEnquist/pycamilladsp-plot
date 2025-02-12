@@ -1,14 +1,65 @@
-import json
-import yaml
-
-from jsonschema import Draft7Validator, validators
 import os
 import sys
+import json
+import yaml
 from copy import deepcopy
+from importlib import resources
+
+from jsonschema import Draft7Validator, validators
+
 from camilladsp_plot.audiofileread import read_wav_header, read_text_coeffs
 
-# https://python-jsonschema.readthedocs.io/en/latest/faq/#why-doesn-t-my-schema-that-has-a-default-property-actually-set-the-default-on-my-instance
+# Overall
+with resources.files("camilladsp_plot").joinpath("schemas/sections.json").open('r') as f:
+    section_schema = json.load(f)
 
+# Devices
+with resources.files("camilladsp_plot").joinpath("schemas/devices.json").open('r') as f:
+    devices_schema = json.load(f)
+with resources.files("camilladsp_plot").joinpath("schemas/playback.json").open('r') as f:
+    playback_schemas = json.load(f)
+with resources.files("camilladsp_plot").joinpath("schemas/capture.json").open('r') as f:
+    capture_schemas = json.load(f)
+with resources.files("camilladsp_plot").joinpath("schemas/resampler.json").open('r') as f:
+    resampler_schemas = json.load(f)
+with resources.files("camilladsp_plot").joinpath("schemas/signalgen.json").open('r') as f:
+    signal_schemas = json.load(f)
+
+# Filters
+with resources.files("camilladsp_plot").joinpath("schemas/filter.json").open('r') as f:
+    filter_schema = json.load(f)
+with resources.files("camilladsp_plot").joinpath("schemas/biquads.json").open('r') as f:
+    biquad_schemas = json.load(f)
+with resources.files("camilladsp_plot").joinpath("schemas/biquadcombo.json").open('r') as f:
+    biquadcombo_schemas = json.load(f)
+with resources.files("camilladsp_plot").joinpath("schemas/conv.json").open('r') as f:
+    conv_schemas = json.load(f)
+with resources.files("camilladsp_plot").joinpath("schemas/dither.json").open('r') as f:
+    dither_schemas = json.load(f)
+with resources.files("camilladsp_plot").joinpath("schemas/basicfilters.json").open('r') as f:
+    basics_schemas = json.load(f)
+
+# Pipeline
+with resources.files("camilladsp_plot").joinpath("schemas/pipeline.json").open('r') as f:
+    pipeline_schemas = json.load(f)
+
+# Mixer
+with resources.files("camilladsp_plot").joinpath("schemas/mixer.json").open('r') as f:
+    mixer_schema = json.load(f)
+
+# Procesors
+with resources.files("camilladsp_plot").joinpath("schemas/processor.json").open('r') as f:
+    processor_schema = json.load(f)
+with resources.files("camilladsp_plot").joinpath("schemas/compressor.json").open('r') as f:
+    compressor_schema = json.load(f)
+with resources.files("camilladsp_plot").joinpath("schemas/noisegate.json").open('r') as f:
+    noisegate_schema = json.load(f)
+with resources.files("camilladsp_plot").joinpath("schemas/race.json").open('r') as f:
+    race_schema = json.load(f)
+with resources.files("camilladsp_plot").joinpath("schemas/devices.json").open('r') as f:
+    devices_schema = json.load(f)
+
+# https://python-jsonschema.readthedocs.io/en/latest/faq/#why-doesn-t-my-schema-that-has-a-default-property-actually-set-the-default-on-my-instance
 
 def extend_with_default(validator_class):
     validate_properties = validator_class.VALIDATORS["properties"]
@@ -38,54 +89,9 @@ class CamillaValidator:
         self.config = None
         self.overrides = None
         self.validator = extend_with_default(Draft7Validator)
-        # Overall
-        with open(self.get_full_path("schemas/sections.json")) as f:
-            self.section_schema = json.load(f)
 
-        # Devices
-        with open(self.get_full_path("schemas/devices.json")) as f:
-            self.devices_schema = json.load(f)
-        with open(self.get_full_path("schemas/playback.json")) as f:
-            self.playback_schemas_backup = json.load(f)
-        with open(self.get_full_path("schemas/capture.json")) as f:
-            self.capture_schemas_backup = json.load(f)
-        with open(self.get_full_path("schemas/resampler.json")) as f:
-            self.resampler_schemas = json.load(f)
-        self.capture_schemas = deepcopy(self.capture_schemas_backup)
-        self.playback_schemas = deepcopy(self.playback_schemas_backup)
-        with open(self.get_full_path("schemas/signalgen.json")) as f:
-            self.signal_schemas = json.load(f)
-
-        # Filters
-        with open(self.get_full_path("schemas/filter.json")) as f:
-            self.filter_schema = json.load(f)
-        with open(self.get_full_path("schemas/biquads.json")) as f:
-            self.biquad_schemas = json.load(f)
-        with open(self.get_full_path("schemas/biquadcombo.json")) as f:
-            self.biquadcombo_schemas = json.load(f)
-        with open(self.get_full_path("schemas/conv.json")) as f:
-            self.conv_schemas = json.load(f)
-        with open(self.get_full_path("schemas/dither.json")) as f:
-            self.dither_schemas = json.load(f)
-        with open(self.get_full_path("schemas/basicfilters.json")) as f:
-            self.basics_schemas = json.load(f)
-
-        # Pipeline
-        with open(self.get_full_path("schemas/pipeline.json")) as f:
-            self.pipeline_schemas = json.load(f)
-
-        # Mixer
-        with open(self.get_full_path("schemas/mixer.json")) as f:
-            self.mixer_schema = json.load(f)
-
-        # Procesors
-        with open(self.get_full_path("schemas/processor.json")) as f:
-            self.processor_schema = json.load(f)
-        with open(self.get_full_path("schemas/compressor.json")) as f:
-            self.compressor_schema = json.load(f)
-        with open(self.get_full_path("schemas/noisegate.json")) as f:
-            self.noisegate_schema = json.load(f)
-
+        self.capture_schemas = deepcopy(capture_schemas)
+        self.playback_schemas = deepcopy(playback_schemas)
 
         self.errorlist = []
         self.warninglist = []
@@ -110,9 +116,6 @@ class CamillaValidator:
             self.errorlist.append((path + list(e.path), e.message))
             ok = False
         return ok
-
-    def get_full_path(self, file):
-        return os.path.join(os.path.dirname(__file__), file)
 
     # return the override for a value if given, else just return the value
     def _override_value(self, value, parameter):
@@ -240,6 +243,7 @@ class CamillaValidator:
             self.validate_devices()
             self.validate_mixers()
             self.validate_filters()
+            self.validate_processors()
             self.validate_pipeline()
 
     # Check that the supplied overrides are valid, null them if not
@@ -277,10 +281,10 @@ class CamillaValidator:
 
     def validate_with_schemas(self):
         # Overall structure
-        self.validate(self.config, self.section_schema)
+        self.validate(self.config, section_schema)
 
         # Devices section
-        self.validate(self.config["devices"], self.devices_schema, path=["devices"])
+        self.validate(self.config["devices"], devices_schema, path=["devices"])
 
         # Playback device
         playback_schema = self.playback_schemas["playback"]
@@ -314,7 +318,7 @@ class CamillaValidator:
                 path=["devices", "capture"],
             )
             if capture_type == "SignalGenerator":
-                signal_schema = self.signal_schemas["signal"]
+                signal_schema = signal_schemas["signal"]
                 ok = self.validate(
                     self.config["devices"]["capture"]["signal"],
                     signal_schema,
@@ -322,7 +326,7 @@ class CamillaValidator:
                 )
                 if ok:
                     signal_type = self.config["devices"]["capture"]["signal"]["type"]
-                    signal_schema = self.signal_schemas[signal_type]
+                    signal_schema = signal_schemas[signal_type]
                     self.validate(
                         self.config["devices"]["capture"]["signal"],
                         signal_schema,
@@ -333,16 +337,16 @@ class CamillaValidator:
         if self.config["devices"].get("resampler") is not None:
             self.validate(
                 self.config["devices"]["resampler"],
-                self.resampler_schemas["resampler"],
+                resampler_schemas["resampler"],
                 path=["devices", "resampler"],
             )
             resamp_type = self.config["devices"]["resampler"]["type"]
             if resamp_type in ["Synchronous", "AsyncPoly"]:
-                resampler_schema = self.resampler_schemas[resamp_type]
+                resampler_schema = resampler_schemas[resamp_type]
             elif "profile" in self.config["devices"]["resampler"]:
-                resampler_schema = self.resampler_schemas["AsyncSincProfile"]
+                resampler_schema = resampler_schemas["AsyncSincProfile"]
             else:
-                resampler_schema = self.resampler_schemas["AsyncSincFree"]
+                resampler_schema = resampler_schemas["AsyncSincFree"]
             self.validate(
                 self.config["devices"]["resampler"],
                 resampler_schema,
@@ -351,84 +355,89 @@ class CamillaValidator:
 
         # Filters
         for name, filt in self.value_or_default(("filters",)).items():
-            ok = self.validate(filt, self.filter_schema, path=["filters", name])
+            ok = self.validate(filt, filter_schema, path=["filters", name])
             if ok:
                 filt_type = filt["type"]
                 if filt_type == "Biquad":
-                    schema = self.biquad_schemas["Biquad"]
+                    schema = biquad_schemas["Biquad"]
                     ok = self.validate(
                         filt["parameters"], schema, path=["filters", name, "parameters"]
                     )
                     if ok:
                         filt_subtype = filt["parameters"]["type"]
-                        schema = self.biquad_schemas[filt_subtype]
+                        schema = biquad_schemas[filt_subtype]
                         self.validate(
                             filt["parameters"],
                             schema,
                             path=["filters", name, "parameters"],
                         )
                 elif filt_type == "BiquadCombo":
-                    schema = self.biquadcombo_schemas["BiquadCombo"]
+                    schema = biquadcombo_schemas["BiquadCombo"]
                     ok = self.validate(
                         filt["parameters"], schema, path=["filters", name, "parameters"]
                     )
                     if ok:
                         filt_subtype = filt["parameters"]["type"]
-                        schema = self.biquadcombo_schemas[filt_subtype]
+                        schema = biquadcombo_schemas[filt_subtype]
                         self.validate(
                             filt["parameters"],
                             schema,
                             path=["filters", name, "parameters"],
                         )
                 elif filt_type == "Conv":
-                    schema = self.conv_schemas["Conv"]
+                    schema = conv_schemas["Conv"]
                     ok = self.validate(
                         filt["parameters"], schema, path=["filters", name, "parameters"]
                     )
                     if ok:
                         filt_subtype = filt["parameters"]["type"]
-                        schema = self.conv_schemas[filt_subtype]
+                        schema = conv_schemas[filt_subtype]
                         self.validate(
                             filt["parameters"],
                             schema,
                             path=["filters", name, "parameters"],
                         )
                 elif filt_type == "Dither":
-                    schema = self.dither_schemas["Dither"]
+                    schema = dither_schemas["Dither"]
                     ok = self.validate(
                         filt["parameters"], schema, path=["filters", name, "parameters"]
                     )
                     if ok:
                         filt_subtype = filt["parameters"]["type"]
-                        if filt_subtype in self.dither_schemas.keys():
-                            schema = self.dither_schemas[filt_subtype]
+                        if filt_subtype in dither_schemas.keys():
+                            schema = dither_schemas[filt_subtype]
                             self.validate(
                                 filt["parameters"],
                                 schema,
                                 path=["filters", name, "parameters"],
                             )
-                elif filt_type in self.basics_schemas.keys():
-                    schema = self.basics_schemas[filt_type]
+                elif filt_type in basics_schemas.keys():
+                    schema = basics_schemas[filt_type]
                     self.validate(
                         filt["parameters"], schema, path=["filters", name, "parameters"]
                     )
 
         # Mixers
         for name, mix in self.value_or_default(("mixers",)).items():
-            self.validate(mix, self.mixer_schema, path=["mixers", name])
+            self.validate(mix, mixer_schema, path=["mixers", name])
 
         # Processors
         for name, prc in self.value_or_default(("processors",)).items():
-            ok = self.validate(prc, self.processor_schema, path=["processors", name])
+            ok = self.validate(prc, processor_schema, path=["processors", name])
             if ok:
                 prc_type = prc["type"]
                 if prc_type == "Compressor":
-                    schema = self.compressor_schema
+                    schema = compressor_schema
                     ok = self.validate(
                         prc["parameters"], schema, path=["processors", name, "parameters"]
                     )
                 elif prc_type == "NoiseGate":
-                    schema = self.noisegate_schema
+                    schema = noisegate_schema
+                    ok = self.validate(
+                        prc["parameters"], schema, path=["processors", name, "parameters"]
+                    )
+                elif prc_type == "RACE":
+                    schema = race_schema
                     ok = self.validate(
                         prc["parameters"], schema, path=["processors", name, "parameters"]
                     )
@@ -436,11 +445,11 @@ class CamillaValidator:
         # Pipeline
         for idx, step in enumerate(self.value_or_default(("pipeline",))):
             ok = self.validate(
-                step, self.pipeline_schemas["PipelineStep"], path=["pipeline", idx]
+                step, pipeline_schemas["PipelineStep"], path=["pipeline", idx]
             )
             if ok:
                 step_type = step["type"]
-                schema = self.pipeline_schemas[step_type]
+                schema = pipeline_schemas[step_type]
                 self.validate(step, schema, path=["pipeline", idx])
 
     # Validate the pipeline
@@ -493,18 +502,6 @@ class CamillaValidator:
                     channels = self.config["processors"][prcname]["parameters"]["channels"]
                     if channels != num_channels:
                         msg = f"Processor '{prcname}' has wrong number of channels. Expected {num_channels}, found {channels}"
-                        path = ["pipeline", idx]
-                        self.errorlist.append((path, msg))
-                    monitor_channels = self.config["processors"][prcname]["parameters"]["monitor_channels"]
-                    if monitor_channels is not None and any(ch >= num_channels for ch in monitor_channels):
-                        bad_channels = ", ".join(str(ch) for ch in monitor_channels if ch >= num_channels)
-                        msg = f"Processor '{prcname}' monitors non-existing channel(s) {bad_channels}. Max is {num_channels-1}"
-                        path = ["pipeline", idx]
-                        self.errorlist.append((path, msg))
-                    process_channels = self.config["processors"][prcname]["parameters"]["process_channels"]
-                    if process_channels is not None and any(ch >= num_channels for ch in process_channels):
-                        bad_channels = ", ".join(str(ch) for ch in process_channels if ch >= num_channels)
-                        msg = f"Processor '{prcname}' processes non-existing channel(s) {bad_channels}. Max is {num_channels-1}"
                         path = ["pipeline", idx]
                         self.errorlist.append((path, msg))
 
@@ -771,6 +768,38 @@ class CamillaValidator:
                     self.overrides = {}
                 self.overrides["samplerate"] = wavparams["samplerate"]
                 self.overrides["channels"] = wavparams["channels"]
+
+    def validate_processors(self):
+        for proc_name, proc_conf in self.value_or_default(("processors",)).items():
+            num_channels = proc_conf["parameters"]["channels"]
+            if proc_conf["type"] in ["Compressor", "NoiseGate"]:
+                monitor_channels = proc_conf["parameters"]["monitor_channels"]
+                if monitor_channels is not None and any(ch >= num_channels for ch in monitor_channels):
+                    bad_channels = ", ".join(str(ch) for ch in monitor_channels if ch >= num_channels)
+                    msg = f"Processor '{proc_name}' monitors non-existing channel(s) {bad_channels}. Max is {num_channels-1}"
+                    path = ["processors", proc_name, "parameters", "monitor_channels"]
+                    self.errorlist.append((path, msg))
+                process_channels = proc_conf["parameters"]["process_channels"]
+                if process_channels is not None and any(ch >= num_channels for ch in process_channels):
+                    bad_channels = ", ".join(str(ch) for ch in process_channels if ch >= num_channels)
+                    msg = f"Processor '{proc_name}' processes non-existing channel(s) {bad_channels}. Max is {num_channels-1}"
+                    path = ["processors", proc_name, "parameters", "process_channels"]
+                    self.errorlist.append((path, msg))
+            elif proc_conf["type"] == "RACE":
+                channel_a = proc_conf["parameters"]["channel_a"]
+                if channel_a >= num_channels:
+                    msg = f"Invalid value for channel_a, max is {num_channels-1}"
+                    path = ["processors", proc_name, "parameters", "channel_a"]
+                    self.errorlist.append((path, msg))
+                channel_b = proc_conf["parameters"]["channel_b"]
+                if channel_b >= num_channels:
+                    msg = f"Invalid value for channel_b, max is {num_channels-1}"
+                    path = ["processors", proc_name, "parameters", "channel_b"]
+                    self.errorlist.append((path, msg))
+                if channel_b == channel_a:
+                    msg = f"Values for channel_a and channel_b must be different"
+                    path = ["processors", proc_name, "parameters", "channel_b"]
+                    self.errorlist.append((path, msg))
 
     def value_or_default(self, path, config=None):
         if config:

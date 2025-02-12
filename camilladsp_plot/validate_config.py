@@ -542,6 +542,25 @@ class CamillaValidator:
                         path = ["mixers", mixname, "mapping", idx, "sources", subidx]
                         self.errorlist.append((path, msg))
 
+                    if source.get("scale") is None or source.get("scale") == "dB":
+                        if source["gain"] > 150.0:
+                            msg = f"Too large gain {source['gain']} dB, max is +150 dB"
+                            path = ["mixers", mixname, "mapping", idx, "sources", subidx, "gain"]
+                            self.errorlist.append((path, msg))
+                        if source["gain"] < -150.0:
+                            msg = f"Too small gain {source['gain']} dB, min is -150 dB"
+                            path = ["mixers", mixname, "mapping", idx, "sources", subidx, "gain"]
+                            self.errorlist.append((path, msg))
+                    else:
+                        if source["gain"] > 1000.0:
+                            msg = f"Too large linear gain {source['gain']} , max is 1000"
+                            path = ["mixers", mixname, "mapping", idx, "sources", subidx, "gain"]
+                            self.errorlist.append((path, msg))
+                        if source["gain"] < -1000.0:
+                            msg = f"Too small linear gain {source['gain']} , min is -1000"
+                            path = ["mixers", mixname, "mapping", idx, "sources", subidx, "gain"]
+                            self.errorlist.append((path, msg))
+
     def validate_filters(self):
         samplerate = self.config["devices"]["samplerate"]
         samplerate = self._override_value(samplerate, "samplerate")

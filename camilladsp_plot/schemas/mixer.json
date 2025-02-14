@@ -41,7 +41,9 @@
                   "minimum": 0
                 },
                 "gain": {
-                  "type": "number"
+                  "type": "number",
+                  "minimum": -150.0,
+                  "maximum": 150.0
                 },
                 "scale": {
                   "type": ["string", "null"],

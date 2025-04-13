@@ -97,14 +97,14 @@ class CamillaValidator:
         self.warninglist = []
 
     def set_supported_capture_types(self, types):
-        backup = self.capture_schemas_backup["capture"]["properties"]["type"]["enum"]
+        backup = capture_schemas["capture"]["properties"]["type"]["enum"]
         common = list(set(backup).intersection(types))
         if len(common) == 0:
             raise ValueError("List of supported capture device types cannot be empty.")
         self.capture_schemas["capture"]["properties"]["type"]["enum"] = common
 
     def set_supported_playback_types(self, types):
-        backup = self.playback_schemas_backup["playback"]["properties"]["type"]["enum"]
+        backup = playback_schemas["playback"]["properties"]["type"]["enum"]
         common = list(set(backup).intersection(types))
         if len(common) == 0:
             raise ValueError("List of supported playback device types cannot be empty.")

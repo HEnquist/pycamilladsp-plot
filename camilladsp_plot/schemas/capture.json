@@ -107,6 +107,10 @@
         "type": ["boolean", "null"],
         "default": null
       },
+      "polling": {
+        "type": ["boolean", "null"],
+        "default": null
+      },
       "loopback": {
         "type": ["boolean", "null"],
         "default": null

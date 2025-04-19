@@ -76,6 +76,10 @@
         "type": ["boolean", "null"],
         "default": null
       },
+      "polling": {
+        "type": ["boolean", "null"],
+        "default": null
+      },
       "format": {
         "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"]
       }

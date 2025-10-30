@@ -759,7 +759,7 @@ class CamillaValidator:
                 )
         if self.config["devices"]["playback"]["type"] == "Wasapi":
             if (
-                not self.value_or_default(("devices", "capture", "exclusive"))
+                not self.value_or_default(("devices", "playback", "exclusive"))
                 and self.config["devices"]["playback"]["format"] != "FLOAT32LE"
             ):
                 self.errorlist.append(

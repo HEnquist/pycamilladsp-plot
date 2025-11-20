@@ -34,7 +34,7 @@
       },
       "format": {
         "type": ["string", "null"],
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE", null],
+        "enum": ["I16_LE", "I24_3_LE", "I24_4_LE", "I32_LE", "F32_LE", "F64_LE", null],
         "default": null
       },
       "stop_on_inactive": {
@@ -76,7 +76,7 @@
         "exclusiveMinimum": 0
       },
       "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"]
+        "enum": ["I16_LE", "I24_3_LE", "I24_4_LE", "I32_LE", "F32_LE"]
       },
       "labels": {
         "type": ["array", "null"],
@@ -116,7 +116,9 @@
         "default": null
       },
       "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"]
+        "type": ["string", "null"],
+        "enum": ["I16", "I24_3", "I24_4", "I32", "F32", null],
+        "default": null
       },
       "labels": {
         "type": ["array", "null"],
@@ -145,7 +147,7 @@
       },
       "format": {
         "type": ["string", "null"],
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", null],
+        "enum": ["I16", "I24", "I32", "F32", null],
         "default": null
       },
       "labels": {
@@ -193,7 +195,7 @@
         "exclusiveMinimum": 0
       },
       "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+        "enum": ["I16_LE", "I24_3_LE", "I24_4_LJ_LE", "I24_4_RJ_LE", "I32_LE", "F32_LE", "F64_LE"]
       },
       "skip_bytes": {
         "type": ["integer", "null"],
@@ -235,7 +237,7 @@
         "exclusiveMinimum": 0
       },
       "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+        "enum": ["I16_LE", "I24_3_LE", "I24_4_LJ_LE", "I24_4_RJ_LE", "I32_LE", "F32_LE", "F64_LE"]
       },
       "skip_bytes": {
         "type": ["integer", "null"],
@@ -307,7 +309,7 @@
         "exclusiveMinimum": 0
       },
       "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+        "enum": ["I16_LE", "I24_3_LE", "I24_4_LJ_LE", "I24_4_RJ_LE", "I32_LE", "F32_LE", "F64_LE"]
       },
       "labels": {
         "type": ["array", "null"],

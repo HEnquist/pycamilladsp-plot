@@ -749,23 +749,25 @@ class CamillaValidator:
                 )
             if (
                 not self.value_or_default(("devices", "capture", "exclusive"))
-                and self.config["devices"]["capture"]["format"] != "FLOAT32LE"
+                and self.config["devices"]["capture"]["format"] is not None
+                and self.config["devices"]["capture"]["format"] != "F32"
             ):
                 self.errorlist.append(
                     (
                         ["devices", "capture", "format"],
-                        "in shared mode the format must be FLOAT32LE",
+                        "in shared mode the format must be F32",
                     )
                 )
         if self.config["devices"]["playback"]["type"] == "Wasapi":
             if (
                 not self.value_or_default(("devices", "playback", "exclusive"))
-                and self.config["devices"]["playback"]["format"] != "FLOAT32LE"
+                and self.config["devices"]["playback"]["format"] is not None
+                and self.config["devices"]["playback"]["format"] != "F32"
             ):
                 self.errorlist.append(
                     (
                         ["devices", "playback", "format"],
-                        "in shared mode the format must be FLOAT32LE",
+                        "in shared mode the format must be F32",
                     )
                 )
 
@@ -782,6 +784,19 @@ class CamillaValidator:
                     self.overrides = {}
                 self.overrides["samplerate"] = wavparams["samplerate"]
                 self.overrides["channels"] = wavparams["channels"]
+
+        # Checks for Stdout and File placyback devices
+        if self.config["devices"]["playback"]["type"] in ("File", "Stdout"):
+            if (
+                self.config["devices"]["playback"]["wav_header"] is True
+                and self.config["devices"]["playback"]["format"] == "I24_4_RJ_LE"
+            ):
+                self.errorlist.append(
+                    (
+                        ["devices", "playback", "format"],
+                        "The wav format does not support I24_4_RJ_LE sample format",
+                    )
+                )
 
     def validate_processors(self):
         for proc_name, proc_conf in self.value_or_default(("processors",)).items():

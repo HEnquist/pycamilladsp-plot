@@ -10,56 +10,83 @@ from jsonschema import Draft7Validator, validators
 from camilladsp_plot.audiofileread import read_wav_header, read_text_coeffs
 
 # Overall
-with resources.files("camilladsp_plot").joinpath("schemas/sections.json").open('r') as f:
+with (
+    resources.files("camilladsp_plot").joinpath("schemas/sections.json").open("r") as f
+):
     section_schema = json.load(f)
 
 # Devices
-with resources.files("camilladsp_plot").joinpath("schemas/devices.json").open('r') as f:
+with resources.files("camilladsp_plot").joinpath("schemas/devices.json").open("r") as f:
     devices_schema = json.load(f)
-with resources.files("camilladsp_plot").joinpath("schemas/playback.json").open('r') as f:
+with (
+    resources.files("camilladsp_plot").joinpath("schemas/playback.json").open("r") as f
+):
     playback_schemas = json.load(f)
-with resources.files("camilladsp_plot").joinpath("schemas/capture.json").open('r') as f:
+with resources.files("camilladsp_plot").joinpath("schemas/capture.json").open("r") as f:
     capture_schemas = json.load(f)
-with resources.files("camilladsp_plot").joinpath("schemas/resampler.json").open('r') as f:
+with (
+    resources.files("camilladsp_plot").joinpath("schemas/resampler.json").open("r") as f
+):
     resampler_schemas = json.load(f)
-with resources.files("camilladsp_plot").joinpath("schemas/signalgen.json").open('r') as f:
+with (
+    resources.files("camilladsp_plot").joinpath("schemas/signalgen.json").open("r") as f
+):
     signal_schemas = json.load(f)
 
 # Filters
-with resources.files("camilladsp_plot").joinpath("schemas/filter.json").open('r') as f:
+with resources.files("camilladsp_plot").joinpath("schemas/filter.json").open("r") as f:
     filter_schema = json.load(f)
-with resources.files("camilladsp_plot").joinpath("schemas/biquads.json").open('r') as f:
+with resources.files("camilladsp_plot").joinpath("schemas/biquads.json").open("r") as f:
     biquad_schemas = json.load(f)
-with resources.files("camilladsp_plot").joinpath("schemas/biquadcombo.json").open('r') as f:
+with (
+    resources.files("camilladsp_plot")
+    .joinpath("schemas/biquadcombo.json")
+    .open("r") as f
+):
     biquadcombo_schemas = json.load(f)
-with resources.files("camilladsp_plot").joinpath("schemas/conv.json").open('r') as f:
+with resources.files("camilladsp_plot").joinpath("schemas/conv.json").open("r") as f:
     conv_schemas = json.load(f)
-with resources.files("camilladsp_plot").joinpath("schemas/dither.json").open('r') as f:
+with resources.files("camilladsp_plot").joinpath("schemas/dither.json").open("r") as f:
     dither_schemas = json.load(f)
-with resources.files("camilladsp_plot").joinpath("schemas/basicfilters.json").open('r') as f:
+with (
+    resources.files("camilladsp_plot")
+    .joinpath("schemas/basicfilters.json")
+    .open("r") as f
+):
     basics_schemas = json.load(f)
 
 # Pipeline
-with resources.files("camilladsp_plot").joinpath("schemas/pipeline.json").open('r') as f:
+with (
+    resources.files("camilladsp_plot").joinpath("schemas/pipeline.json").open("r") as f
+):
     pipeline_schemas = json.load(f)
 
 # Mixer
-with resources.files("camilladsp_plot").joinpath("schemas/mixer.json").open('r') as f:
+with resources.files("camilladsp_plot").joinpath("schemas/mixer.json").open("r") as f:
     mixer_schema = json.load(f)
 
 # Procesors
-with resources.files("camilladsp_plot").joinpath("schemas/processor.json").open('r') as f:
+with (
+    resources.files("camilladsp_plot").joinpath("schemas/processor.json").open("r") as f
+):
     processor_schema = json.load(f)
-with resources.files("camilladsp_plot").joinpath("schemas/compressor.json").open('r') as f:
+with (
+    resources.files("camilladsp_plot")
+    .joinpath("schemas/compressor.json")
+    .open("r") as f
+):
     compressor_schema = json.load(f)
-with resources.files("camilladsp_plot").joinpath("schemas/noisegate.json").open('r') as f:
+with (
+    resources.files("camilladsp_plot").joinpath("schemas/noisegate.json").open("r") as f
+):
     noisegate_schema = json.load(f)
-with resources.files("camilladsp_plot").joinpath("schemas/race.json").open('r') as f:
+with resources.files("camilladsp_plot").joinpath("schemas/race.json").open("r") as f:
     race_schema = json.load(f)
-with resources.files("camilladsp_plot").joinpath("schemas/devices.json").open('r') as f:
+with resources.files("camilladsp_plot").joinpath("schemas/devices.json").open("r") as f:
     devices_schema = json.load(f)
 
 # https://python-jsonschema.readthedocs.io/en/latest/faq/#why-doesn-t-my-schema-that-has-a-default-property-actually-set-the-default-on-my-instance
+
 
 def extend_with_default(validator_class):
     validate_properties = validator_class.VALIDATORS["properties"]
@@ -429,17 +456,23 @@ class CamillaValidator:
                 if prc_type == "Compressor":
                     schema = compressor_schema
                     ok = self.validate(
-                        prc["parameters"], schema, path=["processors", name, "parameters"]
+                        prc["parameters"],
+                        schema,
+                        path=["processors", name, "parameters"],
                     )
                 elif prc_type == "NoiseGate":
                     schema = noisegate_schema
                     ok = self.validate(
-                        prc["parameters"], schema, path=["processors", name, "parameters"]
+                        prc["parameters"],
+                        schema,
+                        path=["processors", name, "parameters"],
                     )
                 elif prc_type == "RACE":
                     schema = race_schema
                     ok = self.validate(
-                        prc["parameters"], schema, path=["processors", name, "parameters"]
+                        prc["parameters"],
+                        schema,
+                        path=["processors", name, "parameters"],
                     )
 
         # Pipeline
@@ -494,7 +527,9 @@ class CamillaValidator:
                     path = ["pipeline", idx, "name"]
                     self.errorlist.append((path, msg))
                 else:
-                    channels = self.config["processors"][prcname]["parameters"]["channels"]
+                    channels = self.config["processors"][prcname]["parameters"][
+                        "channels"
+                    ]
                     if channels != num_channels:
                         msg = f"Processor '{prcname}' has wrong number of channels. Expected {num_channels}, found {channels}"
                         path = ["pipeline", idx]
@@ -538,7 +573,6 @@ class CamillaValidator:
                         msg = f"Invalid source channel {source['channel']}, max is {chan_in-1}"
                         path = ["mixers", mixname, "mapping", idx, "sources", subidx]
                         self.errorlist.append((path, msg))
-
 
     def validate_filters(self):
         samplerate = self.config["devices"]["samplerate"]
@@ -747,25 +781,23 @@ class CamillaValidator:
                         "exclusive mode cannot be combined with loopback capture",
                     )
                 )
-            if (
-                not self.value_or_default(("devices", "capture", "exclusive"))
-                and self.config["devices"]["capture"]["format"] != "FLOAT32LE"
-            ):
+            if not self.value_or_default(
+                ("devices", "capture", "exclusive")
+            ) and self.config["devices"]["capture"]["format"] not in ["F32_LE", None]:
                 self.errorlist.append(
                     (
                         ["devices", "capture", "format"],
-                        "in shared mode the format must be FLOAT32LE",
+                        "in shared mode the format must be F32_LE or null",
                     )
                 )
         if self.config["devices"]["playback"]["type"] == "Wasapi":
-            if (
-                not self.value_or_default(("devices", "playback", "exclusive"))
-                and self.config["devices"]["playback"]["format"] != "FLOAT32LE"
-            ):
+            if not self.value_or_default(
+                ("devices", "playback", "exclusive")
+            ) and self.config["devices"]["playback"]["format"] not in ["F32_LE", None]:
                 self.errorlist.append(
                     (
                         ["devices", "playback", "format"],
-                        "in shared mode the format must be FLOAT32LE",
+                        "in shared mode the format must be F32_LE or null",
                     )
                 )
 
@@ -783,19 +815,40 @@ class CamillaValidator:
                 self.overrides["samplerate"] = wavparams["samplerate"]
                 self.overrides["channels"] = wavparams["channels"]
 
+        # Checks for File/Stdout playback device
+        if self.config["devices"]["playback"]["type"] in ["File", "Stdout"]:
+            if (
+                self.config["devices"]["playback"]["format"] == "S24_4_RJ_LE"
+                and self.config["devices"]["playback"]["wav_header"]
+            ):
+                self.errorlist.append(
+                    (
+                        ["devices", "playback", "format"],
+                        "Format S24_4_RJ_LE cannot be used with wav_header",
+                    )
+                )
+
     def validate_processors(self):
         for proc_name, proc_conf in self.value_or_default(("processors",)).items():
             num_channels = proc_conf["parameters"]["channels"]
             if proc_conf["type"] in ["Compressor", "NoiseGate"]:
                 monitor_channels = proc_conf["parameters"]["monitor_channels"]
-                if monitor_channels is not None and any(ch >= num_channels for ch in monitor_channels):
-                    bad_channels = ", ".join(str(ch) for ch in monitor_channels if ch >= num_channels)
+                if monitor_channels is not None and any(
+                    ch >= num_channels for ch in monitor_channels
+                ):
+                    bad_channels = ", ".join(
+                        str(ch) for ch in monitor_channels if ch >= num_channels
+                    )
                     msg = f"Processor '{proc_name}' monitors non-existing channel(s) {bad_channels}. Max is {num_channels-1}"
                     path = ["processors", proc_name, "parameters", "monitor_channels"]
                     self.errorlist.append((path, msg))
                 process_channels = proc_conf["parameters"]["process_channels"]
-                if process_channels is not None and any(ch >= num_channels for ch in process_channels):
-                    bad_channels = ", ".join(str(ch) for ch in process_channels if ch >= num_channels)
+                if process_channels is not None and any(
+                    ch >= num_channels for ch in process_channels
+                ):
+                    bad_channels = ", ".join(
+                        str(ch) for ch in process_channels if ch >= num_channels
+                    )
                     msg = f"Processor '{proc_name}' processes non-existing channel(s) {bad_channels}. Max is {num_channels-1}"
                     path = ["processors", proc_name, "parameters", "process_channels"]
                     self.errorlist.append((path, msg))

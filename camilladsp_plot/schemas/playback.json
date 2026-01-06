@@ -6,6 +6,7 @@
         "enum": [
           "Alsa",
           "Pulse",
+          "PipeWire",
           "Wasapi",
           "CoreAudio",
           "Jack",
@@ -53,6 +54,38 @@
       }
     },
     "required": ["type", "device", "channels"],
+    "additionalProperties": false
+  },
+  "PipeWire": {
+    "properties": {
+      "type": {
+        "enum": ["PipeWire"]
+      },
+      "channels": {
+        "type": "integer",
+        "exclusiveMinimum": 0
+      },
+      "node_name": {
+        "type": ["string", "null"],
+        "default": null,
+        "minLength": 1
+      },
+      "node_description": {
+        "type": ["string", "null"],
+        "default": null,
+        "minLength": 1
+      },
+      "node_group_name": {
+        "type": ["string", "null"],
+        "default": null,
+        "minLength": 1
+      },
+      "autoconnect_to": {
+        "type": ["string", "null"],
+        "default": null
+      }
+    },
+    "required": ["type", "channels"],
     "additionalProperties": false
   },
   "Wasapi": {

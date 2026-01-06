@@ -31,7 +31,7 @@
       },
       "format": {
         "type": ["string", "null"],
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE", null],
+        "enum": ["S16_LE", "S24_3_LE", "S24_4_RJ_LE", "S32_LE", "F32_LE", "F64_LE", null],
         "default": null
       }
     },
@@ -50,12 +50,9 @@
       "channels": {
         "type": "integer",
         "exclusiveMinimum": 0
-      },
-      "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"]
       }
     },
-    "required": ["type", "device", "channels", "format"],
+    "required": ["type", "device", "channels"],
     "additionalProperties": false
   },
   "Wasapi": {
@@ -81,10 +78,12 @@
         "default": null
       },
       "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"]
+        "type": ["string", "null"],
+        "enum": ["S16", "S24", "S32", "F32", null],
+        "default": null
       }
     },
-    "required": ["type", "channels", "format"],
+    "required": ["type", "channels"],
     "additionalProperties": false
   },
   "CoreAudio": {
@@ -103,7 +102,7 @@
       },
       "format": {
         "type": ["string", "null"],
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", null],
+        "enum": ["S16", "S24", "S32", "F32", null],
         "default": null
       },
       "exclusive": {
@@ -141,7 +140,7 @@
         "exclusiveMinimum": 0
       },
       "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+        "enum": ["S16_LE", "S24_3_LE", "S24_4_RJ_LE", "S24_4_LJ_LE", "S32_LE", "F32_LE", "F64_LE"]
       },
       "wav_header": {
         "type": ["boolean", "null"],
@@ -165,7 +164,7 @@
         "exclusiveMinimum": 0
       },
       "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+        "enum": ["S16_LE", "S24_3_LE", "S24_4_RJ_LE", "S24_4_LJ_LE", "S32_LE", "F32_LE", "F64_LE"]
       },
       "wav_header": {
         "type": ["boolean", "null"],

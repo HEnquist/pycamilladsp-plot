@@ -203,7 +203,12 @@ class Delay(BaseFilter):
                     self.delay_full_samples -= 1.0
                     self.fraction += 1.0
                 coeff1 = 2.0 * (2.0 - self.fraction) / (1.0 + self.fraction)
-                coeff2 = (2.0 - self.fraction) / (2.0 + self.fraction) * (1.0 - self.fraction) / (1.0 + self.fraction)
+                coeff2 = (
+                    (2.0 - self.fraction)
+                    / (2.0 + self.fraction)
+                    * (1.0 - self.fraction)
+                    / (1.0 + self.fraction)
+                )
                 self.a1 = coeff1
                 self.a2 = coeff2
                 self.b0 = coeff2

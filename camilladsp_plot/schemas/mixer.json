@@ -41,13 +41,14 @@
                   "minimum": 0
                 },
                 "gain": {
-                  "type": "number",
+                  "type": ["number", "null"],
                   "minimum": -150.0,
-                  "maximum": 150.0
+                  "maximum": 150.0,
+                  "default": null
                 },
                 "scale": {
                   "type": ["string", "null"],
-                  "emum": ["dB", "linear", null],
+                  "enum": ["dB", "linear", null],
                   "default": null
                 },
                 "inverted": {
@@ -59,7 +60,7 @@
                   "default": null
                 }
               },
-              "required": ["gain", "channel"],
+              "required": ["channel"],
               "additionalProperties": false
             }
           }

@@ -818,7 +818,7 @@ class CamillaValidator:
             if self.config["devices"]["resampler"] is not None:
                 self.errorlist.append(
                     (
-                        ["devices", "resampler"],
+                        ["devices", "resampler", "type"],
                         "Full duplex ASIO does not allow resampling",
                     )
                 )

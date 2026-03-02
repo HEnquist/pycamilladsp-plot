@@ -488,8 +488,12 @@ class CamillaValidator:
     # Validate the pipeline
     def validate_pipeline(self):
         num_channels = self.config["devices"]["capture"].get("channels")
-        if num_channels is None and (self.overrides is None or "channels" not in self.overrides):
-            msg = "The number of capture channels is unknown, unable to validate pipeline"
+        if num_channels is None and (
+            self.overrides is None or "channels" not in self.overrides
+        ):
+            msg = (
+                "The number of capture channels is unknown, unable to validate pipeline"
+            )
             path = ["pipeline"]
             self.errorlist.append((path, msg))
             return
@@ -762,11 +766,13 @@ class CamillaValidator:
                                 self.errorlist.append((path, msg))
 
     def validate_devices(self):
+        # Check target level
+        queue_limit = self.value_or_default(("devices", "queuelimit")) or 4
         if self.config["devices"]["playback"]["type"] == "Alsa":
-            # With Alsa playback we can allow a limit of up to 4 chunks
-            target_level_limit = 4 * self.config["devices"]["chunksize"]
+            # With Alsa playback we can allow a limit of up to 4 chunks, plus queue limit.
+            target_level_limit = (4 + queue_limit) * self.config["devices"]["chunksize"]
         else:
-            target_level_limit = 2 * self.config["devices"]["chunksize"]
+            target_level_limit = (2 + queue_limit) * self.config["devices"]["chunksize"]
         if self.value_or_default(("devices", "target_level")) > target_level_limit:
             self.errorlist.append(
                 (

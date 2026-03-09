@@ -812,6 +812,22 @@ class CamillaValidator:
                     )
                 )
 
+        # Checks for ASIO
+        if self.config["devices"]["capture"]["type"] == "Asio" and self.config["devices"]["playback"]["type"] == "Asio":
+            if self.config["devices"]["capture"]["device"] != self.config["devices"]["playback"]["device"]:
+                self.errorlist.append(
+                    (
+                        ["devices", "playback", "device"],
+                        "ASIO must use the same device for capture and playback",
+                    )
+                )
+            if self.config["devices"]["resampler"] is not None:
+                self.errorlist.append(
+                    (
+                        ["devices", "resampler", "type"],
+                        "Full duplex ASIO does not allow resampling",
+                    )
+                )
         # Checks for WavFile capture device
         if self.config["devices"]["capture"]["type"] == "WavFile":
             fname = self.config["devices"]["capture"]["filename"]

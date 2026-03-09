@@ -8,6 +8,7 @@
           "Pulse",
           "PipeWire",
           "Wasapi",
+          "Asio",
           "CoreAudio",
           "Jack",
           "File",
@@ -117,6 +118,28 @@
       }
     },
     "required": ["type", "channels"],
+    "additionalProperties": false
+  },
+  "Asio": {
+    "properties": {
+      "type": {
+        "enum": ["Asio"]
+      },
+      "device": {
+        "type": "string",
+        "minLength": 1
+      },
+      "channels": {
+        "type": "integer",
+        "exclusiveMinimum": 0
+      },
+      "format": {
+        "type": ["string", "null"],
+        "enum": ["S16_LE", "S24_4_LE", "S24_3_LE", "S32_LE", "F32_LE", "F64_LE", null],
+        "default": null
+      }
+    },
+    "required": ["type", "device", "channels"],
     "additionalProperties": false
   },
   "CoreAudio": {

@@ -173,6 +173,8 @@ class Delay(BaseFilter):
             unit = "ms"
         if unit == "ms":
             self.delay_samples = conf["delay"] / 1000.0 * fs
+        elif unit == "us":
+            self.delay_samples = conf["delay"] / 1000000.0 * fs
         elif unit == "mm":
             self.delay_samples = conf["delay"] / 1000.0 * fs / 343.0
         elif unit == "samples":
@@ -181,14 +183,37 @@ class Delay(BaseFilter):
             raise RuntimeError(f"Unknown unit {unit}")
 
         self.subsample = conf.get("subsample", False) == True
+        if self.delay_samples < 0.1:
+            self.subsample = False
         if self.subsample:
             self.delay_full_samples = math.floor(self.delay_samples)
             self.fraction = self.delay_samples - self.delay_full_samples
-            self.a1 = 1.0 - self.fraction
-            self.a2 = 0.0
-            self.b0 = 1.0 - self.fraction
-            self.b1 = 1.0
-            self.b2 = 0.0
+            if self.delay_samples < 1.1:
+                self.delay_full_samples = 0
+                self.fraction = self.delay_samples
+                self.a1 = (1.0 - self.fraction) / (1.0 + self.fraction)
+                self.a2 = 0.0
+                self.b0 = (1.0 - self.fraction) / (1.0 + self.fraction)
+                self.b1 = 1.0
+                self.b2 = 0.0
+            else:
+                self.delay_full_samples -= 1.0
+                self.fraction += 1.0
+                if self.fraction < 1.1:
+                    self.delay_full_samples -= 1.0
+                    self.fraction += 1.0
+                coeff1 = 2.0 * (2.0 - self.fraction) / (1.0 + self.fraction)
+                coeff2 = (
+                    (2.0 - self.fraction)
+                    / (2.0 + self.fraction)
+                    * (1.0 - self.fraction)
+                    / (1.0 + self.fraction)
+                )
+                self.a1 = coeff1
+                self.a2 = coeff2
+                self.b0 = coeff2
+                self.b1 = coeff1
+                self.b2 = 1.0
         else:
             self.delay_full_samples = round(self.delay_samples)
 

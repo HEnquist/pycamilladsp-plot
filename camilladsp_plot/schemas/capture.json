@@ -6,7 +6,9 @@
         "enum": [
           "Alsa",
           "Pulse",
+          "PipeWire",
           "Wasapi",
+          "Asio",
           "CoreAudio",
           "Jack",
           "RawFile",
@@ -34,7 +36,7 @@
       },
       "format": {
         "type": ["string", "null"],
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE", null],
+        "enum": ["S16_LE", "S24_3_LE", "S24_4_RJ_LE", "S32_LE", "F32_LE", "F64_LE", null],
         "default": null
       },
       "stop_on_inactive": {
@@ -75,8 +77,44 @@
         "type": "integer",
         "exclusiveMinimum": 0
       },
-      "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"]
+      "labels": {
+        "type": ["array", "null"],
+        "items": {
+          "type": ["string", "null"]
+        },
+        "default": null
+      }
+    },
+    "required": ["type", "device", "channels"],
+    "additionalProperties": false
+  },
+  "PipeWire": {
+    "properties": {
+      "type": {
+        "enum": ["PipeWire"]
+      },
+      "channels": {
+        "type": "integer",
+        "exclusiveMinimum": 0
+      },
+      "node_name": {
+        "type": ["string", "null"],
+        "default": null,
+        "minLength": 1
+      },
+      "node_description": {
+        "type": ["string", "null"],
+        "default": null,
+        "minLength": 1
+      },
+      "node_group_name": {
+        "type": ["string", "null"],
+        "default": null,
+        "minLength": 1
+      },
+      "autoconnect_to": {
+        "type": ["string", "null"],
+        "default": null
       },
       "labels": {
         "type": ["array", "null"],
@@ -86,7 +124,7 @@
         "default": null
       }
     },
-    "required": ["type", "device", "channels", "format"],
+    "required": ["type", "channels"],
     "additionalProperties": false
   },
   "Wasapi": {
@@ -107,12 +145,18 @@
         "type": ["boolean", "null"],
         "default": null
       },
+      "polling": {
+        "type": ["boolean", "null"],
+        "default": null
+      },
       "loopback": {
         "type": ["boolean", "null"],
         "default": null
       },
       "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE"]
+        "type": ["string", "null"],
+        "enum": ["S16", "S24", "S32", "F32", null],
+        "default": null
       },
       "labels": {
         "type": ["array", "null"],
@@ -122,7 +166,36 @@
         "default": null
       }
     },
-    "required": ["type", "channels", "format"],
+    "required": ["type", "channels"],
+    "additionalProperties": false
+  },
+  "Asio": {
+    "properties": {
+      "type": {
+        "enum": ["Asio"]
+      },
+      "device": {
+        "type": "string",
+        "minLength": 1
+      },
+      "channels": {
+        "type": "integer",
+        "exclusiveMinimum": 0
+      },
+      "format": {
+        "type": ["string", "null"],
+        "enum": ["S16_LE", "S24_4_LE", "S24_3_LE", "S32_LE", "F32_LE", "F64_LE", null],
+        "default": null
+      },
+      "labels": {
+        "type": ["array", "null"],
+        "items": {
+          "type": ["string", "null"]
+        },
+        "default": null
+      }
+    },
+    "required": ["type", "device", "channels"],
     "additionalProperties": false
   },
   "CoreAudio": {
@@ -141,7 +214,7 @@
       },
       "format": {
         "type": ["string", "null"],
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", null],
+        "enum": ["S16", "S24", "S32", "F32", null],
         "default": null
       },
       "labels": {
@@ -189,7 +262,7 @@
         "exclusiveMinimum": 0
       },
       "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+        "enum": ["S16_LE", "S24_3_LE", "S24_4_RJ_LE", "S24_4_LJ_LE", "S32_LE", "F32_LE", "F64_LE"]
       },
       "skip_bytes": {
         "type": ["integer", "null"],
@@ -231,7 +304,7 @@
         "exclusiveMinimum": 0
       },
       "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+        "enum": ["S16_LE", "S24_3_LE", "S24_4_RJ_LE", "S24_4_LJ_LE", "S32_LE", "F32_LE", "F64_LE"]
       },
       "skip_bytes": {
         "type": ["integer", "null"],
@@ -303,7 +376,7 @@
         "exclusiveMinimum": 0
       },
       "format": {
-        "enum": ["S16LE", "S24LE", "S24LE3", "S32LE", "FLOAT32LE", "FLOAT64LE"]
+        "enum": ["S16_LE", "S24_3_LE", "S24_4_RJ_LE", "S24_4_LJ_LE", "S32_LE", "F32_LE", "F64_LE"]
       },
       "labels": {
         "type": ["array", "null"],

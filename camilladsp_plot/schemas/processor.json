@@ -4,7 +4,8 @@
       "type": "string",
       "enum": [
         "Compressor",
-        "NoiseGate"
+        "NoiseGate",
+        "RACE"
       ]
     },
     "description": {

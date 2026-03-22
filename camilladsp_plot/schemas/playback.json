@@ -33,7 +33,7 @@
       },
       "format": {
         "type": ["string", "null"],
-        "enum": ["S16_LE", "S24_3_LE", "S24_4_RJ_LE", "S32_LE", "F32_LE", "F64_LE", null],
+        "enum": ["S16_LE", "S24_3_LE", "S24_4_LE", "S32_LE", "F32_LE", "F64_LE", null],
         "default": null
       }
     },

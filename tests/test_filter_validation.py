@@ -26,7 +26,10 @@ def _base_config():
 def _validate(config):
     validator = CamillaValidator()
     validator.validate_config(config)
-    return validator.get_errors(), validator.get_warnings()
+    issues = validator.get_errors()
+    errors = [(path, message) for path, message, severity in issues if severity == "error"]
+    warnings = [(path, message) for path, message, severity in issues if severity == "warning"]
+    return errors, warnings
 
 
 def _error_messages(errors):
@@ -154,9 +157,31 @@ def test_filter_validation_rejects_missing_conv_file():
         },
     }
 
-    errors, _warnings = _validate(config)
+    errors, warnings = _validate(config)
 
-    assert any("Unable to find coefficent file" in message for message in _error_messages(errors))
+    assert errors == []
+    assert any("Unable to find coefficent file" in message for _path, message in warnings)
+
+
+def test_filter_validation_rejects_invalid_wav_coeff_file(monkeypatch):
+    coeff_file = "coeffs.wav"
+    monkeypatch.setattr("camilladsp_plot.validate_config.os.path.exists", lambda _path: True)
+    monkeypatch.setattr("camilladsp_plot.validate_config.read_wav_header", lambda _path: None)
+
+    config = _base_config()
+    config["filters"]["conv"] = {
+        "type": "Conv",
+        "parameters": {
+            "type": "Wav",
+            "filename": coeff_file,
+            "channel": 0,
+        },
+    }
+
+    errors, warnings = _validate(config)
+
+    assert f"Invalid or unsupported wav file '{coeff_file}'" in _error_messages(errors)
+    assert warnings == []
 
 
 def test_filter_validation_rejects_empty_text_coeff_file(monkeypatch):
@@ -227,3 +252,25 @@ def test_filter_validation_accepts_wav_coeff_file(monkeypatch):
 
     assert errors == []
     assert warnings == []
+
+
+def test_filter_validation_reports_issue_severity(monkeypatch):
+    monkeypatch.setattr("camilladsp_plot.validate_config.os.path.exists", lambda _path: False)
+
+    config = _base_config()
+    config["filters"]["conv"] = {
+        "type": "Conv",
+        "parameters": {
+            "type": "Raw",
+            "filename": "missing_coeffs.txt",
+            "format": "TEXT",
+        },
+    }
+
+    validator = CamillaValidator()
+    validator.validate_config(config)
+    issues = validator.get_errors()
+
+    assert len(issues) > 0
+    assert all(len(issue) == 3 for issue in issues)
+    assert any(issue[2] == "warning" for issue in issues)

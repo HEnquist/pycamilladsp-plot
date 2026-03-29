@@ -14,6 +14,7 @@ with (
     resources.files("camilladsp_plot").joinpath("schemas/sections.json").open("r") as f
 ):
     section_schema = json.load(f)
+section_only_validator = Draft7Validator(section_schema)
 
 # Devices
 with resources.files("camilladsp_plot").joinpath("schemas/devices.json").open("r") as f:
@@ -143,6 +144,14 @@ class CamillaValidator:
             self.errorlist.append((path + list(e.path), e.message))
             ok = False
         return ok
+
+    def passes_sections_schema(self, config):
+        if not isinstance(config, dict):
+            return False
+        return section_only_validator.is_valid(config)
+
+    def _append_warning(self, path, message):
+        self.warninglist.append((path, message))
 
     # return the override for a value if given, else just return the value
     def _override_value(self, value, parameter):
@@ -298,13 +307,14 @@ class CamillaValidator:
             return config, self.overrides
         return None
 
-    # Get the list of errors
+    # Get all issues as [path, message, severity] where severity is 'error' or 'warning'.
     def get_errors(self):
-        return self.errorlist
-
-    # Get the list of warnings
-    def get_warnings(self):
-        return self.warninglist
+        issues = []
+        for path, message in self.errorlist:
+            issues.append((path, message, "error"))
+        for path, message in self.warninglist:
+            issues.append((path, message, "warning"))
+        return issues
 
     def validate_with_schemas(self):
         # Overall structure
@@ -674,7 +684,7 @@ class CamillaValidator:
                     if not os.path.exists(fname):
                         msg = f"Unable to find coefficent file '{fname}'"
                         path = ["filters", filter_name, "parameters", "filename"]
-                        self.errorlist.append((path, msg))
+                        self._append_warning(path, msg)
                         continue
                     if filter_conf["parameters"]["type"] == "Wav":
                         wavparams = read_wav_header(fname)
@@ -828,19 +838,26 @@ class CamillaValidator:
                         "Full duplex ASIO does not allow resampling",
                     )
                 )
-        # Checks for WavFile capture device
-        if self.config["devices"]["capture"]["type"] == "WavFile":
-            fname = self.config["devices"]["capture"]["filename"]
-            wavparams = read_wav_header(fname)
-            if wavparams is None:
-                msg = f"Invalid or unsupported wav file '{fname}'"
+        # Checks for file-based capture devices
+        capture_conf = self.config["devices"]["capture"]
+        capture_type = capture_conf["type"]
+        if capture_type in ["File", "RawFile", "WavFile"] and "filename" in capture_conf:
+            fname = capture_conf["filename"]
+            if not os.path.exists(fname):
+                msg = f"Unable to find input file '{fname}'"
                 path = ["devices", "capture", "filename"]
-                self.errorlist.append((path, msg))
-            else:
-                if self.overrides is None:
-                    self.overrides = {}
-                self.overrides["samplerate"] = wavparams["samplerate"]
-                self.overrides["channels"] = wavparams["channels"]
+                self._append_warning(path, msg)
+            elif capture_type == "WavFile":
+                wavparams = read_wav_header(fname)
+                if wavparams is None:
+                    msg = f"Invalid or unsupported wav file '{fname}'"
+                    path = ["devices", "capture", "filename"]
+                    self.errorlist.append((path, msg))
+                else:
+                    if self.overrides is None:
+                        self.overrides = {}
+                    self.overrides["samplerate"] = wavparams["samplerate"]
+                    self.overrides["channels"] = wavparams["channels"]
 
         # Checks for File/Stdout playback device
         if self.config["devices"]["playback"]["type"] in ["File", "Stdout"]:
@@ -930,8 +947,9 @@ DEFAULT_VALUES = {
 if __name__ == "__main__":
     file_validator = CamillaValidator()
     file_validator.validate_file(sys.argv[1])
-    errors = file_validator.get_errors()
-    warnings = file_validator.get_warnings()
+    issues = file_validator.get_errors()
+    errors = [issue for issue in issues if issue[2] == "error"]
+    warnings = [issue for issue in issues if issue[2] == "warning"]
     print("\nErrors:")
     for e in errors:
         print("/".join([str(p) for p in e[0]]), " : ", e[1])

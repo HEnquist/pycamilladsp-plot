@@ -40,7 +40,10 @@ def _base_config():
 def _validate(config):
     validator = CamillaValidator()
     validator.validate_config(config)
-    return validator.get_errors(), validator.get_warnings()
+    issues = validator.get_errors()
+    errors = [(path, message) for path, message, severity in issues if severity == "error"]
+    warnings = [(path, message) for path, message, severity in issues if severity == "warning"]
+    return errors, warnings
 
 
 def _error_messages(errors):

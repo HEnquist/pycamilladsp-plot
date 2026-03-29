@@ -26,7 +26,10 @@ def _base_config():
 def _validate(config):
     validator = CamillaValidator()
     validator.validate_config(config)
-    return validator.get_errors(), validator.get_warnings(), validator
+    issues = validator.get_errors()
+    errors = [(path, message) for path, message, severity in issues if severity == "error"]
+    warnings = [(path, message) for path, message, severity in issues if severity == "warning"]
+    return errors, warnings, validator
 
 
 def _error_messages(errors):
@@ -208,6 +211,7 @@ def test_devices_validation_accepts_playback_wasapi_type():
 # === File-Based Device Rules ===
 
 def test_devices_validation_rejects_invalid_wavfile_capture(monkeypatch):
+    monkeypatch.setattr("camilladsp_plot.validate_config.os.path.exists", lambda _path: True)
     monkeypatch.setattr(
         "camilladsp_plot.validate_config.read_wav_header", lambda _path: None
     )
@@ -222,7 +226,44 @@ def test_devices_validation_rejects_invalid_wavfile_capture(monkeypatch):
     assert "Invalid or unsupported wav file 'input.wav'" in _error_messages(errors)
 
 
+def test_devices_validation_warns_for_missing_wavfile_capture(monkeypatch):
+    monkeypatch.setattr("camilladsp_plot.validate_config.os.path.exists", lambda _path: False)
+    config = _base_config()
+    config["devices"]["capture"] = {
+        "type": "WavFile",
+        "filename": "input.wav",
+    }
+
+    errors, warnings, _validator = _validate(config)
+
+    assert any(
+        "unable to validate pipeline" in message.lower() for _path, message in errors
+    )
+    assert any(
+        "Unable to find input file 'input.wav'" in message for _path, message in warnings
+    )
+
+
+def test_devices_validation_warns_for_missing_rawfile_capture(monkeypatch):
+    monkeypatch.setattr("camilladsp_plot.validate_config.os.path.exists", lambda _path: False)
+    config = _base_config()
+    config["devices"]["capture"] = {
+        "type": "RawFile",
+        "filename": "input.raw",
+        "channels": 2,
+        "format": "S16_LE",
+    }
+
+    errors, warnings, _validator = _validate(config)
+
+    assert errors == []
+    assert any(
+        "Unable to find input file 'input.raw'" in message for _path, message in warnings
+    )
+
+
 def test_devices_validation_sets_overrides_for_valid_wavfile_capture(monkeypatch):
+    monkeypatch.setattr("camilladsp_plot.validate_config.os.path.exists", lambda _path: True)
     monkeypatch.setattr(
         "camilladsp_plot.validate_config.read_wav_header",
         lambda _path: {"samplerate": 44100, "channels": 1},
@@ -363,7 +404,7 @@ def test_devices_validation_accepts_capture_rawfile_type():
     errors, warnings, _validator = _validate(config)
 
     assert errors == []
-    assert warnings == []
+    assert all("Unable to find input file" in message for _path, message in warnings) or warnings == []
 
 
 def test_devices_validation_accepts_capture_stdin_type():

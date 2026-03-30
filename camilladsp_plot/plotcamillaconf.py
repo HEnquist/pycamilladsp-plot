@@ -16,8 +16,9 @@ def main():
     fname = sys.argv[1]
     validator = CamillaValidator()
     validator.validate_file(fname)
-    errors = validator.get_errors()
-    warnings = validator.get_warnings()
+    issues = validator.get_errors()
+    errors = [issue for issue in issues if issue[2] == "error"]
+    warnings = [issue for issue in issues if issue[2] == "warning"]
     if len(errors) == 0:
         if len(warnings) > 0:
             print("Warnings:")

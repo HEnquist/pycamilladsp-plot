@@ -40,7 +40,7 @@ Example:
 ```
 Unable to plot, config has errors:
 mixers/mono/mapping/sources/channel  :  -1 is less than the minimum of 0
-filters/lowpass_2k/parameters/filename  :  Unable to find coefficent file 'sometext.txt'
+filters/lowpass_2k/parameters/filename  :  Unable to find coefficient file 'sometext.txt'
 pipeline/1/names/1  :  Use of missing filter 'notch_120'
 pipeline/2/names/1  :  Use of missing filter 'notch_120'
 pipeline  :  Pipeline outputs 4 channels, playback device has 2
@@ -86,7 +86,8 @@ A config file can be validated against a set of rules that match the ones in cam
 
 This example loads and validates a config from a path supplied on the command line. This example is for a Linux machine that does not have Pulse installed.
 Therefore, the list of supported device types is updated to include only those supported on this system.
-It then gets the error and warning lists, and the processed config. 
+It then gets all validation issues (errors and warnings), and the processed config.
+Each issue is a tuple: `(path, message, severity)` where severity is either `"error"` or `"warning"`.
 ```python
 import sys
 from camilladsp_plot.validate_config import CamillaValidator
@@ -94,8 +95,9 @@ file_validator = CamillaValidator()
 file_validator.set_supported_playback_types(["Alsa", "File", "Stdout"])
 file_validator.set_supported_capture_types(["Alsa", "File", "Stdin"])
 file_validator.validate_file(sys.argv[1])
-errors = file_validator.get_errors()
-warnings = file_validator.get_warnings()
+issues = file_validator.get_errors()
+errors = [issue for issue in issues if issue[2] == "error"]
+warnings = [issue for issue in issues if issue[2] == "warning"]
 config_with_defaults = file_validator.get_processed_config()
 ```
 

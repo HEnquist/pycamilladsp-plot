@@ -160,7 +160,7 @@ def test_filter_validation_rejects_missing_conv_file():
     errors, warnings = _validate(config)
 
     assert errors == []
-    assert any("Unable to find coefficent file" in message for _path, message in warnings)
+    assert any("Unable to find coefficient file" in message for _path, message in warnings)
 
 
 def test_filter_validation_rejects_invalid_wav_coeff_file(monkeypatch):

@@ -682,7 +682,7 @@ class CamillaValidator:
                     fname_rel = self.replace_tokens_in_string(fname_with_tokens)
                     fname = self.check_and_replace_relative_path(fname_rel)
                     if not os.path.exists(fname):
-                        msg = f"Unable to find coefficent file '{fname}'"
+                        msg = f"Unable to find coefficient file '{fname}'"
                         path = ["filters", filter_name, "parameters", "filename"]
                         self._append_warning(path, msg)
                         continue

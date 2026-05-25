@@ -107,4 +107,8 @@ CamillaValidator also has `validate_yamlstring` which is used for a config suppl
 - pipeline view: leave out bypassed blocks
 - pipeline view: indicate muted channels in mixers
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+
 

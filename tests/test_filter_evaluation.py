@@ -67,9 +67,9 @@ def test_eval_biquad_highshelf_has_expected_low_and_high_frequency_gain():
         {"type": "Notch", "freq": 1000.0, "q": 5.0},
         {
             "type": "GeneralNotch",
-            "freq_pole": 1200.0,
-            "q_pole": 2.0,
-            "freq_zero": 1000.0,
+            "freq_p": 1200.0,
+            "q_p": 2.0,
+            "freq_z": 1000.0,
             "normalize_at_dc": False,
         },
         {"type": "Bandpass", "freq": 1000.0, "q": 2.0},

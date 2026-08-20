@@ -68,7 +68,7 @@ def eval_filter(filterconf, name=None, samplerate=44100, npoints=1000, volume=0.
         result["magnitude"] = magn
         result["phase"] = phase
 
-    elif filterconf["type"] in ("Volume", "Dither"):
+    elif filterconf["type"] in ("Volume", "Dither", "Limiter"):
         currfilt = BaseFilter()
         _fplot, magn, phase = currfilt.gain_and_phase(fvect)
         result["magnitude"] = magn

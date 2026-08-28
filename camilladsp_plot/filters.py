@@ -69,6 +69,8 @@ class Conv(object):
             conf = {"values": [1.0]}
         if "filename" in conf:
             values = read_coeffs(conf)
+        elif conf.get("type") == "Dummy":
+            values = [1.0] + [0.0] * (int(conf["length"]) - 1)
         else:
             values = conf["values"]
         self.impulse = values
@@ -142,12 +144,8 @@ class Conv(object):
 class DiffEq(BaseFilter):
     def __init__(self, conf, fs):
         self.fs = fs
-        self.a = conf["a"]
-        self.b = conf["b"]
-        if len(self.a) == 0:
-            self.a = [1.0]
-        if len(self.b) == 0:
-            self.b = [1.0]
+        self.a = conf.get("a") or [1.0]
+        self.b = conf.get("b") or [1.0]
 
     def complex_gain(self, freq, remove_delay=False):
         zvec = [cmath.exp(1j * 2 * math.pi * f / self.fs) for f in freq]
@@ -245,8 +243,8 @@ class Delay(BaseFilter):
 class Gain(BaseFilter):
     def __init__(self, conf):
         self.gain = conf["gain"]
-        self.inverted = conf["inverted"] == True
-        self.scale = conf["scale"]
+        self.inverted = conf.get("inverted") == True
+        self.scale = conf.get("scale")
         if self.scale is None:
             self.scale = "dB"
 
@@ -368,8 +366,10 @@ class BiquadCombo(BaseFilter):
             self.biquads = [lsconf, p1conf, p2conf, p3conf, hsconf]
         elif self.ftype == "GraphicEqualizer":
             bands = len(conf["gains"])
-            f_min = conf["freq_min"] if conf["freq_min"] else 20.0
-            f_max = conf["freq_max"] if conf["freq_max"] else 20000.0
+            # 'or' on purpose: zero is invalid here (the DSP rejects it)
+            # and must fall back to the default rather than reach log2
+            f_min = conf.get("freq_min") or 20.0
+            f_max = conf.get("freq_max") or 20000.0
             f_min_log = math.log2(f_min)
             f_max_log = math.log2(f_max)
             self.biquads = []
@@ -414,16 +414,20 @@ class BiquadCombo(BaseFilter):
 class Loudness(BaseFilter):
     def __init__(self, conf, fs, volume):
         rel_vol = volume - conf["reference_level"]
-        conf["low_boost"]
-        conf["attenuate_mid"]
         rel_boost = -rel_vol / 20.0
         if rel_boost > 1.0:
             rel_boost = 1.0
         elif rel_boost < 0.0:
             rel_boost = 0.0
-        high_boost = rel_boost * conf["high_boost"]
-        low_boost = rel_boost * conf["low_boost"]
-        if conf["attenuate_mid"]:
+        high_boost = conf.get("high_boost")
+        if high_boost is None:
+            high_boost = 10.0
+        low_boost = conf.get("low_boost")
+        if low_boost is None:
+            low_boost = 10.0
+        high_boost = rel_boost * high_boost
+        low_boost = rel_boost * low_boost
+        if conf.get("attenuate_mid"):
             max_gain = max(high_boost, low_boost)
             self.mid_gain = 10.0 ** (-max_gain / 20.0)
         else:
@@ -617,10 +621,10 @@ class Biquad(BaseFilter):
             a1 = -2.0 * cs
             a2 = 1.0 - alpha
         elif ftype == "GeneralNotch":
-            f_p = conf["freq_pole"]
-            f_z = conf["freq_zero"]
-            q_p = conf["q_pole"]
-            normalize_at_dc = conf["normalize_at_dc"] == True
+            f_p = conf["freq_p"]
+            f_z = conf["freq_z"]
+            q_p = conf["q_p"]
+            normalize_at_dc = conf.get("normalize_at_dc") == True
 
             # apply pre-warping
             tn_z = math.tan(math.pi * f_z / fs)

@@ -47,6 +47,8 @@ with (
     biquadcombo_schemas = json.load(f)
 with resources.files("camilladsp_plot").joinpath("schemas/conv.json").open("r") as f:
     conv_schemas = json.load(f)
+with resources.files("camilladsp_plot").joinpath("schemas/crossover.json").open("r") as f:
+    crossover_schemas = json.load(f)
 with resources.files("camilladsp_plot").joinpath("schemas/dither.json").open("r") as f:
     dither_schemas = json.load(f)
 with (
@@ -421,6 +423,19 @@ class CamillaValidator:
                             schema,
                             path=["filters", name, "parameters"],
                         )
+                elif filt_type == "Crossover":
+                    schema = crossover_schemas["Crossover"]
+                    ok = self.validate(
+                        filt["parameters"], schema, path=["filters", name, "parameters"]
+                    )
+                    if ok:
+                        filt_subtype = filt["parameters"]["type"]
+                        schema = crossover_schemas[filt_subtype]
+                        self.validate(
+                            filt["parameters"],
+                            schema,
+                            path=["filters", name, "parameters"],
+                        )
                 elif filt_type == "Conv":
                     schema = conv_schemas["Conv"]
                     ok = self.validate(
@@ -600,7 +615,7 @@ class CamillaValidator:
 
         for filter_name, filter_conf in self.value_or_default(("filters",)).items():
             # Check that frequencies are below Nyquist
-            if filter_conf["type"] in ["Biquad", "BiquadCombo"]:
+            if filter_conf["type"] in ["Biquad", "BiquadCombo", "Crossover"]:
                 for freq_prop in [
                     "freq",
                     "freq_act",

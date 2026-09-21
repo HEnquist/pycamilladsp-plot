@@ -5,6 +5,7 @@ from .filters import (
     Biquad,
     BiquadCombo,
     Conv,
+    Crossover,
     Delay,
     DiffEq,
     Gain,
@@ -49,6 +50,16 @@ def eval_filter(filterconf, name=None, samplerate=44100, npoints=1000, volume=0.
         result["phase"] = phase
         result["time"] = t
         result["impulse"] = impulse
+
+    elif filterconf["type"] == "Crossover":
+        currfilt = Crossover(filterconf["parameters"], samplerate)
+        _fplot, magn, phase = currfilt.gain_and_phase(fvect, remove_delay=True)
+        t, impulse = currfilt.get_impulse()
+        result["magnitude"] = magn
+        result["phase"] = phase
+        result["time"] = t
+        result["impulse"] = impulse
+        result["latency"] = currfilt.latency()
 
     elif filterconf["type"] == "Delay":
         currfilt = Delay(filterconf["parameters"], samplerate)
@@ -107,6 +118,8 @@ def eval_filterstep(
             currfilt = Biquad(filterconf["parameters"], samplerate)
         elif filterconf["type"] == "Conv":
             currfilt = Conv(filterconf["parameters"], samplerate)
+        elif filterconf["type"] == "Crossover":
+            currfilt = Crossover(filterconf["parameters"], samplerate)
         elif filterconf["type"] == "Gain":
             currfilt = Gain(filterconf["parameters"])
         elif filterconf["type"] == "Delay":

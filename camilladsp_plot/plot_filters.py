@@ -26,7 +26,7 @@ def plot_filter(filterconf, name=None, samplerate=44100, npoints=1000, toimage=F
         plt.semilogx(f_grp, groupdelay)
         plt.ylabel("Group delay, ms")
 
-    elif filterconf["type"] == "Conv":
+    elif filterconf["type"] in ("Conv", "Crossover"):
         plt.figure(num=name)
         fplot = filterdata["f"]
         magn = filterdata["magnitude"]

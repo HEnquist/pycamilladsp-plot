@@ -73,13 +73,34 @@ To evaluate the frequency response of a filter, use the function `eval_filter`. 
 ```python
 eval_filter(filterconf, name=None, samplerate=44100, npoints=1000)
 ```
-This will evaluate the filter and return the result as a dictionary. The filter configuration `filterconf` must be provided. The `samplerate` defaults to 44100 if not given. The filter `name` is used for labels. The number of points in the plot is set with `npoints`. The contents of the returned dictionary depends on the filter type. A Biquad returns `name`, `samplerate`, `f`, `magnitude` and `phase`. A Conv filter additionally return the impulse response in `time` and `impulse`.
+This will evaluate the filter and return the result as a dictionary. The filter configuration `filterconf` must be provided. The `samplerate` defaults to 44100 if not given. The filter `name` is used for labels. The number of points in the plot is set with `npoints`. The contents of the returned dictionary depends on the filter type. A Biquad returns `name`, `samplerate`, `f`, `magnitude` and `phase`. A Conv filter additionally return the impulse response in `time` and `impulse`. A Crossover filter returns the same fields as a Conv filter, plus its `latency` in samples.
 
 It's also possible to evaluate the combined frequency response of a Filter step in the pipeline.
 ```python
 eval_filterstep(conf, pipelineindex, name="filterstep", npoints=1000)
 ```
 This command takes a full configuration as `conf`. It will evaluate the step with index `pipelineindex` in the pipeline where 0 is the first step. As for eval_filter, the result is returned as a dictionary with the same fields as for a Biquad.
+
+## Crossover latency
+The `Crossover` filter type calculates its coefficients from the crossover frequency and slope,
+so its latency is not known until the coefficients have been designed.
+The module `camilladsp_plot.crossover` provides this without a running CamillaDSP instance,
+using the same algorithm as the engine.
+It requires numpy.
+```python
+from camilladsp_plot.crossover import latency, pipeline_latency
+
+latency(48000, {"type": "Lowpass", "freq": 80.0, "slope": 48})
+pipeline_latency(conf)
+```
+`latency` returns the latency of a single filter in samples,
+given the samplerate and the filter parameters.
+`pipeline_latency` takes a full configuration and returns a dictionary with
+the latency of each crossover filter in `filters`,
+the latency per output channel before alignment in `channels`,
+and the resulting latency of the pipeline in `total`.
+It follows the same alignment rules as CamillaDSP,
+which delays the channels that have less crossover latency than the others.
 
 ## Validating a config
 A config file can be validated against a set of rules that match the ones in camilladsp. 

@@ -6,6 +6,7 @@
         "Biquad",
         "BiquadCombo",
         "Conv",
+        "Crossover",
         "Delay",
         "DiffEq",
         "Dither",

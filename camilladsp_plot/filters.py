@@ -3,6 +3,7 @@ import math
 import math
 from .cooley_tukey import fft
 from .audiofileread import read_coeffs
+from . import crossover
 
 
 def unwrap_phase(values, threshold=150.0):
@@ -137,6 +138,49 @@ class Conv(object):
     def get_impulse(self):
         t = [n / self.fs for n in range(len(self.impulse))]
         return t, self.impulse
+
+
+class Crossover(BaseFilter):
+    """Linear-phase FIR crossover, see crossover.py."""
+
+    def __init__(self, conf, fs):
+        self.conf = conf
+        self.fs = fs
+
+    def latency(self):
+        return crossover.latency(self.fs, self.conf)
+
+    def amplitude(self, freq):
+        """Real-valued zero-phase amplitude of the FIR at the given frequencies."""
+        import numpy as np
+
+        half = crossover._prototype(self.fs, float(self.conf["freq"]), self.conf["slope"])
+        omega = 2.0 * np.pi * np.asarray(freq, dtype=float) / self.fs
+        taps = np.arange(1, len(half))
+        ampl = np.full(len(omega), half[0])
+        for start in range(0, len(taps), 4096):
+            k = taps[start : start + 4096]
+            ampl += 2.0 * np.cos(np.outer(omega, k)) @ half[k]
+        if self.conf["type"] == "Highpass":
+            ampl = 1.0 - ampl
+        return ampl
+
+    def complex_gain(self, freq, remove_delay=False):
+        import numpy as np
+
+        ampl = self.amplitude(freq)
+        if not remove_delay:
+            omega = 2.0 * np.pi * np.asarray(freq, dtype=float) / self.fs
+            ampl = ampl * np.exp(-1j * omega * self.latency())
+        return freq, [complex(a) for a in ampl]
+
+    def gain_and_phase(self, f, remove_delay=True):
+        return super().gain_and_phase(f, remove_delay=remove_delay)
+
+    def get_impulse(self):
+        values = crossover.coefficients(self.fs, self.conf)
+        t = [n / self.fs for n in range(len(values))]
+        return t, [float(v) for v in values]
 
 
 class DiffEq(BaseFilter):

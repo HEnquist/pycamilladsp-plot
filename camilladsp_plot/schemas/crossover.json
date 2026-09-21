@@ -1,0 +1,49 @@
+{
+  "Crossover": {
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": ["Lowpass", "Highpass"]
+      }
+    },
+    "required": ["type"]
+  },
+  "Lowpass": {
+    "properties": {
+      "type": {
+        "enum": ["Lowpass"]
+      },
+      "freq": {
+        "type": "number",
+        "exclusiveMinimum": 0.0
+      },
+      "slope": {
+        "type": "integer",
+        "minimum": 12,
+        "maximum": 96,
+        "multipleOf": 6
+      }
+    },
+    "required": ["type", "freq", "slope"],
+    "additionalProperties": false
+  },
+  "Highpass": {
+    "properties": {
+      "type": {
+        "enum": ["Highpass"]
+      },
+      "freq": {
+        "type": "number",
+        "exclusiveMinimum": 0.0
+      },
+      "slope": {
+        "type": "integer",
+        "minimum": 12,
+        "maximum": 96,
+        "multipleOf": 6
+      }
+    },
+    "required": ["type", "freq", "slope"],
+    "additionalProperties": false
+  }
+}

@@ -616,7 +616,14 @@ class CamillaValidator:
                     "freq_max",
                 ]:
                     if freq_prop in filter_conf["parameters"].keys():
-                        if filter_conf["parameters"][freq_prop] >= maxfreq:
+                        value = filter_conf["parameters"][freq_prop]
+                        if value is None:
+                            # null means the CamillaDSP default, which the
+                            # DSP also checks against the samplerate
+                            value = {"freq_min": 20.0, "freq_max": 20000.0}.get(
+                                freq_prop
+                            )
+                        if value is not None and value >= maxfreq:
                             msg = "Frequency must be < samplerate/2"
                             path = ["filters", filter_name, "parameters", freq_prop]
                             self.errorlist.append((path, msg))

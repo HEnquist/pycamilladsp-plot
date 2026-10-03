@@ -144,6 +144,29 @@ def test_filter_validation_rejects_invalid_graphic_eq_range():
     )
 
 
+def test_filter_validation_checks_default_graphic_eq_freq_against_nyquist():
+    # freq_max left out means the CamillaDSP default of 20000, which the
+    # DSP rejects when the samplerate is too low to fit it
+    config = _base_config()
+    config["filters"]["geq"] = {
+        "type": "BiquadCombo",
+        "parameters": {
+            "type": "GraphicEqualizer",
+            "gains": [0.0, 1.0, -1.0],
+        },
+    }
+
+    errors, _warnings = _validate(config)
+    assert not errors
+
+    config["devices"]["samplerate"] = 32000
+    config["filters"]["geq"]["parameters"].pop("freq_max", None)
+    config["filters"]["geq"]["parameters"].pop("freq_min", None)
+
+    errors, _warnings = _validate(config)
+    assert "Frequency must be < samplerate/2" in _error_messages(errors)
+
+
 # === Convolution Coefficient File Rules ===
 
 def test_filter_validation_rejects_missing_conv_file():

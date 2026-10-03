@@ -1,4 +1,10 @@
 # pyCamillaDSP_plot
+
+> **This library is deprecated.** It does not support CamillaDSP 5.0 and will not be updated.
+> The config validation now lives in [camillagui-backend](https://github.com/HEnquist/camillagui-backend),
+> and filter evaluation runs in the browser in [camillagui](https://github.com/HEnquist/camillagui).
+> Version 4 of the GUI is the last one that uses this library.
+
 Companion Python library for plotting configurations and filters for CamillaDSP. It is also used by the web interface.
 
 ## Installation
